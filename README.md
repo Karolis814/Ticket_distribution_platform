@@ -48,12 +48,9 @@ The system is designed with the following quality attributes:
 
 ---
 
-## Project Structure
+## Project Management
 
-The system follows a modular architecture:
+Project tasks and sprint planning are managed in Jira:
+https://markk-psk.atlassian.net/jira/software/projects/MARKK/summary
 
-* API layer
-* Business logic layer
-* Data access layer
-
----
+All detailed task tracking, sprint planning, and progress monitoring are maintained within this environment.
