@@ -1,0 +1,10 @@
+@inject NavigationManager nav
+
+<RadzenPanelMenu>
+    <RadzenPanelMenuItem Text="Home"
+                          Icon="home"
+                          Click="@(() => nav.NavigateTo(""))" />
+    <RadzenPanelMenuItem Text="Events"
+                          Icon="event"
+                          Click="@(() => nav.NavigateTo("events"))" />
+</RadzenPanelMenu>

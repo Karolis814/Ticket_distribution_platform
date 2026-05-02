@@ -1,0 +1,24 @@
+@page "/events"
+@inherits EventsBase
+
+<PageTitle>Events</PageTitle>
+
+<RadzenStack Gap="1rem">
+    <RadzenText TextStyle="TextStyle.H4" Text="Events" />
+
+    <RadzenDataGrid TItem="EventDto"
+                     Data="@events"
+                     IsLoading="@isLoading"
+                     AllowFiltering="true"
+                     AllowSorting="true"
+                     AllowPaging="true"
+                     PageSize="10"
+                     EmptyText="No events available.">
+        <Columns>
+            <RadzenDataGridColumn TItem="EventDto" Property="Title" Title="Title" />
+            <RadzenDataGridColumn TItem="EventDto" Property="Location" Title="Location" />
+            <RadzenDataGridColumn TItem="EventDto" Property="StartsAt" Title="Starts at" FormatString="{0:g}" />
+            <RadzenDataGridColumn TItem="EventDto" Property="Capacity" Title="Capacity" />
+        </Columns>
+    </RadzenDataGrid>
+</RadzenStack>
