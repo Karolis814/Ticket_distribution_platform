@@ -1,0 +1,17 @@
+@page "/"
+
+<PageTitle>Ticket Platform</PageTitle>
+
+<RadzenStack Gap="1rem">
+    <RadzenText TextStyle="TextStyle.H3" Text="Welcome to the Ticket Platform" />
+    <RadzenText TextStyle="TextStyle.Body1"
+                 Text="Browse upcoming events and manage your tickets." />
+    <RadzenButton Text="Browse events"
+                   Icon="event"
+                   ButtonStyle="ButtonStyle.Primary"
+                   Click="@(() => navigationManager.NavigateTo("events"))" />
+</RadzenStack>
+
+@code {
+    [Inject] NavigationManager navigationManager { get; set; } = default!;
+}
