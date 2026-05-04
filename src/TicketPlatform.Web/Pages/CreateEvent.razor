@@ -1,0 +1,46 @@
+@page "/createEvent"
+@inherits CreateEventBase
+
+<h3>Create Event</h3>
+
+<div class="rz-p-0 rz-p-md-12">
+    <RadzenTemplateForm Model="@Model" OnValidSubmit="@HandleValidSubmit">
+        <RadzenStack Gap="1rem">
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                    <RadzenLabel Text="First Name" Component="FirstName" />
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenTextBox Name="Event Title" @bind-Value=@Model.Title Style="display: block; width: 100%;" />
+                    <RadzenRequiredValidator Component="EventTitle" Text="Event is required." Style="position: absolute" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                    <RadzenLabel Text="Last Name" Component="LastName" />
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenTextBox Name="Description" @bind-Value=@Model.Description Style="display: block; width: 100%;" />
+                    <RadzenRequiredValidator Component="LastName" Text="Last name is required." Style="position: absolute" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                    <RadzenLabel Text="Email" Component="Email" />
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenDatePicker Name="Date" @bind-Value=@Model.StartsAt Style="display: block; width: 100%;" />
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow AlignItems="AlignItems.Center" class="rz-mt-4">
+                <RadzenColumn Size="12" Offset="0" SizeMD="8" OffsetMD="4">
+                    <RadzenButton ButtonType="ButtonType.Submit" Text="Submit" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStack>
+    </RadzenTemplateForm>
+</div>
+
+@code {
+
+}
