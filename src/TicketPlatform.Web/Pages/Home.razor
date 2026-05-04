@@ -7,9 +7,13 @@
     <RadzenText TextStyle="TextStyle.Body1"
                  Text="Browse upcoming events and manage your tickets." />
     <RadzenButton Text="Browse events"
-                   Icon="event"
-                   ButtonStyle="ButtonStyle.Primary"
-                   Click="@(() => navigationManager.NavigateTo("events"))" />
+                  Icon="event"
+                  ButtonStyle="ButtonStyle.Primary"
+                  Click="@(() => navigationManager.NavigateTo("events"))" />
+    <RadzenButton Text="Create event"
+                  Icon="add"
+                  ButtonStyle="ButtonStyle.Primary"
+                  Click="@(() => navigationManager.NavigateTo("createEvent"))" />
 </RadzenStack>
 
 @code {

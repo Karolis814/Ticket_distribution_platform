@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TicketPlatform.Core\TicketPlatform.Core.csproj" />
     <ProjectReference Include="..\TicketPlatform.Shared\TicketPlatform.Shared.csproj" />
   </ItemGroup>
 
