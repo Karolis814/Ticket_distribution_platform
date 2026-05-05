@@ -38,12 +38,12 @@ public class EventsController : ControllerBase
             Description = request.Description,
             Location = request.Location,
             StartsAt = request.StartsAt,
-            Capacity = request.Capacity
+            TicketCount = request.Capacity
         }, ct);
 
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, ToDto(created));
     }
 
     private static EventDto ToDto(Event e) =>
-        new(e.Id, e.Title, e.Description, e.Location, e.StartsAt, e.Capacity);
+        new(e.Id, e.Title, e.Description, e.Location, e.StartsAt, e.TicketCount);
 }

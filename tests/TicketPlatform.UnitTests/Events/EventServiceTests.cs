@@ -19,7 +19,7 @@ public class EventServiceTests
             Description = "Live show",
             Location = "Vilnius",
             StartsAt = DateTime.UtcNow.AddDays(7),
-            Capacity = 1000
+            TicketCount = 1000
         };
 
         var result = await service.CreateAsync(input);

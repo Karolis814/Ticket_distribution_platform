@@ -15,7 +15,7 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.Property(e => e.Description).HasMaxLength(2000);
         builder.Property(e => e.Location).IsRequired().HasMaxLength(200);
         builder.Property(e => e.StartsAt).IsRequired();
-        builder.Property(e => e.Capacity).IsRequired();
+        builder.Property(e => e.TicketCount).IsRequired();
 
         builder.Property(e => e.Version).IsRowVersion();
 

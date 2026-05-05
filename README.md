@@ -35,7 +35,7 @@ Ticket_distribution_platform/
 
 ## Getting started
 
-You need .NET 9 SDK and Docker
+You need .NET 9.0.313 SDK and Docker
 
 1. Start Postgres:
    ```

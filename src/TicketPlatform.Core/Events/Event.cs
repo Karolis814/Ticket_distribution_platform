@@ -1,12 +1,19 @@
 using TicketPlatform.Core.Common;
-
+using TicketPlatform.Core.Tickets;
 namespace TicketPlatform.Core.Events;
 
 public class Event : BaseEntity
 {
-    public string Title { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Location { get; set; } = string.Empty;
-    public DateTime StartsAt { get; set; }
-    public int Capacity { get; set; }
+    public Guid HostId { get; set; }
+
+    public string Title { get; set; }
+    public string Description { get; set; }
+
+    public string Location { get; set; }
+
+    public DateTimeOffset StartsAt { get; set; }
+
+    public int TicketCount { get; set; }
+
+    public ICollection<Ticket> Tickets { get; set; }
 }

@@ -5,12 +5,12 @@ public record EventDto(
     string Title,
     string Description,
     string Location,
-    DateTime StartsAt,
+    DateTimeOffset StartsAt,
     int Capacity);
 
 public record CreateEventRequest(
     string Title,
     string Description,
     string Location,
-    DateTime StartsAt,
+    DateTimeOffset StartsAt,
     int Capacity);
