@@ -4,7 +4,7 @@
 <h3>Create Event</h3>
 
 <div class="rz-p-0 rz-p-md-12">
-    <EditForm Model="@Model" OnValidSubmit="@OnValidSubmit">
+    <EditForm Model="@Model" OnValidSubmit="@OnValidSubmit" OnInvalidSubmit="@OnInvalidSubmit">
         <DataAnnotationsValidator />
         <RadzenStack Gap="1rem">
 
@@ -14,6 +14,7 @@
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="8">
                     <RadzenTextBox Name="Title" @bind-Value="Model.Title" Style="display: block; width: 100%;"/>
+                    <ValidationMessage For="@(() => Model.Title)" />
                 </RadzenColumn>
             </RadzenRow>
 
@@ -23,6 +24,7 @@
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="8">
                     <RadzenTextBox Name="Description" @bind-Value="Model.Description" Style="display: block; width: 100%;"/>
+                    <ValidationMessage For="@(() => Model.Description)" />
                 </RadzenColumn>
             </RadzenRow>
 
@@ -32,6 +34,7 @@
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="8">
                     <RadzenDatePicker Name="StartsAt" @bind-Value="Model.StartsAt" Style="display: block; width: 100%;"/>
+                    <ValidationMessage For="@(() => Model.StartsAt)" />
                 </RadzenColumn>
             </RadzenRow>
 
@@ -41,6 +44,7 @@
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="8">
                     <RadzenNumeric TValue="int" Name="Capacity" @bind-Value="Model.Capacity" Style="display: block; width: 100%;"/>
+                    <ValidationMessage For="@(() => Model.Capacity)" />
                 </RadzenColumn>
             </RadzenRow>
 
@@ -50,6 +54,7 @@
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="8">
                     <RadzenTextBox Name="Location" @bind-Value="Model.Location" Style="display: block; width: 100%;"/>
+                    <ValidationMessage For="@(() => Model.Location)" />
                 </RadzenColumn>
             </RadzenRow>
 

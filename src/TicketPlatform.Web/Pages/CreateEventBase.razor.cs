@@ -63,6 +63,18 @@ public partial class CreateEventBase : ComponentBase
             });
         }
     }
+
+    protected Task OnInvalidSubmit(EditContext editContext)
+    {
+        NotificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Warning,
+            Summary = "Validation Failed",
+            Detail = "Please check all required fields and correct any errors.",
+            Duration = 5000
+        });
+        return Task.CompletedTask;
+    }
 }
 
 public class CreateEventFormModel
