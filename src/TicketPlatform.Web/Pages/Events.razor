@@ -4,21 +4,87 @@
 <PageTitle>Events</PageTitle>
 
 <RadzenStack Gap="1rem">
-    <RadzenText TextStyle="TextStyle.H4" Text="Events" />
+    <RadzenText TextStyle="TextStyle.H4" Text="Browse Events" />
+
+    <RadzenStack Orientation="Orientation.Horizontal"
+                 Gap="1rem"
+                 AlignItems="AlignItems.Center"
+                 Style="flex-wrap: wrap;">
+
+        <RadzenTextBox Placeholder="Event Title"
+                       Style="width: 150px;"
+                       Value="@SearchText"
+                       @oninput="OnSearchInput" />
+
+        <RadzenDatePicker @bind-Value="FromDate"
+                          Placeholder="Date From"
+                          DateFormat="yyyy-MM-dd"
+                          Style="width: 140px;" />
+
+        <RadzenDatePicker @bind-Value="ToDate"
+                          Placeholder="Date To"
+                          DateFormat="yyyy-MM-dd"
+                          Style="width: 140px;" />
+
+        <RadzenDropDown TValue="string"
+                        Data="@locations"
+                        @bind-Value="SelectedLocation"
+                        Placeholder="Select location"
+                        AllowClear="true"
+                        Style="width: 250px;" />
+
+        <RadzenButton Text="Search"
+                      Icon="search"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Click="@ApplyFilter" />
+    </RadzenStack>
 
     <RadzenDataGrid TItem="EventDto"
-                     Data="@events"
-                     IsLoading="@isLoading"
-                     AllowFiltering="true"
-                     AllowSorting="true"
-                     AllowPaging="true"
-                     PageSize="10"
-                     EmptyText="No events available.">
+                    Data="@filteredEvents"
+                    IsLoading="@isLoading"
+                    AllowFiltering="false"
+                    AllowSorting="true"
+                    AllowPaging="true"
+                    PageSize="10"
+                    EmptyText="No matching events found.">
         <Columns>
-            <RadzenDataGridColumn TItem="EventDto" Property="Title" Title="Title" />
-            <RadzenDataGridColumn TItem="EventDto" Property="Location" Title="Location" />
-            <RadzenDataGridColumn TItem="EventDto" Property="StartsAt" Title="Starts at" FormatString="{0:g}" />
-            <RadzenDataGridColumn TItem="EventDto" Property="Capacity" Title="Capacity" />
+            <RadzenDataGridColumn TItem="EventDto"
+                                  Property="Title"
+                                  Title="Title"
+                                  Filterable="false" />
+
+            <RadzenDataGridColumn TItem="EventDto"
+                                  Property="Location"
+                                  Title="Location"
+                                  Filterable="false" />
+
+            <RadzenDataGridColumn TItem="EventDto"
+                                  Property="StartsAt"
+                                  Title="Date"
+                                  FormatString="{0:yyyy-MM-dd}"
+                                  Filterable="false" />
+
+            <RadzenDataGridColumn TItem="EventDto"
+                                  Property="Capacity"
+                                  Title="Capacity"
+                                  Filterable="false">
+                <Template Context="eventItem">
+                    @eventItem.Capacity seats
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="EventDto"
+                                  Title="Actions"
+                                  Sortable="false"
+                                  Filterable="false"
+                                  Width="120px">
+                <Template Context="data">
+                    <RadzenButton Click="@(args => NavigationManager.NavigateTo($"/events/{data.Id}"))"
+                                  Text="Info"
+                                  Icon="info"
+                                  ButtonStyle="ButtonStyle.Info" />
+                </Template>
+            </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
 </RadzenStack>
