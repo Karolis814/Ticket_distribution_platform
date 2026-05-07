@@ -1,0 +1,54 @@
+@page "/events/{EventId:guid}"
+@inherits SingleEventBase
+
+<PageTitle>Event Details</PageTitle>
+
+<RadzenStack Gap="1rem">
+    <RadzenButton Icon="arrow_back" Text="Back to Events" Click="@(() => NavigationManager.NavigateTo("/events"))" Style="margin-bottom: 1rem;" />
+
+    @if (isLoading)
+    {
+        <RadzenText>Loading event details...</RadzenText>
+    }
+    else if (Event is null)
+    {
+        <RadzenText TextStyle="TextStyle.H5" Text="Event not found." />
+    }
+    else
+    {
+        <RadzenStack Gap="1rem">
+            <RadzenText TextStyle="TextStyle.H4" Text="@Event.Title" />
+
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem">
+                <RadzenStack Gap="0.5rem">
+                    <RadzenText TextStyle="TextStyle.Body2" Text="Location" />
+                    <RadzenText TextStyle="TextStyle.Body1" Text="@Event.Location" />
+                </RadzenStack>
+
+                <RadzenStack Gap="0.5rem">
+                    <RadzenText TextStyle="TextStyle.Body2" Text="Starts At" />
+                    <RadzenText TextStyle="TextStyle.Body1" Text="@Event.StartsAt.ToString("g")" />
+                </RadzenStack>
+
+                <RadzenStack Gap="0.5rem">
+                    <RadzenText TextStyle="TextStyle.Body2" Text="Capacity" />
+                    <RadzenText TextStyle="TextStyle.Body1" Text="@Event.Capacity.ToString("G")" />
+                </RadzenStack>
+            </RadzenStack>
+
+            <RadzenStack Gap="0.5rem">
+                <RadzenText TextStyle="TextStyle.Body2" Text="Description" />
+                <RadzenText TextStyle="TextStyle.Body1" Text="@Event.Description" />
+            </RadzenStack>
+
+            <RadzenStack Gap="1rem" Orientation="Orientation.Horizontal" class="rz-mt-4">
+                <RadzenButton Click="@(args => NavigationManager.NavigateTo($"/checkout/{Event.Id}"))" Text="Checkout" ButtonStyle="ButtonStyle.Success" />
+            </RadzenStack>
+        </RadzenStack>
+    }
+</RadzenStack>
+
+@code {
+
+}
+

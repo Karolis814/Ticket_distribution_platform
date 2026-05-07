@@ -9,6 +9,7 @@ public class EventsBase : ComponentBase
 {
     [Inject] protected IEventsClient eventsClient { get; set; } = default!;
     [Inject] protected NotificationService notificationService { get; set; } = default!;
+    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
 
     protected IReadOnlyList<EventDto> events { get; private set; } = Array.Empty<EventDto>();
     protected bool isLoading { get; private set; }
