@@ -12,44 +12,47 @@ public class EventsBase : ComponentBase
     [Inject] protected NotificationService notificationService { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
 
-    protected IReadOnlyList<EventDto> events { get; private set; } = Array.Empty<EventDto>();
     protected IReadOnlyList<EventDto> filteredEvents { get; private set; } = Array.Empty<EventDto>();
-    protected IReadOnlyList<string> locations { get; private set; } = Array.Empty<string>();
+    protected IReadOnlyList<string> locationSuggestions { get; private set; } = Array.Empty<string>();
 
     protected bool isLoading { get; private set; }
 
     protected string SearchText { get; set; } = string.Empty;
-    protected string? SelectedLocation { get; set; }
+    protected string LocationText { get; set; } = string.Empty;
 
     protected DateTime? FromDate { get; set; }
     protected DateTime? ToDate { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        await loadEventsAsync();
+        await ApplyFilterAsync();
     }
 
-    private async Task loadEventsAsync()
+    protected void OnSearchInput(ChangeEventArgs e)
+    {
+        SearchText = e.Value?.ToString() ?? string.Empty;
+    }
+
+    protected async Task LoadLocationSuggestions(LoadDataArgs args)
+    {
+        var input = args.Filter ?? string.Empty;
+
+        LocationText = input;
+
+        locationSuggestions = await eventsClient.GetLocationSuggestionsAsync(input);
+    }
+
+    protected async Task ApplyFilterAsync()
     {
         isLoading = true;
 
         try
         {
-            events = new List<EventDto>
-            {
-                new EventDto(Guid.NewGuid(), "Rock Concert", "Rock music event", "Vilnius", DateTime.Now.AddDays(5), 500),
-                new EventDto(Guid.NewGuid(), "Basketball Finals", "Final basketball match", "Kaunas", DateTime.Now.AddDays(10), 1200),
-                new EventDto(Guid.NewGuid(), "Tech Conference", "Technology and startups event", "Vilnius", DateTime.Now.AddDays(12), 300)
-            };
-
-            locations = events
-                .Select(e => e.Location)
-                .Where(l => !string.IsNullOrWhiteSpace(l))
-                .Distinct()
-                .OrderBy(l => l)
-                .ToList();
-
-            filteredEvents = events;
+            filteredEvents = await eventsClient.SearchAsync(
+                SearchText,
+                FromDate,
+                ToDate,
+                LocationText);
         }
         catch (Exception ex)
         {
@@ -67,46 +70,14 @@ public class EventsBase : ComponentBase
         }
     }
 
-    protected void OnSearchInput(ChangeEventArgs e)
+    protected async Task ClearFilterAsync()
     {
-        SearchText = e.Value?.ToString() ?? string.Empty;
-    }
+        SearchText = string.Empty;
+        LocationText = string.Empty;
+        FromDate = null;
+        ToDate = null;
+        locationSuggestions = Array.Empty<string>();
 
-    protected void ApplyFilter()
-    {
-        IEnumerable<EventDto> query = events;
-
-        if (!string.IsNullOrWhiteSpace(SearchText))
-        {
-            var search = SearchText.Trim();
-
-            query = query.Where(e =>
-                Contains(e.Title, search) ||
-                Contains(e.Description, search));
-        }
-
-        if (FromDate.HasValue)
-        {
-            query = query.Where(e => e.StartsAt.Date >= FromDate.Value.Date);
-        }
-
-        if (ToDate.HasValue)
-        {
-            query = query.Where(e => e.StartsAt.Date <= ToDate.Value.Date);
-        }
-
-        if (!string.IsNullOrWhiteSpace(SelectedLocation))
-        {
-            query = query.Where(e => e.Location == SelectedLocation);
-        }
-
-        filteredEvents = query.ToList();
-    }
-
-
-    private static bool Contains(string? value, string search)
-    {
-        return !string.IsNullOrWhiteSpace(value)
-            && value.Contains(search, StringComparison.OrdinalIgnoreCase);
+        await ApplyFilterAsync();
     }
 }

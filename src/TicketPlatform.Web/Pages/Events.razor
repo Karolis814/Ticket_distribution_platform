@@ -12,7 +12,7 @@
                  Style="flex-wrap: wrap;">
 
         <RadzenTextBox Placeholder="Event Title"
-                       Style="width: 150px;"
+                       Style="width: 120px;"
                        Value="@SearchText"
                        @oninput="OnSearchInput" />
 
@@ -26,17 +26,24 @@
                           DateFormat="yyyy-MM-dd"
                           Style="width: 140px;" />
 
-        <RadzenDropDown TValue="string"
-                        Data="@locations"
-                        @bind-Value="SelectedLocation"
-                        Placeholder="Select location"
-                        AllowClear="true"
-                        Style="width: 250px;" />
+        <RadzenAutoComplete TValue="string"
+                            Data="@locationSuggestions"
+                            @bind-Value="LocationText"
+                            Placeholder="Select location"
+                            Style="width: 180px;"
+                            MinLength="2"
+                            LoadData="@LoadLocationSuggestions" />
 
         <RadzenButton Text="Search"
                       Icon="search"
                       ButtonStyle="ButtonStyle.Primary"
-                      Click="@ApplyFilter" />
+                      Click="@ApplyFilterAsync" />
+
+        <RadzenButton Text="Clear"
+                      Icon="close"
+                      ButtonStyle="ButtonStyle.Light"
+                      Click="@ClearFilterAsync" />
+
     </RadzenStack>
 
     <RadzenDataGrid TItem="EventDto"

@@ -16,10 +16,65 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<EventDto>>> GetAll(CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<EventDto>>> GetAll(
+        [FromQuery] string? title,
+        [FromQuery] DateTime? fromDate,
+        [FromQuery] DateTime? toDate,
+        [FromQuery] string? location,
+        CancellationToken ct)
     {
         var events = await _eventService.GetAllAsync(ct);
-        return Ok(events.Select(ToDto).ToList());
+
+        var query = events.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            query = query.Where(e =>
+                Contains(e.Title, title) ||
+                Contains(e.Description, title));
+        }
+
+        if (fromDate.HasValue)
+        {
+            query = query.Where(e => e.StartsAt.Date >= fromDate.Value.Date);
+        }
+
+        if (toDate.HasValue)
+        {
+            query = query.Where(e => e.StartsAt.Date <= toDate.Value.Date);
+        }
+
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            query = query.Where(e =>
+                Contains(e.Location, location));
+        }
+
+        return Ok(query.Select(ToDto).ToList());
+    }
+
+    [HttpGet("locations")]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetLocationSuggestions(
+        [FromQuery] string input,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
+        {
+            return Ok(Array.Empty<string>());
+        }
+
+        var events = await _eventService.GetAllAsync(ct);
+
+        var locations = events
+            .Select(e => e.Location)
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .Distinct()
+            .Where(l => Contains(l, input))
+            .OrderBy(l => l)
+            .Take(10)
+            .ToList();
+
+        return Ok(locations);
     }
 
     [HttpGet("{id:guid}")]
@@ -46,4 +101,10 @@ public class EventsController : ControllerBase
 
     private static EventDto ToDto(Event e) =>
         new(e.Id, e.Title, e.Description, e.Location, e.StartsAt, e.Capacity);
+
+    private static bool Contains(string? value, string search)
+    {
+        return !string.IsNullOrWhiteSpace(value)
+            && value.Contains(search, StringComparison.OrdinalIgnoreCase);
+    }
 }
