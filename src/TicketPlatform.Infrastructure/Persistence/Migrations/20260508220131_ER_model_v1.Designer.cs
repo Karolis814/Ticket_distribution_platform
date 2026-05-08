@@ -12,7 +12,7 @@ using TicketPlatform.Infrastructure.Persistence;
 namespace TicketPlatform.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260508211722_ER_model_v1")]
+    [Migration("20260508220131_ER_model_v1")]
     partial class ER_model_v1
     {
         /// <inheritdoc />
@@ -108,7 +108,14 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("bigint");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 

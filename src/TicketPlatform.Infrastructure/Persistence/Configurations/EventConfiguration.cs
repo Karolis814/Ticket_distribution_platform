@@ -37,6 +37,16 @@ public static class EventConfiguration
                 .WithMany(x => x.HostedEvents)
                 .HasForeignKey(x => x.HostId);
 
+            // something weird happening with concurrency tokens, need to investigate
+            // this fixes it idk 
+            builder.Property(x => x.Version)
+                .IsConcurrencyToken()
+                .IsRequired();
+            builder.Property<uint>("xmin")
+                .IsRowVersion()
+                .HasColumnName("xmin")
+                .ValueGeneratedOnAddOrUpdate();
+
         });
 
         modelBuilder.Entity<Ticket>(builder =>

@@ -24,11 +24,6 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                 newName: "Events");
 
             migrationBuilder.RenameColumn(
-                name: "xmin",
-                table: "Events",
-                newName: "Version");
-
-            migrationBuilder.RenameColumn(
                 name: "Capacity",
                 table: "Events",
                 newName: "TicketCount");
@@ -51,15 +46,6 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                 oldType: "character varying(2000)",
                 oldMaxLength: 2000);
 
-            migrationBuilder.AlterColumn<long>(
-                name: "Version",
-                table: "Events",
-                type: "bigint",
-                nullable: false,
-                oldClrType: typeof(uint),
-                oldType: "xid",
-                oldRowVersion: true);
-
             migrationBuilder.AddColumn<DateTimeOffset>(
                 name: "EndsAt",
                 table: "Events",
@@ -73,6 +59,13 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                 type: "uuid",
                 nullable: false,
                 defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
+
+            migrationBuilder.AddColumn<long>(
+                name: "Version",
+                table: "Events",
+                type: "bigint",
+                nullable: false,
+                defaultValue: 0L);
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_Events",
@@ -389,14 +382,13 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                 name: "HostId",
                 table: "Events");
 
+            migrationBuilder.DropColumn(
+                name: "Version",
+                table: "Events");
+
             migrationBuilder.RenameTable(
                 name: "Events",
                 newName: "events");
-
-            migrationBuilder.RenameColumn(
-                name: "Version",
-                table: "events",
-                newName: "xmin");
 
             migrationBuilder.RenameColumn(
                 name: "TicketCount",
@@ -420,15 +412,6 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
-
-            migrationBuilder.AlterColumn<uint>(
-                name: "xmin",
-                table: "events",
-                type: "xid",
-                rowVersion: true,
-                nullable: false,
-                oldClrType: typeof(long),
-                oldType: "bigint");
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_events",
