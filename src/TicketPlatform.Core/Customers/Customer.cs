@@ -5,7 +5,6 @@ using TicketPlatform.Core.Users;
 namespace TicketPlatform.Core.Customers;
 public class Customer : BaseEntity
 {
-    public Guid CustomerId { get; set; }
 
     public Guid? UserId { get; set; }
     public User User { get; set; }

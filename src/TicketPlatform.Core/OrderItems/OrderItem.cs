@@ -3,10 +3,8 @@ using TicketPlatform.Core.Orders;
 using TicketPlatform.Core.Tickets;
 
 namespace TicketPlatform.Core.OrderItems;
-public class OrderItem
+public class OrderItem : BaseEntity
 {
-    public Guid OrderItemId { get; set; }
-
     public Guid OrderId { get; set; }
     public Order Order { get; set; }
 

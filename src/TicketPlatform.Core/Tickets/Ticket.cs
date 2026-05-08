@@ -2,21 +2,22 @@ using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Events;
 using TicketPlatform.Core.OrderItems;
 
-
 namespace TicketPlatform.Core.Tickets;
-public class Ticket
+public class Ticket : BaseEntity
 {
-    public Guid TicketId { get; set; }
-
     public Guid EventId { get; set; }
     public Event Event { get; set; }
 
     public int Price { get; set; } // stored in cents
     public string Currency { get; set; }
 
+   
     public int? SeatNumber { get; set; }
+     // start end timestamp
+    //int activasionCount
 
-    public string Status { get; set; } // available, reserved, sold
+    public DateTimeOffset admisionStart { get; set; }
 
-    public ICollection<OrderItem> OrderItems { get; set; }
+    public DateTimeOffset admisionEnd { get; set; }
+    public TicketStatus Status { get; set; } 
 }

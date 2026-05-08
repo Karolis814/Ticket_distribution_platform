@@ -36,7 +36,10 @@ public class EventsEndpointTests : IClassFixture<PostgresApiFactory>
             Description: "Integration test event",
             Location: "Kaunas",
             StartsAt: DateTime.UtcNow.AddDays(30),
-            Capacity: 500));
+            EndsAt: DateTime.UtcNow.AddDays(30).AddHours(2),
+            TicketCount: 500, 
+            HostId: Guid.NewGuid()
+            ));
 
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
         var created = await createResponse.Content.ReadFromJsonAsync<EventDto>();

@@ -6,11 +6,17 @@ public record EventDto(
     string Description,
     string Location,
     DateTimeOffset StartsAt,
-    int Capacity);
+    DateTimeOffset EndsAt,
+    int TicketCount,
+    Guid HostId
+);
 
 public record CreateEventRequest(
     string Title,
     string Description,
     string Location,
     DateTimeOffset StartsAt,
-    int Capacity);
+    DateTimeOffset EndsAt,
+    int TicketCount,
+    Guid HostId
+);
