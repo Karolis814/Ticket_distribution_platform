@@ -35,7 +35,7 @@ Ticket_distribution_platform/
 
 ## Getting started
 
-You need .NET 9.0.313 SDK and Docker
+You need .NET 9 SDK and Docker
 
 1. Start Postgres:
    ```
@@ -80,7 +80,7 @@ Integration tests need Docker running — they spin up a throwaway Postgres via 
 
 - Frontend: https://localhost:7174
 - API: https://localhost:7001
-- pgAdmin: http://localhost:5050 (login: `admin@ticket.local` / `admin`)
+- pgAdmin: http://localhost:5050 (login: `admin@ticket.dev` / `admin`)
 
 ## Frontend conventions (short version)
 

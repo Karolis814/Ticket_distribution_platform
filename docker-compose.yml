@@ -22,7 +22,7 @@ services:
     container_name: ticket_platform_pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@ticket.local
+      PGADMIN_DEFAULT_EMAIL: admin@ticket.dev
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: "False"
     ports:
