@@ -1,4 +1,4 @@
-namespace TicketPlatform.Shared.Events;
+namespace TicketPlatform.Shared.Dtos;
 
 public record EventDto(
     Guid Id,

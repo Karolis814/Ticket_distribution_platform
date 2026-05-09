@@ -1,3 +1,5 @@
+using TicketPlatform.Core.Entities;
+
 namespace TicketPlatform.Core.Common;
 
 public interface IRepository<T> where T : BaseEntity

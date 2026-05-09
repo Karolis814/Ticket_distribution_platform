@@ -1,8 +1,5 @@
-using TicketPlatform.Core.Common;
-using TicketPlatform.Core.Orders;
-using TicketPlatform.Core.Tickets;
+namespace TicketPlatform.Core.Entities;
 
-namespace TicketPlatform.Core.OrderItems;
 public class OrderItem : BaseEntity
 {
     public Guid OrderId { get; set; }

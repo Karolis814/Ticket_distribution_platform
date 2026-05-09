@@ -1,13 +1,10 @@
-using TicketPlatform.Core.Common;
-using TicketPlatform.Core.Tickets;
-using TicketPlatform.Core.Users;
-namespace TicketPlatform.Core.Events;
+namespace TicketPlatform.Core.Entities;
 
 public class Event : BaseEntity
 {
     public Guid HostId { get; set; }
 
-    public User Host {get; set;}
+    public User Host { get; set; }
 
     public string Title { get; set; }
     public string Description { get; set; }

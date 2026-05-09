@@ -37,7 +37,7 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("UserPermissionGroupPermissions", (string)null);
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Customers.Customer", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Customer", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -67,7 +67,7 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Customers", (string)null);
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Events.Event", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Event", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -121,40 +121,7 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Events", (string)null);
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.OrderItems.OrderItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("PriceAtPurchase")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("TicketId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("Version")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("TicketId");
-
-                    b.ToTable("OrderItems", (string)null);
-                });
-
-            modelBuilder.Entity("TicketPlatform.Core.Orders.Order", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -190,7 +157,40 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Orders", (string)null);
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Payments.Payment", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.OrderItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("PriceAtPurchase")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TicketId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("TicketId");
+
+                    b.ToTable("OrderItems", (string)null);
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Payment", b =>
                 {
                     b.Property<Guid>("PaymentId")
                         .ValueGeneratedOnAdd()
@@ -235,7 +235,35 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Payments", (string)null);
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Tickets.Ticket", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Permission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("PermissionStatus")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Permisions", (string)null);
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Ticket", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -280,35 +308,7 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Tickets", (string)null);
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Users.Permission", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("PermissionStatus")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("Version")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Permisions", (string)null);
-                });
-
-            modelBuilder.Entity("TicketPlatform.Core.Users.User", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -343,7 +343,7 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Users.UserPermissionGroup", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.UserPermissionGroup", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -368,31 +368,31 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("PermissionUserPermissionGroup", b =>
                 {
-                    b.HasOne("TicketPlatform.Core.Users.Permission", null)
+                    b.HasOne("TicketPlatform.Core.Entities.Permission", null)
                         .WithMany()
                         .HasForeignKey("PermissionsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TicketPlatform.Core.Users.UserPermissionGroup", null)
+                    b.HasOne("TicketPlatform.Core.Entities.UserPermissionGroup", null)
                         .WithMany()
                         .HasForeignKey("UserPermissionGroupsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Customers.Customer", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Customer", b =>
                 {
-                    b.HasOne("TicketPlatform.Core.Users.User", "User")
+                    b.HasOne("TicketPlatform.Core.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Events.Event", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Event", b =>
                 {
-                    b.HasOne("TicketPlatform.Core.Users.User", "Host")
+                    b.HasOne("TicketPlatform.Core.Entities.User", "Host")
                         .WithMany("HostedEvents")
                         .HasForeignKey("HostId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -401,15 +401,26 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Host");
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.OrderItems.OrderItem", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Order", b =>
                 {
-                    b.HasOne("TicketPlatform.Core.Orders.Order", "Order")
+                    b.HasOne("TicketPlatform.Core.Entities.Customer", "Customer")
+                        .WithMany("Orders")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.OrderItem", b =>
+                {
+                    b.HasOne("TicketPlatform.Core.Entities.Order", "Order")
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TicketPlatform.Core.Tickets.Ticket", "Ticket")
+                    b.HasOne("TicketPlatform.Core.Entities.Ticket", "Ticket")
                         .WithMany()
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -420,31 +431,20 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Ticket");
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Orders.Order", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Payment", b =>
                 {
-                    b.HasOne("TicketPlatform.Core.Customers.Customer", "Customer")
-                        .WithMany("Orders")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-                });
-
-            modelBuilder.Entity("TicketPlatform.Core.Payments.Payment", b =>
-                {
-                    b.HasOne("TicketPlatform.Core.Orders.Order", "Order")
+                    b.HasOne("TicketPlatform.Core.Entities.Order", "Order")
                         .WithOne("Payment")
-                        .HasForeignKey("TicketPlatform.Core.Payments.Payment", "OrderId")
+                        .HasForeignKey("TicketPlatform.Core.Entities.Payment", "OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Tickets.Ticket", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Ticket", b =>
                 {
-                    b.HasOne("TicketPlatform.Core.Events.Event", "Event")
+                    b.HasOne("TicketPlatform.Core.Entities.Event", "Event")
                         .WithMany("Tickets")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -453,9 +453,9 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("Event");
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Users.User", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.User", b =>
                 {
-                    b.HasOne("TicketPlatform.Core.Users.UserPermissionGroup", "UserPermissionGroup")
+                    b.HasOne("TicketPlatform.Core.Entities.UserPermissionGroup", "UserPermissionGroup")
                         .WithMany("Users")
                         .HasForeignKey("UserPermissionGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -464,17 +464,17 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("UserPermissionGroup");
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Customers.Customer", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Customer", b =>
                 {
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Events.Event", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Event", b =>
                 {
                     b.Navigation("Tickets");
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Orders.Order", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
 
@@ -482,12 +482,12 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Users.User", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.User", b =>
                 {
                     b.Navigation("HostedEvents");
                 });
 
-            modelBuilder.Entity("TicketPlatform.Core.Users.UserPermissionGroup", b =>
+            modelBuilder.Entity("TicketPlatform.Core.Entities.UserPermissionGroup", b =>
                 {
                     b.Navigation("Users");
                 });

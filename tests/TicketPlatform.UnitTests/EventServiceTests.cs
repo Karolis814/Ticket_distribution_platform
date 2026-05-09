@@ -1,9 +1,10 @@
 using FluentAssertions;
 using Moq;
 using TicketPlatform.Core.Common;
-using TicketPlatform.Core.Events;
+using TicketPlatform.Core.Entities;
+using TicketPlatform.Core.Services;
 
-namespace TicketPlatform.UnitTests.Events;
+namespace TicketPlatform.UnitTests;
 
 public class EventServiceTests
 {

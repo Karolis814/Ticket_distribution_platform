@@ -1,8 +1,5 @@
-using TicketPlatform.Core.Common;
-using TicketPlatform.Core.Orders;
+namespace TicketPlatform.Core.Entities;
 
-
-namespace TicketPlatform.Core.Payments;
 public class Payment
 {
     public Guid PaymentId { get; set; }
@@ -13,7 +10,7 @@ public class Payment
     public string StripePaymentIntentId { get; set; }
     public string StripeCheckoutSessionId { get; set; }
 
-    public int Amount { get; set; }     // centai i.e 100 -> 1.00 eur
+    public int Amount { get; set; } // centai i.e 100 -> 1.00 eur
     public string Currency { get; set; }
 
     public string Status { get; set; }

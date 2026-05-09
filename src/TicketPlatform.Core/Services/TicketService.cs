@@ -1,7 +1,7 @@
 using TicketPlatform.Core.Common;
-using TicketPlatform.Core.Tickets;
+using TicketPlatform.Core.Entities;
 
-namespace TicketPlatform.Application.Services;
+namespace TicketPlatform.Core.Services;
 
 public class TicketService
 {
@@ -12,7 +12,7 @@ public class TicketService
         _repository = repository;
     }
 
-    public async Task<Ticket?> GetByIdAsync(Guid id,CancellationToken ct = default)
+    public async Task<Ticket?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await _repository.GetByIdAsync(id, ct);
     }

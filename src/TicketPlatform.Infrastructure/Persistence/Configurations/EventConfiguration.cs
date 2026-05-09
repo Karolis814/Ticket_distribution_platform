@@ -1,7 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TicketPlatform.Core.Events;
-using TicketPlatform.Core.Tickets;
+using TicketPlatform.Core.Entities;
 
 namespace TicketPlatform.Infrastructure.Persistence.Configurations;
 
@@ -25,20 +23,20 @@ public static class EventConfiguration
                 .IsRequired();
 
             builder.Property(x => x.TicketCount)
-                .IsRequired();  
+                .IsRequired();
             builder.Property(x => x.CreatedAt)
                 .IsRequired();
             builder.Property(x => x.UpdatedAt);
             builder.HasMany(x => x.Tickets)
                 .WithOne(x => x.Event)
                 .HasForeignKey(x => x.EventId);
-            
+
             builder.HasOne(x => x.Host)
                 .WithMany(x => x.HostedEvents)
                 .HasForeignKey(x => x.HostId);
 
             // something weird happening with concurrency tokens, need to investigate
-            // this fixes it idk 
+            // this fixes it idk
             builder.Property(x => x.Version)
                 .IsConcurrencyToken()
                 .IsRequired();
@@ -64,7 +62,7 @@ public static class EventConfiguration
             builder.Property(x => x.CreatedAt)
                 .IsRequired();
             builder.Property(x => x.UpdatedAt);
-            
+
             builder.Property(x => x.Status)
                 .IsRequired();
             builder.Property(x => x.admisionStart)
@@ -72,8 +70,8 @@ public static class EventConfiguration
 
             builder.Property(x => x.admisionEnd)
                 .IsRequired();
-            
-            
+
+
         });
     }
 }

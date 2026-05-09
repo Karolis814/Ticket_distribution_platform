@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TicketPlatform.Core.Payments;
+using TicketPlatform.Core.Entities;
 
 namespace TicketPlatform.Infrastructure.Persistence.Configurations;
 public static class PaymentConfiguration
 {
-    
+
     public static void ConfigurePayment (this ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Payment>(builder =>

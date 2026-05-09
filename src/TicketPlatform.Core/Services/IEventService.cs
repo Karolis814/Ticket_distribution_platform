@@ -1,4 +1,6 @@
-namespace TicketPlatform.Core.Events;
+using TicketPlatform.Core.Entities;
+
+namespace TicketPlatform.Core.Services;
 
 public interface IEventService
 {

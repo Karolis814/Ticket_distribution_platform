@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Radzen;
-using TicketPlatform.Shared.Events;
+using TicketPlatform.Shared.Dtos;
 using TicketPlatform.Web.Services;
 
 namespace TicketPlatform.Web.Pages;

@@ -1,5 +1,6 @@
-using TicketPlatform.Shared.Tickets;
-namespace TicketPlatform.Shared.Tickets;
+using TicketPlatform.Shared.Enums;
+
+namespace TicketPlatform.Shared.Dtos;
 
 public record TicketDto(
     Guid Id,
@@ -11,8 +12,6 @@ public record TicketDto(
     DateTimeOffset AdmissionEnd,
     TicketStatus Status
 );
-
-
 
 public record CreateTicketRequest(
     Guid EventId,

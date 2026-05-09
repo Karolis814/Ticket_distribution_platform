@@ -1,14 +1,12 @@
-using TicketPlatform.Core.Customers;
-using TicketPlatform.Core.Common;
-using TicketPlatform.Core.OrderItems;
-using TicketPlatform.Core.Payments;
+using TicketPlatform.Shared.Enums;
 
-namespace TicketPlatform.Core.Orders;
+namespace TicketPlatform.Core.Entities;
+
 public class Order : BaseEntity
 {
     public Guid CustomerId { get; set; }
-    // create customer when setting up the order, delete on failed Order completion, 
-    // 
+
+    // create Customer when setting up the order, delete on failed Order completion,
     public Customer? Customer { get; set; }
 
     public int TotalPrice { get; set; }
@@ -17,6 +15,6 @@ public class Order : BaseEntity
     public OrderStatus Status { get; set; }
 
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-    
+
     public Payment Payment { get; set; }
 }

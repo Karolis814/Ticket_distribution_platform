@@ -1,11 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TicketPlatform.Core.Events;
-using TicketPlatform.Core.Users;
-using TicketPlatform.Core.Orders;
-using TicketPlatform.Core.OrderItems;
-using TicketPlatform.Core.Tickets;
-using TicketPlatform.Core.Customers;
-using TicketPlatform.Core.Payments;
+using TicketPlatform.Core.Entities;
 using TicketPlatform.Infrastructure.Persistence.Configurations;
 namespace TicketPlatform.Infrastructure.Persistence;
 

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using TicketPlatform.Application.Services;
-using TicketPlatform.Core.Tickets;
+using TicketPlatform.Core.Entities;
+using TicketPlatform.Core.Services;
 
 namespace TicketPlatform.Api.Controllers;
 

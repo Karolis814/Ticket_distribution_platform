@@ -1,16 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TicketPlatform.Core.OrderItems;
-using TicketPlatform.Core.Orders;
-using TicketPlatform.Core.Customers;
+using TicketPlatform.Core.Entities;
 
 namespace TicketPlatform.Infrastructure.Persistence.Configurations;
 public static class OrderConfiguration
 {
-    
+
     public static void ConfigureOrder(this ModelBuilder modelBuilder)
     {
-        
+
         modelBuilder.Entity<Order>(builder =>
         {
             builder.ToTable("Orders");
@@ -26,11 +24,11 @@ public static class OrderConfiguration
 
             builder.Property(x => x.Status)
                 .IsRequired();
-            
+
             builder.HasMany(x => x.OrderItems)
                 .WithOne(x => x.Order)
                 .HasForeignKey(x => x.OrderId);
-            
+
             builder.HasOne(x => x.Customer)
                 .WithMany(x => x.Orders)
                 .HasForeignKey(x => x.CustomerId);

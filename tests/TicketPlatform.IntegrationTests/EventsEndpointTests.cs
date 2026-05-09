@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using TicketPlatform.Shared.Events;
+using TicketPlatform.Shared.Dtos;
 
-namespace TicketPlatform.IntegrationTests.Events;
+namespace TicketPlatform.IntegrationTests;
 
 public class EventsEndpointTests : IClassFixture<PostgresApiFactory>
 {
@@ -37,7 +37,7 @@ public class EventsEndpointTests : IClassFixture<PostgresApiFactory>
             Location: "Kaunas",
             StartsAt: DateTime.UtcNow.AddDays(30),
             EndsAt: DateTime.UtcNow.AddDays(30).AddHours(2),
-            TicketCount: 500, 
+            TicketCount: 500,
             HostId: Guid.NewGuid()
             ));
 

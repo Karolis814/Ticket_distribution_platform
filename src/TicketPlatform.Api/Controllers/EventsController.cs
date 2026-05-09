@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using TicketPlatform.Core.Events;
-using TicketPlatform.Shared.Events;
+using TicketPlatform.Core.Entities;
+using TicketPlatform.Core.Services;
+using TicketPlatform.Shared.Dtos;
 
 namespace TicketPlatform.Api.Controllers;
 

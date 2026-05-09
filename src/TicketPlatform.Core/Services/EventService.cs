@@ -1,6 +1,7 @@
 using TicketPlatform.Core.Common;
+using TicketPlatform.Core.Entities;
 
-namespace TicketPlatform.Core.Events;
+namespace TicketPlatform.Core.Services;
 
 public class EventService : IEventService
 {

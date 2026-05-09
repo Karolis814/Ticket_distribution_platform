@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TicketPlatform.Core.Users;
+using TicketPlatform.Core.Entities;
 
 namespace TicketPlatform.Infrastructure.Persistence.Configurations;
 
