@@ -4,6 +4,7 @@ namespace TicketPlatform.Core.Common;
 
 public interface IRepository<T> where T : BaseEntity
 {
+    IQueryable<T> Query();
     Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<IReadOnlyList<T>> ListAsync(CancellationToken ct = default);
     Task AddAsync(T entity, CancellationToken ct = default);

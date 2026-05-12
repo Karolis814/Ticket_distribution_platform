@@ -12,7 +12,7 @@ services:
     volumes:
       - ticket_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ticket_user -d ticket_platform"]
+      test: [ "CMD-SHELL", "pg_isready -U ticket_user -d ticket_platform" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -30,6 +30,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: ticket_platform_mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI — http://localhost:8025
 
 volumes:
   ticket_pgdata:

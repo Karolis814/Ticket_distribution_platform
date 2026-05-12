@@ -1,52 +1,30 @@
+using Microsoft.EntityFrameworkCore;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
 
 namespace TicketPlatform.Core.Services;
 
-public class TicketService
+public class TicketService(IRepository<Ticket> repository) : ITicketService
 {
-    private readonly IRepository<Ticket> _repository;
-
-    public TicketService(IRepository<Ticket> repository)
-    {
-        _repository = repository;
-    }
-
-    public async Task<Ticket?> GetByIdAsync(Guid id, CancellationToken ct = default)
-    {
-        return await _repository.GetByIdAsync(id, ct);
-    }
-
-    public async Task<IReadOnlyList<Ticket>> GetAllAsync(CancellationToken ct = default)
-    {
-        return await _repository.ListAsync(ct);
-    }
+    public async Task<Ticket?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+        await repository.Query()
+            .Include(t => t.TicketType)
+            .ThenInclude(tt => tt.Event)
+            .Include(t => t.OrderItem)
+            .ThenInclude(oi => oi.Order)
+            .FirstOrDefaultAsync(t => t.Id == id, ct);
 
     public async Task<Ticket> CreateAsync(Ticket entity, CancellationToken ct = default)
     {
-        if (entity.Price < 0)
-        {
-            throw new Exception("Ticket price cannot be negative.");
-        }
-
-        await _repository.AddAsync(entity, ct);
-
-        await _repository.SaveChangesAsync(ct);
-
+        await repository.AddAsync(entity, ct);
+        await repository.SaveChangesAsync(ct);
         return entity;
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    public async Task<Ticket> UpdateAsync(Ticket entity, CancellationToken ct)
     {
-        var entity = await _repository.GetByIdAsync(id, ct);
-
-        if (entity == null)
-        {
-            throw new Exception("Ticket not found.");
-        }
-
-        _repository.Remove(entity);
-
-        await _repository.SaveChangesAsync(ct);
+        repository.Update(entity);
+        await repository.SaveChangesAsync(ct);
+        return entity;
     }
 }

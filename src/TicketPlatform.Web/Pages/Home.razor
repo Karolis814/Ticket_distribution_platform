@@ -1,17 +1,28 @@
 @page "/"
+@inherits HomeBase
 
 <PageTitle>Ticket Platform</PageTitle>
 
-<RadzenStack Gap="1rem">
-    <RadzenText TextStyle="TextStyle.H3" Text="Welcome to the Ticket Platform" />
-    <RadzenText TextStyle="TextStyle.Body1"
-                 Text="Browse upcoming events and manage your tickets." />
-    <RadzenButton Text="Browse events"
-                   Icon="event"
-                   ButtonStyle="ButtonStyle.Primary"
-                   Click="@(() => navigationManager.NavigateTo("events"))" />
-</RadzenStack>
+<RadzenRow JustifyContent="JustifyContent.Center" Class="rz-mt-12">
+    <RadzenColumn Size="12" SizeMd="8" SizeLg="5">
+        <RadzenStack Gap="1.5rem" AlignItems="AlignItems.Center">
 
-@code {
-    [Inject] NavigationManager navigationManager { get; set; } = default!;
-}
+            <RadzenIcon Icon="confirmation_number" Style="font-size:4rem;"/>
+
+            <RadzenText TextStyle="TextStyle.H3" TagName="TagName.H1" TextAlign="TextAlign.Center">
+                Welcome to the Ticket Distribution Platform
+            </RadzenText>
+
+            <RadzenText TextStyle="TextStyle.Body1" TextAlign="TextAlign.Center">
+                Browse upcoming events and grab your tickets without any fuss!
+            </RadzenText>
+
+            <RadzenButton Text="Browse Events"
+                          Icon="event"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Size="ButtonSize.Large"
+                          Click="@(() => Nav.NavigateTo("/events"))"/>
+
+        </RadzenStack>
+    </RadzenColumn>
+</RadzenRow>

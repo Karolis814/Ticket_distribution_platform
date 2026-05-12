@@ -1,27 +1,62 @@
+using Microsoft.EntityFrameworkCore;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
+using TicketPlatform.Shared.Enums;
 
 namespace TicketPlatform.Core.Services;
 
-public class EventService : IEventService
+public class EventService(IRepository<Event> repository) : IEventService
 {
-    private readonly IRepository<Event> _repository;
-
-    public EventService(IRepository<Event> repository)
+    public async Task<(IReadOnlyList<Event> Items, int TotalCount)> GetUpcomingPagedAsync(int page, int pageSize,
+        DateTimeOffset fromDate, CancellationToken ct = default)
     {
-        _repository = repository;
+        var baseQuery = repository.Query()
+            .Where(e => e.Status == EventStatus.Published && e.TicketTypes.Max(tt => tt.OccurenceEndDate) >= fromDate)
+            .OrderBy(e => e.TicketTypes.Min(tt => tt.OccurenceStartDate))
+            .AsNoTracking();
+
+        var total = await baseQuery.CountAsync(ct);
+
+        var items = await baseQuery
+            .Include(e => e.Category)
+            .Include(e => e.TicketTypes)
+            .ThenInclude(tt => tt.Tickets)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
     }
 
-    public Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken ct = default)
-        => _repository.ListAsync(ct);
-
-    public Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default)
-        => _repository.GetByIdAsync(id, ct);
+    public async Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        => await repository.Query()
+            .Include(e => e.Category)
+            .Include(e => e.Host)
+            .Include(e => e.TicketTypes)
+            .ThenInclude(tt => tt.Tickets)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
 
     public async Task<Event> CreateAsync(Event @event, CancellationToken ct = default)
     {
-        await _repository.AddAsync(@event, ct);
-        await _repository.SaveChangesAsync(ct);
+        SyncDateRange(@event);
+        await repository.AddAsync(@event, ct);
+        await repository.SaveChangesAsync(ct);
         return @event;
+    }
+
+    public async Task<Event> UpdateAsync(Event @event, CancellationToken ct = default)
+    {
+        SyncDateRange(@event);
+        repository.Update(@event);
+        await repository.SaveChangesAsync(ct);
+        return @event;
+    }
+
+    private static void SyncDateRange(Event @event)
+    {
+        if (@event.TicketTypes.Count == 0) return;
+        @event.StartDate = @event.TicketTypes.Min(tt => tt.OccurenceStartDate);
+        @event.EndDate = @event.TicketTypes.Max(tt => tt.OccurenceEndDate);
     }
 }
