@@ -4,16 +4,11 @@ using TicketPlatform.Core.Entities;
 
 namespace TicketPlatform.Infrastructure.Persistence;
 
-public class Repository<T> : IRepository<T> where T : BaseEntity
+public class Repository<T>(AppDbContext context) : IRepository<T>
+    where T : BaseEntity
 {
-    private readonly AppDbContext _context;
-    private readonly DbSet<T> _set;
-
-    public Repository(AppDbContext context)
-    {
-        _context = context;
-        _set = context.Set<T>();
-    }
+    private readonly DbSet<T> _set = context.Set<T>();
+    public IQueryable<T> Query() => context.Set<T>();
 
     public Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => _set.FirstOrDefaultAsync(e => e.Id == id, ct);
@@ -29,5 +24,5 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     public void Remove(T entity) => _set.Remove(entity);
 
     public Task<int> SaveChangesAsync(CancellationToken ct = default)
-        => _context.SaveChangesAsync(ct);
+        => context.SaveChangesAsync(ct);
 }

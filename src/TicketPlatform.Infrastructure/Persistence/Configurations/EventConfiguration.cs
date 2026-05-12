@@ -16,62 +16,40 @@ public static class EventConfiguration
             builder.Property(x => x.Title)
                 .IsRequired()
                 .HasMaxLength(200);
-            builder.Property(x => x.StartsAt)
+
+            builder.Property(x => x.Description)
+                .IsRequired()
+                .HasMaxLength(10000);
+
+            builder.Property(x => x.Location)
+                .HasMaxLength(300);
+
+            builder.Property(x => x.ThumbnailUrl)
+                .HasMaxLength(2048);
+
+            builder.Property(x => x.StartDate)
                 .IsRequired();
 
-            builder.Property(x => x.EndsAt)
+            builder.Property(x => x.EndDate)
                 .IsRequired();
-
-            builder.Property(x => x.TicketCount)
-                .IsRequired();
-            builder.Property(x => x.CreatedAt)
-                .IsRequired();
-            builder.Property(x => x.UpdatedAt);
-            builder.HasMany(x => x.Tickets)
-                .WithOne(x => x.Event)
-                .HasForeignKey(x => x.EventId);
-
-            builder.HasOne(x => x.Host)
-                .WithMany(x => x.HostedEvents)
-                .HasForeignKey(x => x.HostId);
-
-            // something weird happening with concurrency tokens, need to investigate
-            // this fixes it idk
-            builder.Property(x => x.Version)
-                .IsConcurrencyToken()
-                .IsRequired();
-            builder.Property<uint>("xmin")
-                .IsRowVersion()
-                .HasColumnName("xmin")
-                .ValueGeneratedOnAddOrUpdate();
-
-        });
-
-        modelBuilder.Entity<Ticket>(builder =>
-        {
-            builder.ToTable("Tickets");
-
-            builder.HasKey(x => x.Id);
-
-
-            builder.Property(x => x.Price)
-                .IsRequired();
-
-            builder.Property(x => x.Currency)
-                .HasMaxLength(3);
-            builder.Property(x => x.CreatedAt)
-                .IsRequired();
-            builder.Property(x => x.UpdatedAt);
 
             builder.Property(x => x.Status)
                 .IsRequired();
-            builder.Property(x => x.admisionStart)
+
+            builder.Property(x => x.CreatedAt)
                 .IsRequired();
 
-            builder.Property(x => x.admisionEnd)
-                .IsRequired();
+            builder.Property(x => x.UpdatedAt);
 
+            builder.HasOne(x => x.Category)
+                .WithMany(x => x.Events)
+                .HasForeignKey(x => x.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasOne(x => x.Host)
+                .WithMany(x => x.HostedEvents)
+                .HasForeignKey(x => x.HostId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

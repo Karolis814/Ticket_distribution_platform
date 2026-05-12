@@ -1,22 +1,12 @@
-using TicketPlatform.Shared.Enums;
-
 namespace TicketPlatform.Core.Entities;
 
 public class Ticket : BaseEntity
 {
-    public Guid EventId { get; set; }
-    public Event Event { get; set; }
+    public Guid TicketTypeId { get; set; }
+    public TicketType TicketType { get; set; } = null!;
 
-    public int Price { get; set; } // stored in cents
-    public string Currency { get; set; }
+    public Guid OrderItemId { get; set; }
+    public OrderItem OrderItem { get; set; } = null!;
 
-
-    public int? SeatNumber { get; set; }
-    // start end timestamp
-    //int activasionCount
-
-    public DateTimeOffset admisionStart { get; set; }
-
-    public DateTimeOffset admisionEnd { get; set; }
-    public TicketStatus Status { get; set; }
+    public int TimesUsed { get; set; }
 }

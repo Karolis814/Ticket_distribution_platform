@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TicketPlatform.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace TicketPlatform.Infrastructure.Persistence.Migrations
+namespace TicketPlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260511232905_InitialMigration")]
+    partial class InitialMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,13 +40,35 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("UserPermissionGroupPermissions", (string)null);
                 });
 
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Category", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories", (string)null);
+                });
+
             modelBuilder.Entity("TicketPlatform.Core.Entities.Customer", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -51,16 +76,27 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
-                    b.Property<long>("Version")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasFilter("\"UserId\" IS NOT NULL");
 
                     b.HasIndex("UserId");
 
@@ -73,48 +109,48 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(10000)
+                        .HasColumnType("character varying(10000)");
 
-                    b.Property<DateTimeOffset>("EndsAt")
+                    b.Property<DateTimeOffset>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("HostId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
-                    b.Property<DateTimeOffset>("StartsAt")
+                    b.Property<DateTimeOffset>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("TicketCount")
+                    b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("Version")
-                        .IsConcurrencyToken()
-                        .HasColumnType("bigint");
-
-                    b.Property<uint>("xmin")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
 
                     b.HasIndex("HostId");
 
@@ -127,13 +163,13 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Currency")
                         .IsRequired()
-                        .HasMaxLength(5)
-                        .HasColumnType("character varying(5)");
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
 
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uuid");
@@ -141,20 +177,20 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<int>("TotalPrice")
+                    b.Property<int>("TotalPriceCents")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("Version")
-                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Orders_TotalPriceCents", "\"TotalPriceCents\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.OrderItem", b =>
@@ -163,40 +199,50 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("PriceAtPurchase")
+                    b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("TicketId")
+                    b.Property<Guid>("TicketTypeId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<int>("UnitPriceCents")
+                        .HasColumnType("integer");
 
-                    b.Property<long>("Version")
-                        .HasColumnType("bigint");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
 
-                    b.HasIndex("TicketId");
+                    b.HasIndex("TicketTypeId");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OrderItems_Quantity", "\"Quantity\" >= 1");
+
+                            t.HasCheckConstraint("CK_OrderItems_UnitPriceCents", "\"UnitPriceCents\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Payment", b =>
                 {
-                    b.Property<Guid>("PaymentId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Amount")
+                    b.Property<int>("AmountCents")
                         .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -204,35 +250,40 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Currency")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("StripeCheckoutSessionId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("StripePaymentIntentId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("StripeStatus")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
-                    b.Property<DateTimeOffset>("SucceededAt")
+                    b.Property<DateTimeOffset?>("SucceededAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTimeOffset>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("PaymentId");
+                    b.HasKey("Id");
 
                     b.HasIndex("OrderId")
                         .IsUnique();
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Payments_AmountCents", "\"AmountCents\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Permission", b =>
@@ -241,26 +292,20 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("PermissionStatus")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("Version")
-                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Permisions", (string)null);
+                    b.ToTable("Permissions", (string)null);
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Ticket", b =>
@@ -269,7 +314,43 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OrderItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TicketTypeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("TimesUsed")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderItemId");
+
+                    b.HasIndex("TicketTypeId");
+
+                    b.ToTable("Tickets", (string)null);
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.TicketType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("AdmissionEndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("AdmissionStartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Currency")
@@ -280,32 +361,41 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Price")
+                    b.Property<int>("MaxUses")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("SeatNumber")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
+                    b.Property<DateTimeOffset>("OccurenceEndDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("Version")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("admisionEnd")
+                    b.Property<DateTimeOffset>("OccurenceStartDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTimeOffset>("admisionStart")
+                    b.Property<int>("PriceCents")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("Tickets", (string)null);
+                    b.ToTable("TicketTypes", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_TicketTypes_MaxUses", "\"MaxUses\" >= 0");
+
+                            t.HasCheckConstraint("CK_TicketTypes_PriceCents", "\"PriceCents\" >= 0");
+
+                            t.HasCheckConstraint("CK_TicketTypes_Quantity", "\"Quantity\" >= 1");
+                        });
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.User", b =>
@@ -314,7 +404,15 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<string>("Address")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Company")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -322,21 +420,36 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UserName")
+                    b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordSalt")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("TaxCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("UserPermissionGroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<long>("Version")
-                        .HasColumnType("bigint");
+                    b.Property<string>("Username")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.HasIndex("UserPermissionGroupId");
 
@@ -349,17 +462,19 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
-                    b.Property<long>("Version")
-                        .HasColumnType("bigint");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -385,18 +500,27 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("TicketPlatform.Core.Entities.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Event", b =>
                 {
+                    b.HasOne("TicketPlatform.Core.Entities.Category", "Category")
+                        .WithMany("Events")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("TicketPlatform.Core.Entities.User", "Host")
                         .WithMany("HostedEvents")
                         .HasForeignKey("HostId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Category");
 
                     b.Navigation("Host");
                 });
@@ -406,7 +530,7 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.HasOne("TicketPlatform.Core.Entities.Customer", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Customer");
@@ -420,15 +544,15 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TicketPlatform.Core.Entities.Ticket", "Ticket")
+                    b.HasOne("TicketPlatform.Core.Entities.TicketType", "TicketType")
                         .WithMany()
-                        .HasForeignKey("TicketId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("TicketTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Order");
 
-                    b.Navigation("Ticket");
+                    b.Navigation("TicketType");
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Payment", b =>
@@ -444,8 +568,27 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Ticket", b =>
                 {
-                    b.HasOne("TicketPlatform.Core.Entities.Event", "Event")
+                    b.HasOne("TicketPlatform.Core.Entities.OrderItem", "OrderItem")
                         .WithMany("Tickets")
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TicketPlatform.Core.Entities.TicketType", "TicketType")
+                        .WithMany("Tickets")
+                        .HasForeignKey("TicketTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OrderItem");
+
+                    b.Navigation("TicketType");
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.TicketType", b =>
+                {
+                    b.HasOne("TicketPlatform.Core.Entities.Event", "Event")
+                        .WithMany("TicketTypes")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -458,10 +601,15 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
                     b.HasOne("TicketPlatform.Core.Entities.UserPermissionGroup", "UserPermissionGroup")
                         .WithMany("Users")
                         .HasForeignKey("UserPermissionGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("UserPermissionGroup");
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Category", b =>
+                {
+                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Customer", b =>
@@ -471,15 +619,24 @@ namespace TicketPlatform.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Event", b =>
                 {
-                    b.Navigation("Tickets");
+                    b.Navigation("TicketTypes");
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
 
-                    b.Navigation("Payment")
-                        .IsRequired();
+                    b.Navigation("Payment");
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.OrderItem", b =>
+                {
+                    b.Navigation("Tickets");
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.TicketType", b =>
+                {
+                    b.Navigation("Tickets");
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.User", b =>

@@ -1,21 +1,22 @@
+using TicketPlatform.Shared.Enums;
+
 namespace TicketPlatform.Core.Entities;
 
 public class Event : BaseEntity
 {
     public Guid HostId { get; set; }
+    public User Host { get; set; } = null!;
 
-    public User Host { get; set; }
+    public Guid CategoryId { get; set; }
+    public Category Category { get; set; } = null!;
 
-    public string Title { get; set; }
-    public string Description { get; set; }
+    public required string Title { get; set; }
+    public required string Description { get; set; }
+    public string? Location { get; set; }
+    public string? ThumbnailUrl { get; set; }
+    public DateTimeOffset StartDate { get; set; }
+    public DateTimeOffset EndDate { get; set; }
+    public EventStatus Status { get; set; }
 
-    public string Location { get; set; }
-
-    public DateTimeOffset StartsAt { get; set; }
-
-    public DateTimeOffset EndsAt { get; set; }
-
-    // TICKET COUNT
-    public int TicketCount { get; set; }
-    public ICollection<Ticket> Tickets { get; set; }
+    public ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();
 }
