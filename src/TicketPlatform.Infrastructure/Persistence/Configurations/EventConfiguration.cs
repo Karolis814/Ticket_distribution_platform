@@ -27,12 +27,6 @@ public static class EventConfiguration
             builder.Property(x => x.ThumbnailUrl)
                 .HasMaxLength(2048);
 
-            builder.Property(x => x.StartDate)
-                .IsRequired();
-
-            builder.Property(x => x.EndDate)
-                .IsRequired();
-
             builder.Property(x => x.Status)
                 .IsRequired();
 

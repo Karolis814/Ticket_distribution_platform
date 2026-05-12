@@ -35,14 +35,14 @@
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                             <RadzenIcon Icon="calendar_today" class="rz-color-base-700" Style="font-size:1.1rem"/>
                             <RadzenText TextStyle="TextStyle.Body2" class="rz-color-base-700">
-                                @EventDetails.StartDate.ToString("yyyy-MM-dd")
-                                @if (EventDetails.StartDate.Date == EventDetails.EndDate.Date)
+                                @StartDate(EventDetails).ToString("yyyy-MM-dd")
+                                @if (StartDate(EventDetails).Date == EndDate(EventDetails).Date)
                                 {
-                                    <span>• @EventDetails.StartDate.ToString("HH:mm") – @EventDetails.EndDate.ToString("HH:mm")</span>
+                                    <span>• @StartDate(EventDetails).ToString("HH:mm") – @EndDate(EventDetails).ToString("HH:mm")</span>
                                 }
                                 else
                                 {
-                                    <span> – @EventDetails.EndDate.ToString("yyyy-MM-dd")</span>
+                                    <span> – @EndDate(EventDetails).ToString("yyyy-MM-dd")</span>
                                 }
                             </RadzenText>
                         </RadzenStack>
@@ -80,6 +80,7 @@
                             var remaining = Remaining(tt);
                             var soldOut = remaining <= 0;
                             var qty = GetQuantity(tt.Id);
+                            var ended = tt.OccurenceEndDate < DateTimeOffset.UtcNow;
 
                             <RadzenCard Style="border:1px solid var(--rz-border-color);">
                                 <RadzenStack Gap="0.6rem">
@@ -104,7 +105,7 @@
                                                 </span>
                                             </RadzenText>
                                             <RadzenText TextStyle="TextStyle.Caption" Class="rz-pt-2 rz-color-base-600">
-                                                @(soldOut ? "Sold out" : $"{remaining} tickets left")
+                                                @(soldOut ? "Sold out" : ended ? "Event has ended." : $"{remaining} tickets left")
                                             </RadzenText>
                                         </RadzenStack>
                                         <RadzenText TextStyle="TextStyle.Subtitle1"
@@ -134,7 +135,7 @@
                                             <RadzenButton Icon="remove"
                                                           ButtonStyle="ButtonStyle.Light"
                                                           Size="ButtonSize.Small"
-                                                          Disabled="@(qty == 0 || soldOut)"
+                                                          Disabled="@(qty == 0 || soldOut || ended)"
                                                           Click="@(() => SetQuantity(tt.Id, qty - 1))"/>
                                             <RadzenText Style="min-width:1.75rem;text-align:center;font-weight:600">
                                                 @qty
@@ -142,7 +143,7 @@
                                             <RadzenButton Icon="add"
                                                           ButtonStyle="ButtonStyle.Primary"
                                                           Size="ButtonSize.Small"
-                                                          Disabled="@(qty >= remaining || soldOut)"
+                                                          Disabled="@(qty >= remaining || soldOut || ended)"
                                                           Click="@(() => SetQuantity(tt.Id, qty + 1))"/>
                                         </RadzenStack>
                                     </RadzenStack>

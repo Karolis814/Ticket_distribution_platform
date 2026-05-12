@@ -39,7 +39,6 @@ public class EventService(IRepository<Event> repository) : IEventService
 
     public async Task<Event> CreateAsync(Event @event, CancellationToken ct = default)
     {
-        SyncDateRange(@event);
         await repository.AddAsync(@event, ct);
         await repository.SaveChangesAsync(ct);
         return @event;
@@ -47,16 +46,8 @@ public class EventService(IRepository<Event> repository) : IEventService
 
     public async Task<Event> UpdateAsync(Event @event, CancellationToken ct = default)
     {
-        SyncDateRange(@event);
         repository.Update(@event);
         await repository.SaveChangesAsync(ct);
         return @event;
-    }
-
-    private static void SyncDateRange(Event @event)
-    {
-        if (@event.TicketTypes.Count == 0) return;
-        @event.StartDate = @event.TicketTypes.Min(tt => tt.OccurenceStartDate);
-        @event.EndDate = @event.TicketTypes.Max(tt => tt.OccurenceEndDate);
     }
 }

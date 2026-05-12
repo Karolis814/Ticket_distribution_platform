@@ -75,14 +75,14 @@ else
                                          AlignItems="AlignItems.Center" Gap="0.5rem">
                                 <RadzenIcon Icon="calendar_today" class="rz-color-base-700"/>
                                 <RadzenText TextStyle="TextStyle.Body2" class="rz-color-base-700">
-                                    @ev.StartDate.ToString("yyyy-MM-dd")
-                                    @if (ev.StartDate.Date == ev.EndDate.Date)
+                                    @StartDate(ev).ToString("yyyy-MM-dd")
+                                    @if (StartDate(ev).Date == EndDate(ev).Date)
                                     {
-                                        <span>• @ev.StartDate.ToString("HH:mm") – @ev.EndDate.ToString("HH:mm")</span>
+                                        <span>• @StartDate(ev).ToString("HH:mm") – @EndDate(ev).ToString("HH:mm")</span>
                                     }
                                     else
                                     {
-                                        <span> – @ev.EndDate.ToString("yyyy-MM-dd")</span>
+                                        <span> – @EndDate(ev).ToString("yyyy-MM-dd")</span>
                                     }
                                 </RadzenText>
                             </RadzenStack>

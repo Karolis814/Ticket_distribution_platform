@@ -14,8 +14,6 @@ public class Event : BaseEntity
     public required string Description { get; set; }
     public string? Location { get; set; }
     public string? ThumbnailUrl { get; set; }
-    public DateTimeOffset StartDate { get; set; }
-    public DateTimeOffset EndDate { get; set; }
     public EventStatus Status { get; set; }
 
     public ICollection<TicketType> TicketTypes { get; set; } = new List<TicketType>();

@@ -11,8 +11,6 @@ public record EventDto(
     string Description,
     string? Location,
     string? ThumbnailUrl,
-    DateTimeOffset StartDate,
-    DateTimeOffset EndDate,
     EventStatus Status,
     IReadOnlyList<TicketTypeDto> TicketTypes
 );

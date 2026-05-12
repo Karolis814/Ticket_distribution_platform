@@ -140,8 +140,6 @@ namespace TicketPlatform.Infrastructure.Migrations
                     Description = table.Column<string>(type: "character varying(10000)", maxLength: 10000, nullable: false),
                     Location = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
                     ThumbnailUrl = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: true),
-                    StartDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    EndDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)

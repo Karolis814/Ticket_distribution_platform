@@ -27,6 +27,9 @@ public class EventsBase : ComponentBase
         return Math.Max(0, total - sold);
     }
 
+    protected static DateTimeOffset StartDate(EventDto e) => e.TicketTypes.Min(tt => tt.OccurenceStartDate);
+    protected static DateTimeOffset EndDate(EventDto e) => e.TicketTypes.Max(tt => tt.OccurenceEndDate);
+
     protected override async Task OnInitializedAsync() => await LoadEventsAsync();
 
     private async Task LoadEventsAsync()

@@ -95,8 +95,6 @@ public class EventsController(
         e.Description,
         e.Location,
         e.ThumbnailUrl,
-        e.StartDate,
-        e.EndDate,
         e.Status,
         e.TicketTypes.Select(tt => new TicketTypeDto(
             tt.Id,

@@ -198,4 +198,7 @@ public class CheckoutBase : ComponentBase
         cents == 0
             ? "Free"
             : (cents / 100m).ToString($"0.00 {currency.ToUpper()}", System.Globalization.CultureInfo.InvariantCulture);
+
+    protected static DateTimeOffset StartDate(EventDto e) => e.TicketTypes.Min(tt => tt.OccurenceStartDate);
+    protected static DateTimeOffset EndDate(EventDto e) => e.TicketTypes.Max(tt => tt.OccurenceEndDate);
 }

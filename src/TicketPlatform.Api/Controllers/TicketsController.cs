@@ -52,6 +52,9 @@ public class TicketsController(
                 return Conflict(
                     $"Only {remaining} ticket(s) remaining for '{ticketType.Title}'.");
 
+            if (ticketType.OccurenceEndDate < DateTimeOffset.UtcNow)
+                return Conflict($"Event '{ticketType.Event.Title}' has ended.");
+
             ticketTypes.Add((ticketType, item.Quantity));
         }
 
