@@ -1,0 +1,34 @@
+name: .NET CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore solution
+        run: dotnet restore TicketPlatform.sln
+
+      - name: Build solution
+        run: dotnet build TicketPlatform.sln --no-restore --configuration Release
+
+      - name: Run unit tests
+        run: dotnet test tests/TicketPlatform.UnitTests/TicketPlatform.UnitTests.csproj --no-build --configuration Release --verbosity normal
+
+      - name: Run integration tests
+        run: dotnet test tests/TicketPlatform.IntegrationTests/TicketPlatform.IntegrationTests.csproj --no-build --configuration Release --verbosity normal
