@@ -1,6 +1,6 @@
-@inherits LayoutComponentBase
+@inherits MainLayoutBase
 
-<RadzenComponents />
+<RadzenComponents/>
 
 <RadzenLayout>
     <RadzenHeader>
@@ -8,12 +8,12 @@
                      AlignItems="AlignItems.Center"
                      Gap="0"
                      class="rz-h-100">
-            <RadzenSidebarToggle Click="@toggleSidebar" />
-            <RadzenLabel Text="Ticket Platform" class="rz-px-3" />
+            <RadzenSidebarToggle Click="@ToggleSidebar"/>
+            <RadzenLabel Text="Ticket Platform" class="rz-px-3"/>
         </RadzenStack>
     </RadzenHeader>
-    <RadzenSidebar @bind-Expanded="@sidebarExpanded">
-        <NavMenu />
+    <RadzenSidebar @bind-Expanded="@SidebarExpanded">
+        <NavMenu/>
     </RadzenSidebar>
     <RadzenBody>
         <RadzenStack class="rz-p-4">
@@ -21,12 +21,3 @@
         </RadzenStack>
     </RadzenBody>
 </RadzenLayout>
-
-@code {
-    bool sidebarExpanded = true;
-
-    void toggleSidebar()
-    {
-        sidebarExpanded = !sidebarExpanded;
-    }
-}

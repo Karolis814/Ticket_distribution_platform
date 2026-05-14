@@ -42,17 +42,26 @@ You need .NET 9 SDK and Docker
    docker compose up -d
    ```
 
-2. Apply the database migration (first time only):
+2. Apply the database migration:
    ```
    dotnet ef database update \
      --project src/TicketPlatform.Infrastructure \
      --startup-project src/TicketPlatform.Api
    ```
 
-   If you don't have the EF:
+   If you don't have EF:
    ```
    dotnet tool install -g dotnet-ef --version 9.0.*
    ```
+
+   If you come across any DB conflicts:
+   ```
+   dotnet ef database drop \
+     --project src/TicketPlatform.Infrastructure \
+     --startup-project src/TicketPlatform.Api
+   ```
+   Then apply the migration again.
+
 
 3. Run the API:
    ```
@@ -66,7 +75,7 @@ You need .NET 9 SDK and Docker
 
    Open https://localhost:7174
 
-If the browser blocks the dev cert, run `dotnet dev-certs https --trust` once.
+   If the browser blocks the dev cert, run `dotnet dev-certs https --trust` once.
 
 ## Tests
 
@@ -80,7 +89,8 @@ Integration tests need Docker running — they spin up a throwaway Postgres via 
 
 - Frontend: https://localhost:7174
 - API: https://localhost:7001
-- pgAdmin: http://localhost:5050 (login: `admin@ticket.local` / `admin`)
+- pgAdmin: http://localhost:5050 (login: `admin@ticket.dev` / `admin`)
+- Mailpit: http://localhost:8025
 
 ## Frontend conventions (short version)
 
