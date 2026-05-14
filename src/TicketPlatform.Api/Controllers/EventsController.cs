@@ -62,7 +62,7 @@ public class EventsController(
         var @event = await eventService.CreateAsync(new Event
         {
             HostId = request.HostId,
-            CategoryId = request.CategoryId,
+            Category = request.Category,
             Title = request.Title,
             Description = request.Description,
             Location = request.Location,
@@ -89,8 +89,7 @@ public class EventsController(
     private static EventDto MapToEventDto(Event e) => new(
         e.Id,
         e.HostId,
-        e.CategoryId,
-        e.Category?.Title,
+        e.Category,
         e.Title,
         e.Description,
         e.Location,

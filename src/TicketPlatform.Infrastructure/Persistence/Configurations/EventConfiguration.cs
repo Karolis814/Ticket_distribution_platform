@@ -13,6 +13,10 @@ public static class EventConfiguration
 
             builder.HasKey(x => x.Id);
 
+            builder.Property(x => x.Category)
+                .IsRequired()
+                .HasMaxLength(100);
+
             builder.Property(x => x.Title)
                 .IsRequired()
                 .HasMaxLength(200);
@@ -34,11 +38,6 @@ public static class EventConfiguration
                 .IsRequired();
 
             builder.Property(x => x.UpdatedAt);
-
-            builder.HasOne(x => x.Category)
-                .WithMany(x => x.Events)
-                .HasForeignKey(x => x.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.Host)
                 .WithMany(x => x.HostedEvents)

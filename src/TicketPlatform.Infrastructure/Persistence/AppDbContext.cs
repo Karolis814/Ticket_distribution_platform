@@ -6,7 +6,6 @@ namespace TicketPlatform.Infrastructure.Persistence;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<Category> Categories => Set<Category>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Event> Events => Set<Event>();
     public DbSet<Order> Orders => Set<Order>();
@@ -22,7 +21,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ConfigureCategory();
         modelBuilder.ConfigureCustomer();
         modelBuilder.ConfigureEvent();
         modelBuilder.ConfigureOrder();
