@@ -1,24 +1,48 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TicketPlatform.Core.Events;
+using TicketPlatform.Core.Entities;
 
 namespace TicketPlatform.Infrastructure.Persistence.Configurations;
 
-public class EventConfiguration : IEntityTypeConfiguration<Event>
+public static class EventConfiguration
 {
-    public void Configure(EntityTypeBuilder<Event> builder)
+    public static void ConfigureEvent(this ModelBuilder modelBuilder)
     {
-        builder.ToTable("events");
-        builder.HasKey(e => e.Id);
+        modelBuilder.Entity<Event>(builder =>
+        {
+            builder.ToTable("Events");
 
-        builder.Property(e => e.Title).IsRequired().HasMaxLength(200);
-        builder.Property(e => e.Description).HasMaxLength(2000);
-        builder.Property(e => e.Location).IsRequired().HasMaxLength(200);
-        builder.Property(e => e.StartsAt).IsRequired();
-        builder.Property(e => e.Capacity).IsRequired();
+            builder.HasKey(x => x.Id);
 
-        builder.Property(e => e.Version).IsRowVersion();
+            builder.Property(x => x.Category)
+                .IsRequired()
+                .HasMaxLength(100);
 
-        builder.HasIndex(e => e.StartsAt);
+            builder.Property(x => x.Title)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            builder.Property(x => x.Description)
+                .IsRequired()
+                .HasMaxLength(10000);
+
+            builder.Property(x => x.Location)
+                .HasMaxLength(300);
+
+            builder.Property(x => x.ThumbnailUrl)
+                .HasMaxLength(2048);
+
+            builder.Property(x => x.Status)
+                .IsRequired();
+
+            builder.Property(x => x.CreatedAt)
+                .IsRequired();
+
+            builder.Property(x => x.UpdatedAt);
+
+            builder.HasOne(x => x.Host)
+                .WithMany(x => x.HostedEvents)
+                .HasForeignKey(x => x.HostId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
     }
 }

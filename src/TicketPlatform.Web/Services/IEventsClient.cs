@@ -1,4 +1,4 @@
-using TicketPlatform.Shared.Events;
+using TicketPlatform.Shared.Dtos;
 
 namespace TicketPlatform.Web.Services;
 

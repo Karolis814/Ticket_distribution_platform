@@ -20,7 +20,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(blazorCors, policy => policy
         .WithOrigins(
-            builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>())
+            builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
         .AllowAnyHeader()
         .AllowAnyMethod());
 });
@@ -42,4 +42,6 @@ app.MapControllers();
 
 app.Run();
 
-public partial class Program { }
+public abstract partial class Program
+{
+}

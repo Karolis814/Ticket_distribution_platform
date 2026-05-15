@@ -1,110 +1,169 @@
 using Microsoft.AspNetCore.Mvc;
-using TicketPlatform.Core.Events;
-using TicketPlatform.Shared.Events;
+using TicketPlatform.Core.Entities;
+using TicketPlatform.Core.Services;
+using TicketPlatform.Shared;
+using TicketPlatform.Shared.Dtos;
 
 namespace TicketPlatform.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class EventsController : ControllerBase
-{
-    private readonly IEventService _eventService;
-
-    public EventsController(IEventService eventService)
-    {
-        _eventService = eventService;
-    }
-
+public class EventsController(IEventService eventService) : ControllerBase{
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<EventDto>>> GetAll(
-        [FromQuery] string? title,
-        [FromQuery] DateTime? fromDate,
-        [FromQuery] DateTime? toDate,
-        [FromQuery] string? location,
-        CancellationToken ct)
+    public async Task<ActionResult<PagedResult<EventDto>>> GetUpcomingPaged(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 20,
+    [FromQuery] DateTimeOffset? fromDate = null,
+    [FromQuery] string? title = null,
+    [FromQuery] string? location = null,
+    CancellationToken ct = default)
+{
+    if (page < 1 || pageSize is < 1 or > 100)
+        return BadRequest("page ≥ 1, pageSize between 1 and 100.");
+
+    (IReadOnlyList<Event> events, var total) =
+        await eventService.GetUpcomingPagedAsync(
+            page,
+            pageSize,
+            fromDate ?? DateTimeOffset.UtcNow,
+            ct);
+
+    var query = events.AsEnumerable();
+
+    if (!string.IsNullOrWhiteSpace(title))
     {
-        var events = await _eventService.GetAllAsync(ct);
-
-        var query = events.AsEnumerable();
-
-        if (!string.IsNullOrWhiteSpace(title))
-        {
-            query = query.Where(e =>
-                Contains(e.Title, title) ||
-                Contains(e.Description, title));
-        }
-
-        if (fromDate.HasValue)
-        {
-            query = query.Where(e => e.StartsAt.Date >= fromDate.Value.Date);
-        }
-
-        if (toDate.HasValue)
-        {
-            query = query.Where(e => e.StartsAt.Date <= toDate.Value.Date);
-        }
-
-        if (!string.IsNullOrWhiteSpace(location))
-        {
-            query = query.Where(e =>
-                Contains(e.Location, location));
-        }
-
-        return Ok(query.Select(ToDto).ToList());
+        query = query.Where(e =>
+            Contains(e.Title, title) ||
+            Contains(e.Description, title));
     }
 
-    [HttpGet("locations")]
-    public async Task<ActionResult<IReadOnlyList<string>>> GetLocationSuggestions(
-        [FromQuery] string input,
-        CancellationToken ct)
+    if (!string.IsNullOrWhiteSpace(location))
     {
-        if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
-        {
-            return Ok(Array.Empty<string>());
-        }
-
-        var events = await _eventService.GetAllAsync(ct);
-
-        var locations = events
-            .Select(e => e.Location)
-            .Where(l => !string.IsNullOrWhiteSpace(l))
-            .Distinct()
-            .Where(l => Contains(l, input))
-            .OrderBy(l => l)
-            .Take(10)
-            .ToList();
-
-        return Ok(locations);
+        query = query.Where(e =>
+            Contains(e.Location, location));
     }
+
+    var filtered = query.ToList();
+
+    return Ok(new PagedResult<EventDto>(
+        filtered.Select(MapToEventDto).ToList(),
+        page,
+        pageSize,
+        filtered.Count));
+}
+
+[HttpGet("locations")]
+public async Task<ActionResult<IReadOnlyList<string>>> GetLocationSuggestions(
+    [FromQuery] string input,
+    CancellationToken ct)
+{
+    if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
+        return Ok(Array.Empty<string>());
+
+    (IReadOnlyList<Event> events, var total) =
+        await eventService.GetUpcomingPagedAsync(
+            1,
+            100,
+            DateTimeOffset.UtcNow,
+            ct);
+
+    var locations = events
+        .Select(e => e.Location)
+        .Where(l => !string.IsNullOrWhiteSpace(l))
+        .Distinct()
+        .Where(l => Contains(l, input))
+        .OrderBy(l => l)
+        .Take(10)
+        .ToList();
+
+    return Ok(locations);
+}
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<EventDto>> GetById(Guid id, CancellationToken ct)
     {
-        var @event = await _eventService.GetByIdAsync(id, ct);
-        return @event is null ? NotFound() : Ok(ToDto(@event));
+        var @event = await eventService.GetByIdAsync(id, ct);
+        return @event is null ? NotFound() : Ok(MapToEventDto(@event));
     }
 
     [HttpPost]
-    public async Task<ActionResult<EventDto>> Create([FromBody] CreateEventRequest request, CancellationToken ct)
+    public async Task<ActionResult<EventDto>> Create(
+        [FromBody] CreateEventRequest request,
+        CancellationToken ct)
     {
-        var created = await _eventService.CreateAsync(new Event
+        if (!request.TicketTypes.Any())
+            return BadRequest("At least one ticket type is required.");
+
+        if (request.TicketTypes.Any(t => t.Quantity < 1))
+            return BadRequest("Ticket type quantity must be at least 1.");
+
+        if (request.TicketTypes.Any(t => t.PriceCents < 0))
+            return BadRequest("Ticket type price cannot be negative.");
+
+        if (request.TicketTypes.Any(t => t.MaxUses < 0))
+            return BadRequest("Ticket type maximum uses cannot be negative.");
+
+        if (request.TicketTypes.Any(t => t.OccurenceEndDate <= t.OccurenceStartDate))
+            return BadRequest("Ticket type end date must be after start date.");
+
+        if (request.TicketTypes.Any(t => t.AdmissionEndDate <= t.AdmissionStartDate))
+            return BadRequest("Ticket type admission end date must be after admission start date.");
+
+        var @event = await eventService.CreateAsync(new Event
         {
+            HostId = request.HostId,
+            Category = request.Category,
             Title = request.Title,
             Description = request.Description,
             Location = request.Location,
-            StartsAt = request.StartsAt,
-            Capacity = request.Capacity
+            ThumbnailUrl = request.ThumbnailUrl,
+            Status = request.Status,
+            TicketTypes = request.TicketTypes.Select(tt => new TicketType
+            {
+                Title = tt.Title,
+                OccurenceStartDate = tt.OccurenceStartDate,
+                OccurenceEndDate = tt.OccurenceEndDate,
+                AdmissionStartDate = tt.AdmissionStartDate,
+                AdmissionEndDate = tt.AdmissionEndDate,
+                PriceCents = tt.PriceCents,
+                Currency = tt.Currency,
+                MaxUses = tt.MaxUses,
+                Quantity = tt.Quantity
+            }).ToList()
         }, ct);
 
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, ToDto(created));
+        var created = await eventService.GetByIdAsync(@event.Id, ct);
+        return CreatedAtAction(nameof(GetById), new { id = created!.Id }, MapToEventDto(created));
     }
-
-    private static EventDto ToDto(Event e) =>
-        new(e.Id, e.Title, e.Description, e.Location, e.StartsAt, e.Capacity);
 
     private static bool Contains(string? value, string search)
     {
         return !string.IsNullOrWhiteSpace(value)
             && value.Contains(search, StringComparison.OrdinalIgnoreCase);
     }
+    
+    private static EventDto MapToEventDto(Event e) => new(
+        e.Id,
+        e.HostId,
+        e.Category,
+        e.Title,
+        e.Description,
+        e.Location,
+        e.ThumbnailUrl,
+        e.Status,
+        e.TicketTypes.Select(tt => new TicketTypeDto(
+            tt.Id,
+            tt.EventId,
+            tt.Title,
+            tt.OccurenceStartDate,
+            tt.OccurenceEndDate,
+            tt.AdmissionStartDate,
+            tt.AdmissionEndDate,
+            tt.PriceCents,
+            tt.Currency,
+            tt.MaxUses,
+            tt.Quantity,
+            tt.Tickets.Count
+        )).ToList()
+    );
 }

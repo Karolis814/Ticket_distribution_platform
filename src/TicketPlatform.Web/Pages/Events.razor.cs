@@ -1,31 +1,102 @@
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Radzen;
-using TicketPlatform.Shared.Events;
+using TicketPlatform.Shared;
+using TicketPlatform.Shared.Dtos;
+using TicketPlatform.Shared.Enums;
 using TicketPlatform.Web.Services;
 
 namespace TicketPlatform.Web.Pages;
 
 public class EventsBase : ComponentBase
 {
-    [Inject] protected IEventsClient eventsClient { get; set; } = default!;
-    [Inject] protected NotificationService notificationService { get; set; } = default!;
-    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private NavigationManager Nav { get; set; } = null!;
+    [Inject] private NotificationService Notify { get; set; } = null!;
+    [Inject] private HttpClient Http { get; set; } = null!;
+    [Inject] protected IEventsClient EventsClient { get; set; } = default!;
 
-    protected IReadOnlyList<EventDto> filteredEvents { get; private set; } = Array.Empty<EventDto>();
-    protected IReadOnlyList<string> locationSuggestions { get; private set; } = Array.Empty<string>();
+    protected PagedResult<EventDto>? Result { get; private set; }
+    private int Page { get; set; } = 1;
+    protected const int PageSize = 20;
 
-    protected bool isLoading { get; private set; }
+    protected IReadOnlyList<EventDto> Events { get; private set; } = [];
+    protected IReadOnlyList<string> LocationSuggestions { get; private set; } = [];
+
+    protected bool IsLoading { get; private set; }
 
     protected string SearchText { get; set; } = string.Empty;
     protected string LocationText { get; set; } = string.Empty;
-
-    protected DateTime? FromDate { get; set; }
-    protected DateTime? ToDate { get; set; }
+    protected DateTimeOffset? FromDate { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        await ApplyFilterAsync();
+        await LoadEventsAsync();
+    }
+
+    private async Task LoadEventsAsync()
+    {
+        IsLoading = true;
+
+        try
+        {
+            Result = await Http.GetFromJsonAsync<PagedResult<EventDto>>(
+                $"api/events?page={Page}&pageSize={PageSize}");
+
+            Events = Result?.Items ?? [];
+        }
+        catch (Exception ex)
+        {
+            Notify.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Failed to load events",
+                Detail = ex.Message,
+                Duration = 5000
+            });
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    protected async Task ApplyFilterAsync()
+    {
+        IsLoading = true;
+
+        try
+        {
+            Events = await EventsClient.SearchAsync(
+                SearchText,
+                FromDate,
+                LocationText);
+        }
+        catch (Exception ex)
+        {
+            Notify.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Failed to load events",
+                Detail = ex.Message,
+                Duration = 5000
+            });
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    protected async Task ClearFilterAsync()
+    {
+        SearchText = string.Empty;
+        LocationText = string.Empty;
+        FromDate = null;
+        LocationSuggestions = [];
+
+        Page = 1;
+        await LoadEventsAsync();
     }
 
     protected void OnSearchInput(ChangeEventArgs e)
@@ -39,47 +110,55 @@ public class EventsBase : ComponentBase
 
         LocationText = input;
 
-        locationSuggestions = await eventsClient.GetLocationSuggestionsAsync(input);
+        LocationSuggestions =
+            await EventsClient.GetLocationSuggestionsAsync(input);
     }
 
-    protected async Task ApplyFilterAsync()
+    protected async Task OnPageChange(PagerEventArgs args)
     {
-        isLoading = true;
-
-        try
-        {
-            filteredEvents = await eventsClient.SearchAsync(
-                SearchText,
-                FromDate,
-                ToDate,
-                LocationText);
-        }
-        catch (Exception ex)
-        {
-            notificationService.Notify(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Error,
-                Summary = "Failed to load events",
-                Detail = ex.Message,
-                Duration = 5000
-            });
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        Page = args.PageIndex + 1;
+        await LoadEventsAsync();
     }
 
-    protected async Task ClearFilterAsync()
+    protected void NavigateToCheckout(Guid eventId)
     {
-        SearchText = string.Empty;
-        LocationText = string.Empty;
-        FromDate = null;
-        ToDate = null;
-        locationSuggestions = Array.Empty<string>();
-
-        await ApplyFilterAsync();
+        Nav.NavigateTo($"/checkout/{eventId}");
     }
+
+    protected static int RemainingTickets(EventDto ev)
+    {
+        var total = ev.TicketTypes.Sum(t => t.Quantity);
+        var sold = ev.TicketTypes.Sum(t => t.Sold);
+
+        return Math.Max(0, total - sold);
+    }
+
+    protected static DateTimeOffset StartDate(EventDto e) =>
+        e.TicketTypes.Min(tt => tt.OccurenceStartDate);
+
+    protected static DateTimeOffset EndDate(EventDto e) =>
+        e.TicketTypes.Max(tt => tt.OccurenceEndDate);
+
+    protected static string GetStartingPriceText(EventDto ev)
+    {
+        if (ev.TicketTypes.Count == 0)
+            return "Get Tickets";
+
+        var minPriceTicket =
+            ev.TicketTypes.OrderBy(t => t.PriceCents).First();
+
+        return
+            $"Starting from {FormatPrice(minPriceTicket.PriceCents, minPriceTicket.Currency)}";
+    }
+
+    private static string FormatPrice(
+        int cents,
+        string currency = "USD") =>
+        cents == 0
+            ? "Free"
+            : (cents / 100m).ToString(
+                $"0.00 {currency.ToUpper()}",
+                System.Globalization.CultureInfo.InvariantCulture);
 
     protected static string GetDescriptionExcerpt(string description)
     {
