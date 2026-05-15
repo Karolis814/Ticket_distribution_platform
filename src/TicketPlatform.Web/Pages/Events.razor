@@ -1,97 +1,156 @@
 @page "/events"
 @inherits EventsBase
 
+@using TicketPlatform.Shared.Events
+
 <PageTitle>Events</PageTitle>
 
-<RadzenStack Gap="1rem">
-    <RadzenText TextStyle="TextStyle.H4" Text="Browse Events" />
+<RadzenRow Class="rz-mt-6 rz-mb-4" AlignItems="AlignItems.Center">
+    <RadzenColumn Size="12">
+        <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1">
+            Upcoming Events
+        </RadzenText>
 
-    <RadzenStack Orientation="Orientation.Horizontal"
-                 Gap="1rem"
-                 AlignItems="AlignItems.Center"
-                 Style="flex-wrap: wrap;">
+        <RadzenText TextStyle="TextStyle.Body1">
+            Browse and discover events.
+        </RadzenText>
+    </RadzenColumn>
+</RadzenRow>
 
-        <RadzenTextBox Placeholder="Event Title"
-                       Style="width: 120px;"
-                       Value="@SearchText"
-                       @oninput="OnSearchInput" />
+<RadzenStack Orientation="Orientation.Horizontal"
+             Gap="1rem"
+             AlignItems="AlignItems.Center"
+             Class="rz-mb-4"
+             Style="flex-wrap: wrap;">
 
-        <RadzenDatePicker @bind-Value="FromDate"
-                          Placeholder="Date From"
-                          DateFormat="yyyy-MM-dd"
-                          Style="width: 140px;" />
+    <RadzenTextBox Placeholder="Search events"
+                   Style="width: 220px;"
+                   Value="@SearchText"
+                   @oninput="OnSearchInput" />
 
-        <RadzenDatePicker @bind-Value="ToDate"
-                          Placeholder="Date To"
-                          DateFormat="yyyy-MM-dd"
-                          Style="width: 140px;" />
+    <RadzenDatePicker @bind-Value="FromDate"
+                      Placeholder="From date"
+                      DateFormat="yyyy-MM-dd"
+                      Style="width: 180px;" />
 
-        <RadzenAutoComplete TValue="string"
-                            Data="@locationSuggestions"
-                            @bind-Value="LocationText"
-                            Placeholder="Select location"
-                            Style="width: 180px;"
-                            MinLength="2"
-                            LoadData="@LoadLocationSuggestions" />
+    <RadzenAutoComplete TValue="string"
+                        Data="@locationSuggestions"
+                        @bind-Value="LocationText"
+                        Placeholder="Select location"
+                        Style="width: 220px;"
+                        MinLength="2"
+                        LoadData="@LoadLocationSuggestions" />
 
-        <RadzenButton Text="Search"
-                      Icon="search"
-                      ButtonStyle="ButtonStyle.Primary"
-                      Click="@ApplyFilterAsync" />
+    <RadzenButton Text="Search"
+                  Icon="search"
+                  ButtonStyle="ButtonStyle.Primary"
+                  Click="@ApplyFilterAsync" />
 
-        <RadzenButton Text="Clear"
-                      Icon="close"
-                      ButtonStyle="ButtonStyle.Light"
-                      Click="@ClearFilterAsync" />
+    <RadzenButton Text="Clear"
+                  Icon="close"
+                  ButtonStyle="ButtonStyle.Light"
+                  Click="@ClearFilterAsync" />
 
-    </RadzenStack>
-
-    <RadzenDataGrid TItem="EventDto"
-                    Data="@filteredEvents"
-                    IsLoading="@isLoading"
-                    AllowFiltering="false"
-                    AllowSorting="true"
-                    AllowPaging="true"
-                    PageSize="10"
-                    EmptyText="No matching events found.">
-        <Columns>
-            <RadzenDataGridColumn TItem="EventDto"
-                                  Property="Title"
-                                  Title="Title"
-                                  Filterable="false" />
-
-            <RadzenDataGridColumn TItem="EventDto"
-                                  Property="Location"
-                                  Title="Location"
-                                  Filterable="false" />
-
-            <RadzenDataGridColumn TItem="EventDto"
-                                  Property="StartsAt"
-                                  Title="Date"
-                                  FormatString="{0:yyyy-MM-dd}"
-                                  Filterable="false" />
-
-            <RadzenDataGridColumn TItem="EventDto"
-                                  Property="Capacity"
-                                  Title="Capacity"
-                                  Filterable="false">
-                <Template Context="eventItem">
-                    @eventItem.Capacity seats
-                </Template>
-            </RadzenDataGridColumn>
-
-            <RadzenDataGridColumn TItem="EventDto"
-                                  Title="Actions"
-                                  Sortable="false"
-                                  Filterable="false"
-                                  Width="120px">
-                <Template Context="data">
-                    <RadzenButton Click="@(args => NavigationManager.NavigateTo($"/events/{data.Id}"))"
-                                  Text="Info"
-                                  Icon="info"
-                                  ButtonStyle="ButtonStyle.Info" />
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
 </RadzenStack>
+
+@if (isLoading)
+{
+    <RadzenRow>
+        @for (var i = 0; i < 6; i++)
+        {
+            <RadzenColumn Size="12" SizeMd="6" SizeLg="4" Class="rz-mb-4">
+                <RadzenCard Style="height:420px"
+                            Class="rz-display-flex rz-align-items-center rz-justify-content-center">
+
+                    <RadzenProgressBarCircular ShowValue="false"
+                                               Mode="ProgressBarMode.Indeterminate"
+                                               Size="ProgressBarCircularSize.Small" />
+                </RadzenCard>
+            </RadzenColumn>
+        }
+    </RadzenRow>
+}
+else if (!filteredEvents.Any())
+{
+    <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
+        No matching events found.
+    </RadzenAlert>
+}
+else
+{
+    <RadzenRow>
+        @foreach (var ev in filteredEvents)
+        {
+            <RadzenColumn Size="12" SizeMd="6" SizeLg="4" Class="rz-mb-4">
+
+                <RadzenCard Style="height:100%;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+
+                    <img src="https://placehold.co/600x300"
+                         style="width:100%;height:200px;object-fit:cover;" />
+
+                    <RadzenStack Gap="1rem"
+                                 Class="rz-p-4"
+                                 Style="flex-grow:1;">
+
+                        <RadzenText TextStyle="TextStyle.H6"
+                                    TagName="TagName.H2"
+                                    Style="margin:0;font-weight:bold;">
+
+                            @ev.Title
+                        </RadzenText>
+
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            @GetDescriptionExcerpt(ev.Description)
+                        </RadzenText>
+
+                        <RadzenStack Gap="0.5rem">
+
+                            <RadzenStack Orientation="Orientation.Horizontal"
+                                         AlignItems="AlignItems.Center"
+                                         Gap="0.5rem">
+
+                                <RadzenIcon Icon="location_on" />
+
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @ev.Location
+                                </RadzenText>
+                            </RadzenStack>
+
+                            <RadzenStack Orientation="Orientation.Horizontal"
+                                         AlignItems="AlignItems.Center"
+                                         Gap="0.5rem">
+
+                                <RadzenIcon Icon="calendar_today" />
+
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @ev.StartsAt.ToString("yyyy-MM-dd HH:mm")
+                                </RadzenText>
+                            </RadzenStack>
+
+                            <RadzenStack Orientation="Orientation.Horizontal"
+                                         AlignItems="AlignItems.Center"
+                                         Gap="0.5rem">
+
+                                <RadzenIcon Icon="groups" />
+
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    Capacity: @ev.Capacity
+                                </RadzenText>
+                            </RadzenStack>
+                        </RadzenStack>
+                    </RadzenStack>
+
+                    <div class="rz-p-4">
+                        <RadzenButton Text="View Event"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Icon="info"
+                                      Click="@(() => NavigationManager.NavigateTo($"/events/{ev.Id}"))"
+                                      Style="width:100%" />
+                    </div>
+
+                </RadzenCard>
+
+            </RadzenColumn>
+        }
+    </RadzenRow>
+}

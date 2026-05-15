@@ -80,4 +80,14 @@ public class EventsBase : ComponentBase
 
         await ApplyFilterAsync();
     }
+
+    protected static string GetDescriptionExcerpt(string description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            return string.Empty;
+
+        return description.Length > 100
+            ? $"{description[..97]}..."
+            : description;
+    }
 }
