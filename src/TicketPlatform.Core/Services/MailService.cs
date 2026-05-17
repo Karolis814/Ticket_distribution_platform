@@ -1,6 +1,7 @@
-using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
+using MimeKit;
 
 namespace TicketPlatform.Core.Services;
 
@@ -8,30 +9,46 @@ public class MailService(IOptions<SmtpOptions> opts) : IMailService
 {
     private readonly SmtpOptions _opts = opts.Value;
 
-    public async Task SendTicketAsync(
-        string toEmail,
-        string toName,
-        string eventName,
-        byte[] pdfBytes,
-        CancellationToken ct = default)
+    public async Task SendAsync(EmailMessage message, CancellationToken ct = default)
     {
-        using var msg = new MailMessage();
-        msg.From = new MailAddress(_opts.From, "Ticket Platform");
-        msg.To.Add(new MailAddress(toEmail, toName));
-        msg.Subject = $"Your tickets for {eventName}";
-        msg.Body =
-            $"Hello {toName},\n\nPlease find your tickets for \"{eventName}\" in the attachments below.\n\nEnjoy the event!";
+        var mime = new MimeMessage();
+        mime.From.Add(new MailboxAddress("Ticket Platform", _opts.From));
+        mime.To.Add(new MailboxAddress(message.ToName, message.To));
+        mime.Subject = message.Subject;
 
-        using var stream = new MemoryStream(pdfBytes);
-        msg.Attachments.Add(new Attachment(stream, "tickets.pdf", "application/pdf"));
+        var builder = new BodyBuilder
+        {
+            TextBody = message.BodyText,
+            HtmlBody = message.BodyHtml
+        };
 
-        using var client = new SmtpClient(_opts.Host, _opts.Port);
-        client.EnableSsl = _opts.EnableSsl;
-        client.Credentials = _opts.Username is not null
-            ? new NetworkCredential(_opts.Username, _opts.Password)
-            : null;
+        if (message.Attachments is not null)
+        {
+            foreach (var attachment in message.Attachments)
+            {
+                builder.Attachments.Add(
+                    attachment.FileName,
+                    attachment.Content,
+                    ContentType.Parse(attachment.ContentType));
+            }
+        }
 
-        await client.SendMailAsync(msg, ct);
+        mime.Body = builder.ToMessageBody();
+
+        using var client = new SmtpClient();
+        var secureSocket = _opts.EnableSsl
+            ? SecureSocketOptions.StartTlsWhenAvailable
+            : SecureSocketOptions.None;
+
+        await client.ConnectAsync(_opts.Host, _opts.Port, secureSocket, ct);
+
+        if (!string.IsNullOrEmpty(_opts.Username))
+        {
+            await client.AuthenticateAsync(_opts.Username, _opts.Password ?? string.Empty, ct);
+        }
+
+        await client.SendAsync(mime, ct);
+        await client.DisconnectAsync(true, ct);
     }
 }
 
