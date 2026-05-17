@@ -39,5 +39,18 @@ services:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI — http://localhost:8025
 
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: ticket_platform_azurite
+    restart: unless-stopped
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data --loose"
+    ports:
+      - "10000:10000"   # Blob
+      - "10001:10001"   # Queue
+      - "10002:10002"   # Table
+    volumes:
+      - ticket_azurite_data:/data
+
 volumes:
   ticket_pgdata:
+  ticket_azurite_data:
