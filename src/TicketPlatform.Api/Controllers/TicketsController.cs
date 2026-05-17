@@ -116,12 +116,19 @@ public class TicketsController(
         var pdf = await pdfService.GeneratePdfAsync(order.Id, ct);
 
 
-        await mail.SendTicketAsync(
-            customer.Email,
-            $"{customer.FirstName} {customer.LastName}",
-            ticketTypes.First().TicketType.Event.Title,
-            pdf,
-            ct);
+        var eventTitle = ticketTypes.First().TicketType.Event.Title;
+        var customerName = $"{customer.FirstName} {customer.LastName}";
+
+        await mail.SendAsync(new EmailMessage(
+            To: customer.Email,
+            ToName: customerName,
+            Subject: $"Your tickets for {eventTitle}",
+            BodyText:
+                $"Hello {customerName},\n\n" +
+                $"Please find your tickets for \"{eventTitle}\" in the attachments below.\n\n" +
+                "Enjoy the event!",
+            Attachments: [new EmailAttachment("tickets.pdf", "application/pdf", pdf)]
+        ), ct);
 
         var downloadUrl = Url.Action(
             nameof(DownloadPdf),
