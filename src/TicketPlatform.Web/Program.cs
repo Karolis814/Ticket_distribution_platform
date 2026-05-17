@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Radzen;
 using TicketPlatform.Web;
+using TicketPlatform.Web.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -13,5 +14,7 @@ var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 
 builder.Services.AddRadzenComponents();
+
+builder.Services.AddScoped<IImagesClient, ImagesClient>();
 
 await builder.Build().RunAsync();
