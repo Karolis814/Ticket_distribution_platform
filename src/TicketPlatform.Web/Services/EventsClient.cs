@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using TicketPlatform.Shared;
 using TicketPlatform.Shared.Dtos;
 
 namespace TicketPlatform.Web.Services;
@@ -14,27 +15,38 @@ public class EventsClient : IEventsClient
 
     public async Task<IReadOnlyList<EventDto>> GetAllAsync(CancellationToken ct = default)
     {
-        var result = await _http.GetFromJsonAsync<IReadOnlyList<EventDto>>("api/events", ct);
-        return result ?? Array.Empty<EventDto>();
+        var result = await _http.GetFromJsonAsync<PagedResult<EventDto>>(
+            "api/events",
+            ct);
+
+        return result?.Items ?? Array.Empty<EventDto>();
     }
 
     public async Task<EventDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        return await _http.GetFromJsonAsync<EventDto>($"api/events/{id}", ct);
+        return await _http.GetFromJsonAsync<EventDto>(
+            $"api/events/{id}",
+            ct);
     }
 
-    public async Task<EventDto?> CreateAsync(CreateEventRequest request, CancellationToken ct = default)
+    public async Task<EventDto?> CreateAsync(
+        CreateEventRequest request,
+        CancellationToken ct = default)
     {
-        var response = await _http.PostAsJsonAsync("api/events", request, ct);
+        var response = await _http.PostAsJsonAsync(
+            "api/events",
+            request,
+            ct);
+
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<EventDto>(cancellationToken: ct);
+        return await response.Content.ReadFromJsonAsync<EventDto>(
+            cancellationToken: ct);
     }
 
     public async Task<IReadOnlyList<EventDto>> SearchAsync(
         string? title,
-        DateTime? fromDate,
-        DateTime? toDate,
+        DateTimeOffset? fromDate,
         string? location,
         CancellationToken ct = default)
     {
@@ -43,12 +55,10 @@ public class EventsClient : IEventsClient
         if (!string.IsNullOrWhiteSpace(title))
             query.Add($"title={Uri.EscapeDataString(title)}");
 
-        if (fromDate.HasValue)
-            query.Add($"fromDate={fromDate.Value:yyyy-MM-dd}");
-
-        if (toDate.HasValue)
-            query.Add($"toDate={toDate.Value:yyyy-MM-dd}");
-
+        if (fromDate.HasValue){
+            query.Add(
+                $"fromDate={Uri.EscapeDataString(fromDate.Value.UtcDateTime.ToString("O"))}");query.Add($"fromDate={Uri.EscapeDataString(fromDate.Value.ToString("O"))}");
+        }
         if (!string.IsNullOrWhiteSpace(location))
             query.Add($"location={Uri.EscapeDataString(location)}");
 
@@ -56,8 +66,11 @@ public class EventsClient : IEventsClient
             ? "api/events"
             : $"api/events?{string.Join("&", query)}";
 
-        var result = await _http.GetFromJsonAsync<IReadOnlyList<EventDto>>(url, ct);
-        return result ?? Array.Empty<EventDto>();
+        var result = await _http.GetFromJsonAsync<PagedResult<EventDto>>(
+            url,
+            ct);
+
+        return result?.Items ?? Array.Empty<EventDto>();
     }
 
     public async Task<IReadOnlyList<string>> GetLocationSuggestionsAsync(
@@ -65,13 +78,14 @@ public class EventsClient : IEventsClient
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
-        {
             return Array.Empty<string>();
-        }
 
         var url = $"api/events/locations?input={Uri.EscapeDataString(input)}";
 
-        var result = await _http.GetFromJsonAsync<IReadOnlyList<string>>(url, ct);
+        var result = await _http.GetFromJsonAsync<IReadOnlyList<string>>(
+            url,
+            ct);
+
         return result ?? Array.Empty<string>();
     }
 }
