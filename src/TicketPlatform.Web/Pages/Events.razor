@@ -1,6 +1,9 @@
 @page "/events"
 @inherits EventsBase
 
+@using TicketPlatform.Shared.Dtos
+@using TicketPlatform.Shared.Enums
+
 <PageTitle>Events</PageTitle>
 
 <RadzenRow Class="rz-mt-6 rz-mb-4" AlignItems="AlignItems.Center">
@@ -12,6 +15,52 @@
     </RadzenColumn>
 </RadzenRow>
 
+<RadzenStack Orientation="Orientation.Horizontal"
+             Gap="1rem"
+             AlignItems="AlignItems.Center"
+             Class="rz-mb-4"
+             Style="flex-wrap: wrap;">
+
+    <RadzenAutoComplete TValue="string"
+                        Data="@TitleSuggestions"
+                        @bind-Value="SearchText"
+                        Placeholder="Search title"
+                        Style="width: 170px;"
+                        MinLength="2"
+                        LoadData="@LoadTitleSuggestions" />
+
+    <RadzenDatePicker @bind-Value="FromDate"
+                      Placeholder="From date"
+                      DateFormat="yyyy-MM-dd"
+                      Style="width: 190px;" />
+
+    <RadzenDropDown TValue="string"
+                Data="@Categories"
+                @bind-Value="SelectedCategory"
+                Placeholder="Category"
+                Style="width: 160px;"
+                AllowClear="true" />
+
+    <RadzenAutoComplete TValue="string"
+                        Data="@LocationSuggestions"
+                        @bind-Value="LocationText"
+                        Placeholder="Select location"
+                        Style="width: 180px;"
+                        MinLength="2"
+                        LoadData="@LoadLocationSuggestions" />
+
+    <RadzenButton Text="Search"
+                  Icon="search"
+                  ButtonStyle="ButtonStyle.Primary"
+                  Click="@ApplyFilterAsync" />
+
+    <RadzenButton Text="Clear"
+                  Icon="close"
+                  ButtonStyle="ButtonStyle.Light"
+                  Click="@ClearFilterAsync" />
+
+</RadzenStack>
+
 @if (IsLoading)
 {
     <RadzenRow>
@@ -21,7 +70,7 @@
                 <RadzenCard Style="height:480px" Class="rz-display-flex rz-align-items-center rz-justify-content-center">
                     <RadzenProgressBarCircular ShowValue="false"
                                                Mode="ProgressBarMode.Indeterminate"
-                                               Size="ProgressBarCircularSize.Small"/>
+                                               Size="ProgressBarCircularSize.Small" />
                 </RadzenCard>
             </RadzenColumn>
         }
@@ -42,15 +91,17 @@ else
                 <RadzenCard Style="height:100%;display:flex;flex-direction:column;padding:0;overflow:hidden;">
                     <RadzenImage Path="@(ev.ThumbnailUrl ?? "https://placehold.net/8.png")"
                                  Style="width:100%;height:200px;object-fit:cover;"
-                                 Click="@(() => NavigateToCheckout(ev.Id))"/>
+                                 Click="@(() => NavigateToCheckout(ev.Id))" />
 
                     <RadzenStack Gap="1rem" Class="rz-p-4" Style="flex-grow:1;">
-                        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween"
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     JustifyContent="JustifyContent.SpaceBetween"
                                      AlignItems="AlignItems.Center">
-                            <RadzenBadge BadgeStyle="BadgeStyle.Info" IsPill="true" Text="@(ev.Category)"/>
+                            <RadzenBadge BadgeStyle="BadgeStyle.Info" IsPill="true" Text="@(ev.Category)" />
                         </RadzenStack>
 
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H2"
+                        <RadzenText TextStyle="TextStyle.H6"
+                                    TagName="TagName.H2"
                                     Style="margin:0;line-height:1.3;font-weight:bold;">
                             @ev.Title
                         </RadzenText>
@@ -63,7 +114,8 @@ else
                             @if (!string.IsNullOrWhiteSpace(ev.Location))
                             {
                                 <RadzenStack Orientation="Orientation.Horizontal"
-                                             AlignItems="AlignItems.Center" Gap="0.5rem">
+                                             AlignItems="AlignItems.Center"
+                                             Gap="0.5rem">
                                     <RadzenIcon Icon="location_on" class="rz-color-base-700" />
                                     <RadzenText TextStyle="TextStyle.Body2" class="rz-color-base-700">
                                         @ev.Location
@@ -72,8 +124,9 @@ else
                             }
 
                             <RadzenStack Orientation="Orientation.Horizontal"
-                                         AlignItems="AlignItems.Center" Gap="0.5rem">
-                                <RadzenIcon Icon="calendar_today" class="rz-color-base-700"/>
+                                         AlignItems="AlignItems.Center"
+                                         Gap="0.5rem">
+                                <RadzenIcon Icon="calendar_today" class="rz-color-base-700" />
                                 <RadzenText TextStyle="TextStyle.Body2" class="rz-color-base-700">
                                     @StartDate(ev).ToString("yyyy-MM-dd")
                                     @if (StartDate(ev).Date == EndDate(ev).Date)
@@ -92,31 +145,25 @@ else
                     <div class="rz-p-4">
                         @if (ev.Status == EventStatus.Cancelled)
                         {
-                            <RadzenButton
-                                Text="Canceled"
-                                ButtonStyle="ButtonStyle.Base"
-                                Style="width:100%"
-                                Disabled="true"
-                            />
+                            <RadzenButton Text="Canceled"
+                                          ButtonStyle="ButtonStyle.Base"
+                                          Style="width:100%"
+                                          Disabled="true" />
                         }
                         else if (RemainingTickets(ev) <= 0)
                         {
-                            <RadzenButton
-                                Text="Sold Out"
-                                ButtonStyle="ButtonStyle.Secondary"
-                                Style="width:100%"
-                                Disabled="true"
-                            />
+                            <RadzenButton Text="Sold Out"
+                                          ButtonStyle="ButtonStyle.Secondary"
+                                          Style="width:100%"
+                                          Disabled="true" />
                         }
                         else
                         {
-                            <RadzenButton
-                                Text="@GetStartingPriceText(ev)"
-                                ButtonStyle="ButtonStyle.Primary"
-                                Icon="confirmation_number"
-                                Click="@(() => NavigateToCheckout(ev.Id))"
-                                Style="width:100%"
-                            />
+                            <RadzenButton Text="@GetStartingPriceText(ev)"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Icon="confirmation_number"
+                                          Click="@(() => NavigateToCheckout(ev.Id))"
+                                          Style="width:100%" />
                         }
                     </div>
                 </RadzenCard>
@@ -127,5 +174,5 @@ else
     <RadzenPager Count="Result?.TotalCount ?? 0"
                  PageSize="@PageSize"
                  PageNumbersCount="5"
-                 PageChanged="@OnPageChange"/>
+                 PageChanged="@OnPageChange" />
 }
