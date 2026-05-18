@@ -39,10 +39,9 @@ public class EventService(IRepository<Event> repository) : IEventService
                 e.Location.ToLower().Contains(locationFilter));
         }
 
-        if (!string.IsNullOrWhiteSpace(category) &&
-            Enum.TryParse<EventCategory>(category, true, out var parsedCategory))
+        if (!string.IsNullOrWhiteSpace(category))
         {
-            query = query.Where(e => e.Category == parsedCategory);
+            query = query.Where(e => e.Category == category);
         }
 
         query = query
@@ -52,9 +51,8 @@ public class EventService(IRepository<Event> repository) : IEventService
         var total = await query.CountAsync(ct);
 
         var items = await query
-            .Include(e => e.Host)
             .Include(e => e.TicketTypes)
-                .ThenInclude(tt => tt.Tickets)
+            .ThenInclude(tt => tt.Tickets)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(ct);
@@ -93,21 +91,28 @@ public class EventService(IRepository<Event> repository) : IEventService
         return (items, total);
     }
 
-    public Task<IReadOnlyList<string>> GetCategoriesAsync(
+    public async Task<IReadOnlyList<string>> GetCategoriesAsync(
         CancellationToken ct = default)
     {
-        IReadOnlyList<string> categories = Enum.GetNames<EventCategory>()
+        var categories = await repository.Query()
+            .Where(e =>
+                e.Status == EventStatus.Published &&
+                e.Category != null &&
+                e.Category != string.Empty)
+            .Select(e => e.Category)
+            .Distinct()
             .OrderBy(c => c)
-            .ToList();
+            .AsNoTracking()
+            .ToListAsync(ct);
 
-        return Task.FromResult(categories);
+        return categories;
     }
 
     public async Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => await repository.Query()
             .Include(e => e.Host)
             .Include(e => e.TicketTypes)
-                .ThenInclude(tt => tt.Tickets)
+            .ThenInclude(tt => tt.Tickets)
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 

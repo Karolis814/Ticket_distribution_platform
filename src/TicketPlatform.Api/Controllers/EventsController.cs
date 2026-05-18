@@ -3,7 +3,6 @@ using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Shared;
 using TicketPlatform.Shared.Dtos;
-using TicketPlatform.Shared.Enums;
 
 namespace TicketPlatform.Api.Controllers;
 
@@ -54,29 +53,21 @@ public class EventsController(IEventService eventService) : ControllerBase
         (IReadOnlyList<string> locations, int total) =
             await eventService.GetLocationSuggestionsAsync(input, page, pageSize, ct);
 
-        return Ok(new PagedResult<string>(
-            locations,
-            page,
-            pageSize,
-            total));
+        return Ok(new PagedResult<string>(locations, page, pageSize, total));
     }
 
     [HttpGet("categories")]
-    public ActionResult<IReadOnlyList<string>> GetCategories()
+    public async Task<ActionResult<IReadOnlyList<string>>> GetCategories(CancellationToken ct)
     {
-        return Ok(Enum.GetNames<EventCategory>());
+        var categories = await eventService.GetCategoriesAsync(ct);
+        return Ok(categories);
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<EventDto>> GetById(
-        Guid id,
-        CancellationToken ct)
+    public async Task<ActionResult<EventDto>> GetById(Guid id, CancellationToken ct)
     {
         var @event = await eventService.GetByIdAsync(id, ct);
-
-        return @event is null
-            ? NotFound()
-            : Ok(MapToEventDto(@event));
+        return @event is null ? NotFound() : Ok(MapToEventDto(@event));
     }
 
     [HttpPost]
@@ -126,11 +117,7 @@ public class EventsController(IEventService eventService) : ControllerBase
         }, ct);
 
         var created = await eventService.GetByIdAsync(@event.Id, ct);
-
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = created!.Id },
-            MapToEventDto(created));
+        return CreatedAtAction(nameof(GetById), new { id = created!.Id }, MapToEventDto(created));
     }
 
     private static EventDto MapToEventDto(Event e) => new(
@@ -142,13 +129,6 @@ public class EventsController(IEventService eventService) : ControllerBase
         e.Location,
         e.ThumbnailUrl,
         e.Status,
-        e.CreatedAt,
-        new HostDto(
-            e.Host.Id,
-            e.Host.Username,
-            e.Host.Email,
-            e.Host.Company
-        ),
         e.TicketTypes.Select(tt => new TicketTypeDto(
             tt.Id,
             tt.EventId,

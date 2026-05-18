@@ -1,92 +1,39 @@
 using System.Net.Http.Json;
-using Radzen;
 using TicketPlatform.Shared;
 using TicketPlatform.Shared.Dtos;
 
 namespace TicketPlatform.Web.Services;
 
-public class EventsClient(HttpClient http, NotificationService notify) : IEventsClient
+public class EventsClient : IEventsClient
 {
-    public async Task<PagedResult<EventDto>?> GetPagedAsync(
-        int page,
-        int pageSize,
-        string? title = null,
-        DateTimeOffset? fromDate = null,
-        string? location = null,
-        string? category = null,
-        CancellationToken ct = default)
+    private readonly HttpClient _http;
+
+    public EventsClient(HttpClient http)
     {
-        try
-        {
-            var query = new List<string>
-            {
-                $"page={page}",
-                $"pageSize={pageSize}"
-            };
-
-            if (!string.IsNullOrWhiteSpace(title))
-                query.Add($"title={Uri.EscapeDataString(title)}");
-
-            if (fromDate.HasValue)
-                query.Add($"fromDate={Uri.EscapeDataString(fromDate.Value.UtcDateTime.ToString("O"))}");
-
-            if (!string.IsNullOrWhiteSpace(location))
-                query.Add($"location={Uri.EscapeDataString(location)}");
-
-            if (!string.IsNullOrWhiteSpace(category))
-                query.Add($"category={Uri.EscapeDataString(category)}");
-
-            return await http.GetFromJsonAsync<PagedResult<EventDto>>(
-                $"api/events?{string.Join("&", query)}",
-                ct);
-        }
-        catch (Exception ex)
-        {
-            Notify(ex, "Failed to load events");
-            return null;
-        }
+        _http = http;
     }
 
-    public async Task<IReadOnlyList<EventDto>> GetAllAsync(
-        CancellationToken ct = default)
+    public async Task<IReadOnlyList<EventDto>> GetAllAsync(CancellationToken ct = default)
     {
-        try
-        {
-            var result = await http.GetFromJsonAsync<PagedResult<EventDto>>(
-                "api/events",
-                ct);
+        var result = await _http.GetFromJsonAsync<PagedResult<EventDto>>(
+            "api/events",
+            ct);
 
-            return result?.Items ?? [];
-        }
-        catch (Exception ex)
-        {
-            Notify(ex, "Failed to load events");
-            return [];
-        }
+        return result?.Items ?? Array.Empty<EventDto>();
     }
 
-    public async Task<EventDto?> GetByIdAsync(
-        Guid id,
-        CancellationToken ct = default)
+    public async Task<EventDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        try
-        {
-            return await http.GetFromJsonAsync<EventDto>(
-                $"api/events/{id}",
-                ct);
-        }
-        catch (Exception ex)
-        {
-            Notify(ex, "Failed to load event");
-            return null;
-        }
+        return await _http.GetFromJsonAsync<EventDto>(
+            $"api/events/{id}",
+            ct);
     }
 
     public async Task<EventDto?> CreateAsync(
         CreateEventRequest request,
         CancellationToken ct = default)
     {
-        var response = await http.PostAsJsonAsync(
+        var response = await _http.PostAsJsonAsync(
             "api/events",
             request,
             ct);
@@ -104,37 +51,29 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         string? category,
         CancellationToken ct = default)
     {
-        try
-        {
-            var query = new List<string>();
+        var query = new List<string>();
 
-            if (!string.IsNullOrWhiteSpace(title))
-                query.Add($"title={Uri.EscapeDataString(title)}");
+        if (!string.IsNullOrWhiteSpace(title))
+            query.Add($"title={Uri.EscapeDataString(title)}");
 
-            if (fromDate.HasValue)
-                query.Add($"fromDate={Uri.EscapeDataString(fromDate.Value.UtcDateTime.ToString("O"))}");
+        if (fromDate.HasValue)
+            query.Add($"fromDate={Uri.EscapeDataString(fromDate.Value.UtcDateTime.ToString("O"))}");
 
-            if (!string.IsNullOrWhiteSpace(location))
-                query.Add($"location={Uri.EscapeDataString(location)}");
+        if (!string.IsNullOrWhiteSpace(location))
+            query.Add($"location={Uri.EscapeDataString(location)}");
 
-            if (!string.IsNullOrWhiteSpace(category))
-                query.Add($"category={Uri.EscapeDataString(category)}");
+        if (!string.IsNullOrWhiteSpace(category))
+            query.Add($"category={Uri.EscapeDataString(category)}");
 
-            var url = query.Count == 0
-                ? "api/events"
-                : $"api/events?{string.Join("&", query)}";
+        var url = query.Count == 0
+            ? "api/events"
+            : $"api/events?{string.Join("&", query)}";
 
-            var result = await http.GetFromJsonAsync<PagedResult<EventDto>>(
-                url,
-                ct);
+        var result = await _http.GetFromJsonAsync<PagedResult<EventDto>>(
+            url,
+            ct);
 
-            return result?.Items ?? [];
-        }
-        catch (Exception ex)
-        {
-            Notify(ex, "Failed to search events");
-            return [];
-        }
+        return result?.Items ?? Array.Empty<EventDto>();
     }
 
     public async Task<IReadOnlyList<string>> GetLocationSuggestionsAsync(
@@ -142,50 +81,25 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
-            return [];
+            return Array.Empty<string>();
 
-        try
-        {
-            var url =
-                $"api/events/locations?input={Uri.EscapeDataString(input)}&page=1&pageSize=10";
+        var url =
+            $"api/events/locations?input={Uri.EscapeDataString(input)}&page=1&pageSize=10";
 
-            var result = await http.GetFromJsonAsync<PagedResult<string>>(
-                url,
-                ct);
+        var result = await _http.GetFromJsonAsync<PagedResult<string>>(
+            url,
+            ct);
 
-            return result?.Items ?? [];
-        }
-        catch (Exception ex)
-        {
-            Notify(ex, "Failed to load location suggestions");
-            return [];
-        }
+        return result?.Items ?? Array.Empty<string>();
     }
 
     public async Task<IReadOnlyList<string>> GetCategoriesAsync(
         CancellationToken ct = default)
     {
-        try
-        {
-            var result = await http.GetFromJsonAsync<IReadOnlyList<string>>(
-                "api/events/categories",
-                ct);
+        var result = await _http.GetFromJsonAsync<IReadOnlyList<string>>(
+            "api/events/categories",
+            ct);
 
-            return result ?? [];
-        }
-        catch (Exception ex)
-        {
-            Notify(ex, "Failed to load categories");
-            return [];
-        }
+        return result ?? Array.Empty<string>();
     }
-
-    private void Notify(Exception ex, string summary) =>
-        notify.Notify(new NotificationMessage
-        {
-            Severity = NotificationSeverity.Error,
-            Summary = summary,
-            Detail = ex.Message,
-            Duration = 5000
-        });
 }
