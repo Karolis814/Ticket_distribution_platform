@@ -47,6 +47,7 @@ public partial class CreateEventBase : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+        /*
         try
         {
             // Try to get the first user from the API
@@ -56,15 +57,16 @@ public partial class CreateEventBase : ComponentBase
             {
                 // For now, we'll use a hardcoded approach
                 // This is temporary - in production, use proper authentication
-                CurrentUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+                CurrentUserId = Guid.Parse("284528b2-9266-4e13-978c-67238952e543");
             }
         }
         catch
         {
             // Use default user ID if API call fails
-            CurrentUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            CurrentUserId = Guid.Parse("284528b2-9266-4e13-978c-67238952e543");
         }
-
+*/
+        CurrentUserId = Guid.Parse("284528b2-9266-4e13-978c-67238952e543");
         IsInitialized = true;
     }
 

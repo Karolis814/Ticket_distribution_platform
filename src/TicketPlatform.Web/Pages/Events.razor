@@ -12,7 +12,6 @@
     </RadzenColumn>
 </RadzenRow>
 
-<<<<<<< HEAD
 @if (IsLoading)
 {
     <RadzenRow>
@@ -130,26 +129,3 @@ else
                  PageNumbersCount="5"
                  PageChanged="@OnPageChange"/>
 }
-=======
-    <RadzenDataGrid TItem="EventDto"
-                     Data="@events"
-                     IsLoading="@isLoading"
-                     AllowFiltering="true"
-                     AllowSorting="true"
-                     AllowPaging="true"
-                     PageSize="10"
-                     EmptyText="No events available.">
-        <Columns>
-            <RadzenDataGridColumn TItem="EventDto" Property="Title" Title="Title" />
-            <RadzenDataGridColumn TItem="EventDto" Property="Location" Title="Location" />
-            <RadzenDataGridColumn TItem="EventDto" Property="StartsAt" Title="Starts at" FormatString="{0:g}" />
-            <RadzenDataGridColumn TItem="EventDto" Property="Capacity" Title="Capacity" />
-            <RadzenDataGridColumn TItem="EventDto" Sortable="false" Filterable="false" Title="Actions">
-                <Template Context="data">
-                    <RadzenButton Click="@(args => NavigationManager.NavigateTo($"/events/{data.Id}"))" Text="Info" ButtonStyle="ButtonStyle.Info" />
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
-</RadzenStack>
->>>>>>> 0a08cf4 (Added Single event page and checkout (checkout just as a placeholder))
