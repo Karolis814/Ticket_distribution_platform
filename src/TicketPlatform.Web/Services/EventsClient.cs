@@ -56,17 +56,14 @@ public class EventsClient : IEventsClient
         if (!string.IsNullOrWhiteSpace(title))
             query.Add($"title={Uri.EscapeDataString(title)}");
 
-        if (fromDate.HasValue){
-            query.Add(
-                $"fromDate={Uri.EscapeDataString(fromDate.Value.UtcDateTime.ToString("O"))}");query.Add($"fromDate={Uri.EscapeDataString(fromDate.Value.ToString("O"))}");
-        }
+        if (fromDate.HasValue)
+            query.Add($"fromDate={Uri.EscapeDataString(fromDate.Value.UtcDateTime.ToString("O"))}");
+
         if (!string.IsNullOrWhiteSpace(location))
             query.Add($"location={Uri.EscapeDataString(location)}");
 
         if (!string.IsNullOrWhiteSpace(category))
-        {
             query.Add($"category={Uri.EscapeDataString(category)}");
-        }
 
         var url = query.Count == 0
             ? "api/events"
@@ -86,13 +83,14 @@ public class EventsClient : IEventsClient
         if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
             return Array.Empty<string>();
 
-        var url = $"api/events/locations?input={Uri.EscapeDataString(input)}";
+        var url =
+            $"api/events/locations?input={Uri.EscapeDataString(input)}&page=1&pageSize=10";
 
-        var result = await _http.GetFromJsonAsync<IReadOnlyList<string>>(
+        var result = await _http.GetFromJsonAsync<PagedResult<string>>(
             url,
             ct);
 
-        return result ?? Array.Empty<string>();
+        return result?.Items ?? Array.Empty<string>();
     }
 
     public async Task<IReadOnlyList<string>> GetCategoriesAsync(

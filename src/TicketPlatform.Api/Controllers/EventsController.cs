@@ -8,99 +8,58 @@ namespace TicketPlatform.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class EventsController(IEventService eventService) : ControllerBase{
+public class EventsController(IEventService eventService) : ControllerBase
+{
     [HttpGet]
     public async Task<ActionResult<PagedResult<EventDto>>> GetUpcomingPaged(
-    [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 20,
-    [FromQuery] DateTimeOffset? fromDate = null,
-    [FromQuery] string? title = null,
-    [FromQuery] string? location = null,
-    [FromQuery] string? category = null,
-    CancellationToken ct = default)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] DateTimeOffset? fromDate = null,
+        [FromQuery] string? title = null,
+        [FromQuery] string? location = null,
+        [FromQuery] string? category = null,
+        CancellationToken ct = default)
     {
-    if (page < 1 || pageSize is < 1 or > 100)
-        return BadRequest("page ≥ 1, pageSize between 1 and 100.");
+        if (page < 1 || pageSize is < 1 or > 100)
+            return BadRequest("page ≥ 1, pageSize between 1 and 100.");
 
-    (IReadOnlyList<Event> events, int total) =
-        await eventService.GetUpcomingPagedAsync(
+        (IReadOnlyList<Event> events, int total) =
+            await eventService.GetUpcomingPagedAsync(
+                page,
+                pageSize,
+                fromDate ?? DateTimeOffset.UtcNow,
+                title,
+                location,
+                category,
+                ct);
+
+        return Ok(new PagedResult<EventDto>(
+            events.Select(MapToEventDto).ToList(),
             page,
             pageSize,
-            fromDate ?? DateTimeOffset.UtcNow,
-            category,
-            ct);
-
-    var query = events.AsEnumerable();
-
-    if (!string.IsNullOrWhiteSpace(title))
-    {
-        query = query.Where(e =>
-            Contains(e.Title, title) ||
-            Contains(e.Description, title));
-    }
-
-    if (!string.IsNullOrWhiteSpace(location))
-    {
-        query = query.Where(e =>
-            Contains(e.Location, location));
-    }
-
-    var filtered = query.ToList();
-
-    return Ok(new PagedResult<EventDto>(
-        filtered.Select(MapToEventDto).ToList(),
-        page,
-        pageSize,
-        filtered.Count));
+            total));
     }
 
     [HttpGet("locations")]
-    public async Task<ActionResult<IReadOnlyList<string>>> GetLocationSuggestions(
+    public async Task<ActionResult<PagedResult<string>>> GetLocationSuggestions(
         [FromQuery] string input,
-        CancellationToken ct)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct = default)
     {
-    if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
-        return Ok(Array.Empty<string>());
+        if (page < 1 || pageSize is < 1 or > 50)
+            return BadRequest("page ≥ 1, pageSize between 1 and 50.");
 
-    (IReadOnlyList<Event> events, var total) =
-        await eventService.GetUpcomingPagedAsync(
-            1,
-            100,
-            DateTimeOffset.UtcNow,
-            null,
-            ct);
+        (IReadOnlyList<string> locations, int total) =
+            await eventService.GetLocationSuggestionsAsync(input, page, pageSize, ct);
 
-    var locations = events
-        .Select(e => e.Location)
-        .Where(l => !string.IsNullOrWhiteSpace(l))
-        .Distinct()
-        .Where(l => Contains(l, input))
-        .OrderBy(l => l)
-        .Take(10)
-        .ToList();
-
-    return Ok(locations);
+        return Ok(new PagedResult<string>(locations, page, pageSize, total));
     }
 
     [HttpGet("categories")]
-    public async Task<ActionResult<IReadOnlyList<string>>> GetCategories(
-        CancellationToken ct)
+    public async Task<ActionResult<IReadOnlyList<string>>> GetCategories(CancellationToken ct)
     {
-        (IReadOnlyList<Event> events, int total) =
-            await eventService.GetUpcomingPagedAsync(
-                1,
-                1000,
-                DateTimeOffset.UtcNow,
-                null,
-                ct);
-
-        var categories = events
-            .Select(e => e.Category)
-            .Where(c => !string.IsNullOrWhiteSpace(c))
-            .Distinct()
-            .OrderBy(c => c)
-            .ToList();
-
+        var categories = await eventService.GetCategoriesAsync(ct);
         return Ok(categories);
     }
 
@@ -159,12 +118,6 @@ public class EventsController(IEventService eventService) : ControllerBase{
 
         var created = await eventService.GetByIdAsync(@event.Id, ct);
         return CreatedAtAction(nameof(GetById), new { id = created!.Id }, MapToEventDto(created));
-    }
-
-    private static bool Contains(string? value, string search)
-    {
-        return !string.IsNullOrWhiteSpace(value)
-            && value.Contains(search, StringComparison.OrdinalIgnoreCase);
     }
 
     private static EventDto MapToEventDto(Event e) => new(

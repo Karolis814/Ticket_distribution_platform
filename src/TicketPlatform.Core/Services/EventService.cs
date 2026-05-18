@@ -11,26 +11,46 @@ public class EventService(IRepository<Event> repository) : IEventService
         int page,
         int pageSize,
         DateTimeOffset fromDate,
+        string? title,
+        string? location,
         string? category,
-        CancellationToken ct = default){
-
-        var baseQuery = repository.Query()
+        CancellationToken ct = default)
+    {
+        var query = repository.Query()
             .Where(e =>
                 e.Status == EventStatus.Published &&
                 e.TicketTypes.Max(tt => tt.OccurenceEndDate) >= fromDate);
 
-        if (!string.IsNullOrWhiteSpace(category))
+        if (!string.IsNullOrWhiteSpace(title))
         {
-            baseQuery = baseQuery.Where(e => e.Category == category);
+            var titleFilter = title.ToLower();
+
+            query = query.Where(e =>
+                e.Title.ToLower().Contains(titleFilter) ||
+                e.Description.ToLower().Contains(titleFilter));
         }
 
-        baseQuery = baseQuery
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            var locationFilter = location.ToLower();
+
+            query = query.Where(e =>
+                e.Location != null &&
+                e.Location.ToLower().Contains(locationFilter));
+        }
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            query = query.Where(e => e.Category == category);
+        }
+
+        query = query
             .OrderBy(e => e.TicketTypes.Min(tt => tt.OccurenceStartDate))
             .AsNoTracking();
 
-        var total = await baseQuery.CountAsync(ct);
+        var total = await query.CountAsync(ct);
 
-        var items = await baseQuery
+        var items = await query
             .Include(e => e.TicketTypes)
             .ThenInclude(tt => tt.Tickets)
             .Skip((page - 1) * pageSize)
@@ -38,6 +58,54 @@ public class EventService(IRepository<Event> repository) : IEventService
             .ToListAsync(ct);
 
         return (items, total);
+    }
+
+    public async Task<(IReadOnlyList<string> Items, int TotalCount)> GetLocationSuggestionsAsync(
+        string input,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
+            return (Array.Empty<string>(), 0);
+
+        var inputFilter = input.ToLower();
+
+        var query = repository.Query()
+            .Where(e =>
+                e.Status == EventStatus.Published &&
+                e.Location != null &&
+                e.Location.ToLower().Contains(inputFilter))
+            .Select(e => e.Location!)
+            .Distinct()
+            .OrderBy(l => l)
+            .AsNoTracking();
+
+        var total = await query.CountAsync(ct);
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
+
+    public async Task<IReadOnlyList<string>> GetCategoriesAsync(
+        CancellationToken ct = default)
+    {
+        var categories = await repository.Query()
+            .Where(e =>
+                e.Status == EventStatus.Published &&
+                e.Category != null &&
+                e.Category != string.Empty)
+            .Select(e => e.Category)
+            .Distinct()
+            .OrderBy(c => c)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        return categories;
     }
 
     public async Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default)
