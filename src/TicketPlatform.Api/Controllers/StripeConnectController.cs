@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
-using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Shared.Dtos;
@@ -10,19 +9,13 @@ namespace TicketPlatform.Api.Controllers;
 [ApiController]
 [Route("api/stripe-connect")]
 public class StripeConnectController(
-    IHostPaymentSettingsService hostPaymentSettingsService,
-    IRepository<User> userRepository,
-    IConfiguration configuration) : ControllerBase
+    IHostPaymentSettingsService hostPaymentSettingsService) : ControllerBase
 {
     [HttpPost("onboard/{hostId:guid}")]
     public async Task<IActionResult> CreateOnboardingLink(
         Guid hostId,
         CancellationToken ct)
     {
-        var host = await userRepository.GetByIdAsync(hostId, ct);
-        if (host is null)
-            return NotFound($"User {hostId} not found.");
-
         var settings = await hostPaymentSettingsService.GetByHostIdAsync(hostId, ct);
 
         if (settings is null)
@@ -61,15 +54,13 @@ public class StripeConnectController(
 
         var accountLinkService = new AccountLinkService();
 
-        var baseUrl = configuration["ClientBaseUrl"];
-
         var accountLink = await accountLinkService.CreateAsync(
             new AccountLinkCreateOptions
             {
                 Account = settings.StripeAccountId,
                 Type = "account_onboarding",
-                RefreshUrl = $"{baseUrl}/owner/stripe/refresh/{hostId}",
-                ReturnUrl = $"{baseUrl}/owner/stripe/return/{hostId}"
+                RefreshUrl = $"https://localhost:7174/owner/stripe/refresh/{hostId}",
+                ReturnUrl = $"https://localhost:7174/owner/stripe/return/{hostId}"
             },
             cancellationToken: ct);
 

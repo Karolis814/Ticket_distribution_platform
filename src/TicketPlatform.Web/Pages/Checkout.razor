@@ -258,7 +258,7 @@
                         <RadzenTextBox @bind-Value="Email" Placeholder="jane@example.com" Style="width:100%"/>
                     </RadzenFormField>
 
-                    <RadzenButton Text="@(Busy ? "Processing…" : "Complete Purchase")"
+                    <RadzenButton Text="@(Busy ? "Redirecting to payment..." : "Proceed to Payment")"
                                   ButtonStyle="ButtonStyle.Primary"
                                   Size="ButtonSize.Large"
                                   Icon="@(Busy ? "" : "confirmation_number")"

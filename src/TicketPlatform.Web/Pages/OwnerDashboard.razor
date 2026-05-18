@@ -26,32 +26,6 @@
             }
             else if (Dashboard is not null)
             {
-                <RadzenRow Gap="1rem" Class="rz-mb-2">
-                    <RadzenColumn Size="12" SizeMd="4">
-                        <RadzenButton Text="Create Event"
-                                      Icon="add_circle"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Style="width:100%"
-                                      Click="@(() => Nav.NavigateTo("/createEvent"))" />
-                    </RadzenColumn>
-
-                    <RadzenColumn Size="12" SizeMd="4">
-                        <RadzenButton Text="Stripe Payments"
-                                      Icon="payments"
-                                      ButtonStyle="ButtonStyle.Info"
-                                      Style="width:100%"
-                                      Click="@(() => Nav.NavigateTo($"/owner/stripe/{HostId}"))" />
-                    </RadzenColumn>
-
-                    <RadzenColumn Size="12" SizeMd="4">
-                        <RadzenButton Text="Browse Events"
-                                      Icon="event"
-                                      ButtonStyle="ButtonStyle.Light"
-                                      Style="width:100%"
-                                      Click="@(() => Nav.NavigateTo("/events"))" />
-                    </RadzenColumn>
-                </RadzenRow>
-
                 <RadzenRow Gap="1rem">
                     <RadzenColumn Size="12" SizeMd="3">
                         <RadzenCard>
@@ -318,10 +292,10 @@
                     </RadzenStack>
                 </RadzenCard>
 
-                <RadzenButton Text="Back to settings"
+                <RadzenButton Text="Back to events"
                               Icon="arrow_back"
                               ButtonStyle="ButtonStyle.Light"
-                              Click="@(() => Nav.NavigateTo($"/settings?userId={HostId}"))"
+                              Click="@(() => Nav.NavigateTo("/events"))"
                               Style="width:100%" />
             }
 

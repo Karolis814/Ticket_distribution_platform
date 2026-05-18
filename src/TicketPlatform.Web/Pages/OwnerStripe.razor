@@ -1,5 +1,8 @@
 @page "/owner/stripe/{HostId:guid}"
-@inherits OwnerStripeBase
+@using System.Net.Http.Json
+@using TicketPlatform.Shared.Dtos
+@inject HttpClient Http
+@inject NavigationManager Nav
 
 <PageTitle>Stripe settings</PageTitle>
 
@@ -15,62 +18,23 @@
                 {
                     <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
                 }
+                else if (Status is null || !Status.Ready)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
+                        Stripe is not fully connected. Connect Stripe to receive ticket payments.
+                    </RadzenAlert>
+
+                    <RadzenButton Text="Connect Stripe"
+                                  Icon="account_balance"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Click="ConnectStripe"
+                                  Style="width:100%" />
+                }
                 else
                 {
-                    @if (!string.IsNullOrWhiteSpace(Error))
-                    {
-                        <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true">
-                            @Error
-                        </RadzenAlert>
-                    }
-
-                    @if (Status is null || !Status.Ready)
-                    {
-                        @if (Status is not null && !string.IsNullOrWhiteSpace(Status.StripeAccountId))
-                        {
-                            <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
-                                Stripe account connected but setup is incomplete:
-                                @if (!Status.DetailsSubmitted)
-                                {
-                                    <div>— Details not yet submitted</div>
-                                }
-                                @if (!Status.ChargesEnabled)
-                                {
-                                    <div>— Charges not yet enabled by Stripe</div>
-                                }
-                                @if (!Status.PayoutsEnabled)
-                                {
-                                    <div>— Payouts not yet enabled by Stripe</div>
-                                }
-                            </RadzenAlert>
-
-                            <RadzenButton Text="Continue Stripe setup"
-                                          Icon="account_balance"
-                                          ButtonStyle="ButtonStyle.Primary"
-                                          Click="ConnectStripe"
-                                          Disabled="_connecting"
-                                          Style="width:100%" />
-                        }
-                        else
-                        {
-                            <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
-                                Stripe is not connected. Connect Stripe to receive ticket payments.
-                            </RadzenAlert>
-
-                            <RadzenButton Text="Connect Stripe"
-                                          Icon="account_balance"
-                                          ButtonStyle="ButtonStyle.Primary"
-                                          Click="ConnectStripe"
-                                          Disabled="_connecting"
-                                          Style="width:100%" />
-                        }
-                    }
-                    else
-                    {
-                        <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true">
-                            Stripe is connected and ready to receive payments.
-                        </RadzenAlert>
-                    }
+                    <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true">
+                        Stripe is connected and ready to receive payments.
+                    </RadzenAlert>
                 }
 
                 <RadzenButton Text="Back to events"
@@ -82,3 +46,46 @@
         </RadzenCard>
     </RadzenColumn>
 </RadzenRow>
+
+@code {
+    [Parameter] public Guid HostId { get; set; }
+
+    private StripeConnectStatusDto? Status { get; set; }
+    private bool Loading { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStatus();
+    }
+
+    private async Task LoadStatus()
+    {
+        Loading = true;
+
+        try
+        {
+            Status = await Http.GetFromJsonAsync<StripeConnectStatusDto>(
+                $"api/stripe-connect/status/{HostId}");
+        }
+        finally
+        {
+            Loading = false;
+        }
+    }
+
+    private async Task ConnectStripe()
+    {
+        var response = await Http.PostAsync(
+            $"api/stripe-connect/onboard/{HostId}",
+            null);
+
+        response.EnsureSuccessStatusCode();
+
+        var result = await response.Content.ReadFromJsonAsync<StripeConnectLinkResponse>();
+
+        if (!string.IsNullOrWhiteSpace(result?.Url))
+            Nav.NavigateTo(result.Url, forceLoad: true);
+    }
+
+    private sealed record StripeConnectLinkResponse(string Url);
+}

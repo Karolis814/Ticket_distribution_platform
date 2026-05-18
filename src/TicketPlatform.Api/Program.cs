@@ -1,10 +1,9 @@
 using Serilog;
-using System.Text;
 using TicketPlatform.Api.Middleware;
 using TicketPlatform.Infrastructure;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using TicketPlatform.Core.Settings;
+using Stripe;
+using TicketPlatform.Core.Services;
+using TicketPlatform.Infrastructure.Payments;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +17,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 builder.Services.AddInfrastructure(builder.Configuration);
+
+StripeConfiguration.ApiKey =
+    builder.Configuration["Stripe:SecretKey"];
+
+builder.Services.AddScoped<
+    IStripeCheckoutService,
+    StripeCheckoutService>();
 
 const string blazorCors = "BlazorClient";
 builder.Services.AddCors(options =>
