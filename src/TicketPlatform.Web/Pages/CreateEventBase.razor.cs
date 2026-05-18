@@ -1,40 +1,67 @@
 using Microsoft.AspNetCore.Components;
-using System;
+using Microsoft.AspNetCore.Components.Forms;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.Design;
-using System.Threading.Tasks;
-using TicketPlatform.Core.Events;
+using Radzen;
+using TicketPlatform.Shared.Events;
+using TicketPlatform.Web.Services;
 
-namespace TicketPlatform.Web.Pages; // Adjust to your actual namespace
+namespace TicketPlatform.Web.Pages;
 
 public partial class CreateEventBase : ComponentBase
 {
-    // This is the object your form will bind to.
     protected CreateEventFormModel Model { get; set; } = new()
     {
-        StartsAt = DateTime.Now // Provide a sensible default
+        StartsAt = DateTime.Now
     };
 
-    // You would inject whatever service you use to talk to the DB/API here
-    [Inject] protected IEventService EventService { get; set; } = default!;
+    // Inject the HTTP client service to communicate with the API
+    [Inject] protected IEventsClient EventsClient { get; set; } = default!;
+    [Inject] protected NotificationService NotificationService { get; set; } = default!;
+    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
 
 
-    protected async Task HandleValidSubmit()
+    protected async Task OnValidSubmit(EditContext editContext)
     {
-        // At this point, Blazor guarantees the data passes validation.
-        // You would map 'Model' to your actual DB Entity and save it here.
-        var newEvent = new Event
+        try
         {
-            Title = Model.Title,
-            Description = Model.Description,
-            Location = Model.Location,
-            StartsAt = Model.StartsAt,
-            Capacity = Model.Capacity
-        };
+            // changing timezones to avoid conflicts
+            var startsAtUtc = Model.StartsAt.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(Model.StartsAt, DateTimeKind.Utc)
+                : Model.StartsAt.ToUniversalTime();
 
-        await EventService.CreateAsync(newEvent);
+            var createRequest = new CreateEventRequest(
+                Title: Model.Title,
+                Description: Model.Description,
+                Location: Model.Location,
+                StartsAt: startsAtUtc,
+                Capacity: Model.Capacity
+            );
 
-        Console.WriteLine($"Event '{Model.Title}' is ready to save!");
+            await EventsClient.CreateAsync(createRequest);
+
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Event Created",
+                Detail = $"Event '{Model.Title}' has been successfully created!",
+                Duration = 5000
+            });
+
+            // Reset the form
+            Model = new CreateEventFormModel { StartsAt = DateTime.Now };
+
+            NavigationManager.NavigateTo("/events");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Failed to create event",
+                Detail = ex.Message,
+                Duration = 5000
+            });
+        }
     }
 }
 

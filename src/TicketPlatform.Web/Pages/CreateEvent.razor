@@ -4,41 +4,62 @@
 <h3>Create Event</h3>
 
 <div class="rz-p-0 rz-p-md-12">
-    <RadzenTemplateForm Model="@Model" OnValidSubmit="@HandleValidSubmit">
+    <EditForm Model="@Model" OnValidSubmit="@OnValidSubmit">
+        <DataAnnotationsValidator />
         <RadzenStack Gap="1rem">
+
             <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
                 <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                    <RadzenLabel Text="First Name" Component="FirstName" />
+                    <RadzenLabel Text="Title" Component="Title"/>
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="8">
-                    <RadzenTextBox Name="Event Title" @bind-Value=@Model.Title Style="display: block; width: 100%;" />
-                    <RadzenRequiredValidator Component="EventTitle" Text="Event is required." Style="position: absolute" />
+                    <RadzenTextBox Name="Title" @bind-Value="Model.Title" Style="display: block; width: 100%;"/>
                 </RadzenColumn>
             </RadzenRow>
+
             <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
                 <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                    <RadzenLabel Text="Last Name" Component="LastName" />
+                    <RadzenLabel Text="Description" Component="Description"/>
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="8">
-                    <RadzenTextBox Name="Description" @bind-Value=@Model.Description Style="display: block; width: 100%;" />
-                    <RadzenRequiredValidator Component="LastName" Text="Last name is required." Style="position: absolute" />
+                    <RadzenTextBox Name="Description" @bind-Value="Model.Description" Style="display: block; width: 100%;"/>
                 </RadzenColumn>
             </RadzenRow>
+
             <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
                 <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                    <RadzenLabel Text="Email" Component="Email" />
+                    <RadzenLabel Text="Starts At" Component="StartsAt"/>
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="8">
-                    <RadzenDatePicker Name="Date" @bind-Value=@Model.StartsAt Style="display: block; width: 100%;" />
+                    <RadzenDatePicker Name="StartsAt" @bind-Value="Model.StartsAt" Style="display: block; width: 100%;"/>
                 </RadzenColumn>
             </RadzenRow>
+
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                    <RadzenLabel Text="Capacity" Component="Capacity"/>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenNumeric TValue="int" Name="Capacity" @bind-Value="Model.Capacity" Style="display: block; width: 100%;"/>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                    <RadzenLabel Text="Location" Component="Location"/>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenTextBox Name="Location" @bind-Value="Model.Location" Style="display: block; width: 100%;"/>
+                </RadzenColumn>
+            </RadzenRow>
+
             <RadzenRow AlignItems="AlignItems.Center" class="rz-mt-4">
                 <RadzenColumn Size="12" Offset="0" SizeMD="8" OffsetMD="4">
-                    <RadzenButton ButtonType="ButtonType.Submit" Text="Submit" />
+                    <RadzenButton ButtonType="ButtonType.Submit" Text="Submit"/>
                 </RadzenColumn>
             </RadzenRow>
         </RadzenStack>
-    </RadzenTemplateForm>
+    </EditForm>
 </div>
 
 @code {
