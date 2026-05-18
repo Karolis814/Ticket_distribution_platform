@@ -1,6 +1,7 @@
 @page "/checkout/{EventId:guid}"
 @inherits CheckoutBase
 
+<<<<<<< HEAD
 <PageTitle>Buy Ticket – @(EventTitle ?? "Checkout")</PageTitle>
 
 <RadzenRow JustifyContent="JustifyContent.Center" Class="rz-mt-8 rz-mb-8">
@@ -275,3 +276,55 @@
 
     </RadzenColumn>
 </RadzenRow>
+=======
+<PageTitle>Checkout</PageTitle>
+
+<RadzenStack Gap="1rem">
+    <RadzenButton Icon="arrow_back" Text="Back to Event" Click="@(() => NavigationManager.NavigateTo($"/events/{EventId}"))" Style="margin-bottom: 1rem;" />
+
+    @if (isLoading)
+    {
+        <RadzenText>Loading checkout details...</RadzenText>
+    }
+    else if (Event is null)
+    {
+        <RadzenText TextStyle="TextStyle.H5" Text="Event not found." />
+    }
+     else
+    {
+        <RadzenStack Gap="1rem">
+            <RadzenText TextStyle="TextStyle.H4">Checkout - @Event.Title</RadzenText>
+
+            <RadzenCard>
+                <RadzenStack Gap="1rem">
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem">
+                        <RadzenStack Gap="0.5rem">
+                            <RadzenText TextStyle="TextStyle.Body2" Text="Location" />
+                            <RadzenText TextStyle="TextStyle.Body1" Text="@Event.Location" />
+                        </RadzenStack>
+
+                        <RadzenStack Gap="0.5rem">
+                            <RadzenText TextStyle="TextStyle.Body2" Text="Starts At" />
+                            <RadzenText TextStyle="TextStyle.Body1" Text="@Event.StartsAt.ToString("g")" />
+                        </RadzenStack>
+
+                        <RadzenStack Gap="0.5rem">
+                            <RadzenText TextStyle="TextStyle.Body2" Text="Available Seats" />
+                            <RadzenText TextStyle="TextStyle.Body1" Text="@Event.Capacity.ToString("G")" />
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenStack>
+            </RadzenCard>
+
+            <RadzenStack Gap="1rem" Orientation="Orientation.Horizontal" class="rz-mt-4">
+                <RadzenButton Click="@OnPurchase" Text="Purchase Tickets" ButtonStyle="ButtonStyle.Success" />
+            </RadzenStack>
+        </RadzenStack>
+    }
+</RadzenStack>
+
+@code {
+
+}
+
+>>>>>>> 0a08cf4 (Added Single event page and checkout (checkout just as a placeholder))
