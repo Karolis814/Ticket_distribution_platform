@@ -4,9 +4,22 @@
 <h3>Create Event</h3>
 
 <div class="rz-p-0 rz-p-md-12">
-    <EditForm Model="@Model" OnValidSubmit="@OnValidSubmit">
+    <EditForm Model="@Model" OnValidSubmit="@OnValidSubmit" OnInvalidSubmit="@OnInvalidSubmit">
         <DataAnnotationsValidator />
         <RadzenStack Gap="1rem">
+
+            <!-- Basic Event Information Section -->
+            <RadzenText TextStyle="TextStyle.Subtitle1">Basic Information</RadzenText>
+
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                    <RadzenLabel Text="Category" Component="Category"/>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenDropDown Name="Category" @bind-Value="Model.Category" Data="@Categories" Style="display: block; width: 100%;"/>
+                    <ValidationMessage For="@(() => Model.Category)" />
+                </RadzenColumn>
+            </RadzenRow>
 
             <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
                 <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
@@ -14,6 +27,7 @@
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="8">
                     <RadzenTextBox Name="Title" @bind-Value="Model.Title" Style="display: block; width: 100%;"/>
+                    <ValidationMessage For="@(() => Model.Title)" />
                 </RadzenColumn>
             </RadzenRow>
 
@@ -22,25 +36,8 @@
                     <RadzenLabel Text="Description" Component="Description"/>
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="8">
-                    <RadzenTextBox Name="Description" @bind-Value="Model.Description" Style="display: block; width: 100%;"/>
-                </RadzenColumn>
-            </RadzenRow>
-
-            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
-                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                    <RadzenLabel Text="Starts At" Component="StartsAt"/>
-                </RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="8">
-                    <RadzenDatePicker Name="StartsAt" @bind-Value="Model.StartsAt" Style="display: block; width: 100%;"/>
-                </RadzenColumn>
-            </RadzenRow>
-
-            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
-                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                    <RadzenLabel Text="Capacity" Component="Capacity"/>
-                </RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="8">
-                    <RadzenNumeric TValue="int" Name="Capacity" @bind-Value="Model.Capacity" Style="display: block; width: 100%;"/>
+                    <RadzenTextArea Name="Description" @bind-Value="Model.Description" Style="display: block; width: 100%; height: 100px;"/>
+                    <ValidationMessage For="@(() => Model.Description)" />
                 </RadzenColumn>
             </RadzenRow>
 
@@ -50,12 +47,174 @@
                 </RadzenColumn>
                 <RadzenColumn Size="12" SizeMD="8">
                     <RadzenTextBox Name="Location" @bind-Value="Model.Location" Style="display: block; width: 100%;"/>
+                    <ValidationMessage For="@(() => Model.Location)" />
                 </RadzenColumn>
             </RadzenRow>
 
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                    <RadzenLabel Text="Status" Component="Status"/>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <RadzenDropDown Name="Status" @bind-Value="Model.Status" Data="@EventStatuses" Style="display: block; width: 100%;"/>
+                    <ValidationMessage For="@(() => Model.Status)" />
+                </RadzenColumn>
+            </RadzenRow>
+
+            <!-- Event Picture Upload Section -->
+            <RadzenText TextStyle="TextStyle.Subtitle1">Event Picture</RadzenText>
+
+            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                    <RadzenLabel Text="Upload Picture" Component="Picture"/>
+                </RadzenColumn>
+                <RadzenColumn Size="12" SizeMD="8">
+                    <InputFile OnChange="@OnFileChange" accept="image/*" />
+                    @if (!string.IsNullOrEmpty(Model.ThumbnailFileName))
+                    {
+                        <RadzenText TextStyle="TextStyle.Caption">Selected: @Model.ThumbnailFileName</RadzenText>
+                    }
+                </RadzenColumn>
+            </RadzenRow>
+
+            <!-- Ticket Releases Section -->
+            <RadzenText TextStyle="TextStyle.Subtitle1">Ticket Releases</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">Add one or more ticket releases with different prices and dates</RadzenText>
+
+            @for (int i = 0; i < Model.TicketReleases.Count; i++)
+            {
+                int currentIndex = i;
+                <RadzenCard Style="margin-bottom: 1rem;">
+                    <RadzenStack Gap="1rem">
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12">
+                                <RadzenText TextStyle="TextStyle.Subtitle2">Release @(currentIndex + 1)</RadzenText>
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                            <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                                <RadzenLabel Text="Release Title" Component="@($"Title_{currentIndex}")"/>
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenTextBox Name="@($"Title_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].Title" Style="display: block; width: 100%;"/>
+                                <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].Title)" />
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                            <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                                <RadzenLabel Text="Price (Cents)" Component="@($"Price_{currentIndex}")"/>
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenNumeric TValue="int" Name="@($"Price_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].PriceCents" Style="display: block; width: 100%;"/>
+                                <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].PriceCents)" />
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                            <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                                <RadzenLabel Text="Currency" Component="@($"Currency_{currentIndex}")"/>
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenTextBox Name="@($"Currency_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].Currency" Placeholder="USD" Style="display: block; width: 100%;"/>
+                                <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].Currency)" />
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                            <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                                <RadzenLabel Text="Quantity" Component="@($"Qty_{currentIndex}")"/>
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenNumeric TValue="int" Name="@($"Qty_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].Quantity" Style="display: block; width: 100%;"/>
+                                <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].Quantity)" />
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                            <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                                <RadzenLabel Text="Max Uses Per Ticket" Component="@($"MaxUses_{currentIndex}")"/>
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenNumeric TValue="int" Name="@($"MaxUses_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].MaxUses" Style="display: block; width: 100%;"/>
+                                <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].MaxUses)" />
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenText TextStyle="TextStyle.Subtitle2">Event Occurrence</RadzenText>
+
+                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                            <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                                <RadzenLabel Text="Event Starts" Component="@($"OccStart_{currentIndex}")"/>
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenDatePicker Name="@($"OccStart_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].OccurenceStartDate" ShowTime="true" Style="display: block; width: 100%;"/>
+                                <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].OccurenceStartDate)" />
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                            <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                                <RadzenLabel Text="Event Ends" Component="@($"OccEnd_{currentIndex}")"/>
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenDatePicker Name="@($"OccEnd_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].OccurenceEndDate" ShowTime="true" Style="display: block; width: 100%;"/>
+                                <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].OccurenceEndDate)" />
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenText TextStyle="TextStyle.Subtitle2">Admission Period</RadzenText>
+
+                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                            <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                                <RadzenLabel Text="Admission Opens" Component="@($"AdmStart_{currentIndex}")"/>
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenDatePicker Name="@($"AdmStart_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].AdmissionStartDate" ShowTime="true" Style="display: block; width: 100%;"/>
+                                <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].AdmissionStartDate)" />
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                            <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                                <RadzenLabel Text="Admission Closes" Component="@($"AdmEnd_{currentIndex}")"/>
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeMD="8">
+                                <RadzenDatePicker Name="@($"AdmEnd_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].AdmissionEndDate" ShowTime="true" Style="display: block; width: 100%;"/>
+                                <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].AdmissionEndDate)" />
+                            </RadzenColumn>
+                        </RadzenRow>
+
+                        @if (Model.TicketReleases.Count > 1)
+                        {
+                            <RadzenRow>
+                                <RadzenColumn Size="12">
+                                    <RadzenButton Click="@(() => RemoveTicketRelease(currentIndex))"
+                                                  ButtonStyle="ButtonStyle.Danger"
+                                                  Size="ButtonSize.Small"
+                                                  Text="Remove Release"/>
+                                </RadzenColumn>
+                            </RadzenRow>
+                        }
+                    </RadzenStack>
+                </RadzenCard>
+            }
+
+            <RadzenRow>
+                <RadzenColumn Size="12">
+                    <RadzenButton Click="@AddTicketRelease"
+                                  ButtonStyle="ButtonStyle.Info"
+                                  Size="ButtonSize.Small"
+                                  Icon="add"
+                                  Text="Add Another Release"/>
+                </RadzenColumn>
+            </RadzenRow>
+
+            <!-- Submit Button -->
             <RadzenRow AlignItems="AlignItems.Center" class="rz-mt-4">
                 <RadzenColumn Size="12" Offset="0" SizeMD="8" OffsetMD="4">
-                    <RadzenButton ButtonType="ButtonType.Submit" Text="Submit"/>
+                    <RadzenButton ButtonType="ButtonType.Submit" Text="Create Event" ButtonStyle="ButtonStyle.Success"/>
                 </RadzenColumn>
             </RadzenRow>
         </RadzenStack>
