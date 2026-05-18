@@ -48,6 +48,7 @@ public class EventsClient : IEventsClient
         string? title,
         DateTimeOffset? fromDate,
         string? location,
+        string? category,
         CancellationToken ct = default)
     {
         var query = new List<string>();
@@ -61,6 +62,11 @@ public class EventsClient : IEventsClient
         }
         if (!string.IsNullOrWhiteSpace(location))
             query.Add($"location={Uri.EscapeDataString(location)}");
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            query.Add($"category={Uri.EscapeDataString(category)}");
+        }
 
         var url = query.Count == 0
             ? "api/events"
@@ -84,6 +90,16 @@ public class EventsClient : IEventsClient
 
         var result = await _http.GetFromJsonAsync<IReadOnlyList<string>>(
             url,
+            ct);
+
+        return result ?? Array.Empty<string>();
+    }
+
+    public async Task<IReadOnlyList<string>> GetCategoriesAsync(
+        CancellationToken ct = default)
+    {
+        var result = await _http.GetFromJsonAsync<IReadOnlyList<string>>(
+            "api/events/categories",
             ct);
 
         return result ?? Array.Empty<string>();

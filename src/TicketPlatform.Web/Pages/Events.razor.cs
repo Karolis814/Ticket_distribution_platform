@@ -23,14 +23,21 @@ public class EventsBase : ComponentBase
     protected IReadOnlyList<EventDto> Events { get; private set; } = [];
     protected IReadOnlyList<string> LocationSuggestions { get; private set; } = [];
 
+    protected IReadOnlyList<string> TitleSuggestions { get; private set; } = [];
+
     protected bool IsLoading { get; private set; }
 
     protected string SearchText { get; set; } = string.Empty;
     protected string LocationText { get; set; } = string.Empty;
     protected DateTimeOffset? FromDate { get; set; }
 
+    protected IReadOnlyList<string> Categories { get; set; } = [];
+    protected string? SelectedCategory { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
+        Categories = await EventsClient.GetCategoriesAsync();
+
         await LoadEventsAsync();
     }
 
@@ -70,7 +77,8 @@ public class EventsBase : ComponentBase
             Events = await EventsClient.SearchAsync(
                 SearchText,
                 FromDate,
-                LocationText);
+                LocationText,
+                SelectedCategory);
         }
         catch (Exception ex)
         {
@@ -93,6 +101,7 @@ public class EventsBase : ComponentBase
         SearchText = string.Empty;
         LocationText = string.Empty;
         FromDate = null;
+        SelectedCategory = null;
         LocationSuggestions = [];
 
         Page = 1;
@@ -168,5 +177,30 @@ public class EventsBase : ComponentBase
         return description.Length > 100
             ? $"{description[..97]}..."
             : description;
+    }
+
+    protected async Task LoadTitleSuggestions(LoadDataArgs args)
+    {
+        var input = args.Filter ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
+        {
+            TitleSuggestions = [];
+            return;
+        }
+
+        var events = await EventsClient.SearchAsync(
+            input,
+            null,
+            null,
+            SelectedCategory);
+
+        TitleSuggestions = events
+            .Select(e => e.Title)
+            .Where(t => !string.IsNullOrWhiteSpace(t))
+            .Distinct()
+            .OrderBy(t => t)
+            .Take(10)
+            .ToList();
     }
 }

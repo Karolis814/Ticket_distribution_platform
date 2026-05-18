@@ -19,9 +19,13 @@ public interface IEventsClient
         string? title,
         DateTimeOffset? fromDate,
         string? location,
+        string? category,
         CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> GetLocationSuggestionsAsync(
         string input,
+        CancellationToken ct = default);
+
+    Task<IReadOnlyList<string>> GetCategoriesAsync(
         CancellationToken ct = default);
 }

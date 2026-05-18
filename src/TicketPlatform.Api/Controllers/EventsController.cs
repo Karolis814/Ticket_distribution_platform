@@ -16,16 +16,18 @@ public class EventsController(IEventService eventService) : ControllerBase{
     [FromQuery] DateTimeOffset? fromDate = null,
     [FromQuery] string? title = null,
     [FromQuery] string? location = null,
+    [FromQuery] string? category = null,
     CancellationToken ct = default)
-{
+    {
     if (page < 1 || pageSize is < 1 or > 100)
         return BadRequest("page ≥ 1, pageSize between 1 and 100.");
 
-    (IReadOnlyList<Event> events, var total) =
+    (IReadOnlyList<Event> events, int total) =
         await eventService.GetUpcomingPagedAsync(
             page,
             pageSize,
             fromDate ?? DateTimeOffset.UtcNow,
+            category,
             ct);
 
     var query = events.AsEnumerable();
@@ -50,13 +52,13 @@ public class EventsController(IEventService eventService) : ControllerBase{
         page,
         pageSize,
         filtered.Count));
-}
+    }
 
-[HttpGet("locations")]
-public async Task<ActionResult<IReadOnlyList<string>>> GetLocationSuggestions(
-    [FromQuery] string input,
-    CancellationToken ct)
-{
+    [HttpGet("locations")]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetLocationSuggestions(
+        [FromQuery] string input,
+        CancellationToken ct)
+    {
     if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
         return Ok(Array.Empty<string>());
 
@@ -65,6 +67,7 @@ public async Task<ActionResult<IReadOnlyList<string>>> GetLocationSuggestions(
             1,
             100,
             DateTimeOffset.UtcNow,
+            null,
             ct);
 
     var locations = events
@@ -77,7 +80,29 @@ public async Task<ActionResult<IReadOnlyList<string>>> GetLocationSuggestions(
         .ToList();
 
     return Ok(locations);
-}
+    }
+
+    [HttpGet("categories")]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetCategories(
+        CancellationToken ct)
+    {
+        (IReadOnlyList<Event> events, int total) =
+            await eventService.GetUpcomingPagedAsync(
+                1,
+                1000,
+                DateTimeOffset.UtcNow,
+                null,
+                ct);
+
+        var categories = events
+            .Select(e => e.Category)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct()
+            .OrderBy(c => c)
+            .ToList();
+
+        return Ok(categories);
+    }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<EventDto>> GetById(Guid id, CancellationToken ct)
@@ -141,7 +166,7 @@ public async Task<ActionResult<IReadOnlyList<string>>> GetLocationSuggestions(
         return !string.IsNullOrWhiteSpace(value)
             && value.Contains(search, StringComparison.OrdinalIgnoreCase);
     }
-    
+
     private static EventDto MapToEventDto(Event e) => new(
         e.Id,
         e.HostId,
