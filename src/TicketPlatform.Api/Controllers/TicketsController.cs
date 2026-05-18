@@ -11,20 +11,12 @@ namespace TicketPlatform.Api.Controllers;
 [Route("api/[controller]")]
 public class TicketsController(
     ICustomerService customerService,
-    ITicketService ticketService,
     IOrderItemService orderItemService,
     IOrderService orderService,
     ITicketTypeService ticketTypeService,
-    ITicketPdfService pdfService,
-    IMailService mail) : ControllerBase
+    IStripeCheckoutService stripeCheckoutService,
+    IRepository<Payment> paymentRepository) : ControllerBase
 {
-    [HttpGet("{orderId:guid}/pdf")]
-    public async Task<IActionResult> DownloadPdf(Guid orderId, CancellationToken ct)
-    {
-        var pdf = await pdfService.GeneratePdfAsync(orderId, ct);
-        return File(pdf, "application/pdf", $"tickets.pdf");
-    }
-
     [HttpPost("checkout")]
     public async Task<ActionResult<CheckoutResponseDto>> Checkout(
         [FromBody] CheckoutRequestDto request,
@@ -41,6 +33,7 @@ public class TicketsController(
         foreach (var item in request.Items)
         {
             var ticketType = await ticketTypeService.GetByIdAsync(item.TicketTypeId, ct);
+
             if (ticketType is null)
                 return NotFound($"TicketType {item.TicketTypeId} not found.");
 
@@ -48,9 +41,9 @@ public class TicketsController(
                 return Conflict($"Event '{ticketType.Event.Title}' has been cancelled.");
 
             var remaining = ticketType.Quantity - ticketType.Tickets.Count;
+
             if (remaining < item.Quantity)
-                return Conflict(
-                    $"Only {remaining} ticket(s) remaining for '{ticketType.Title}'.");
+                return Conflict($"Only {remaining} ticket(s) remaining for '{ticketType.Title}'.");
 
             if (ticketType.OccurenceEndDate < DateTimeOffset.UtcNow)
                 return Conflict($"Event '{ticketType.Event.Title}' has ended.");
@@ -58,34 +51,36 @@ public class TicketsController(
             ticketTypes.Add((ticketType, item.Quantity));
         }
 
-        var currencies = ticketTypes.Select(x => x.TicketType.Currency).Distinct().ToList();
+        var currencies = ticketTypes
+            .Select(x => x.TicketType.Currency)
+            .Distinct()
+            .ToList();
+
         if (currencies.Count > 1)
-            return BadRequest(
-                $"All items must share the same currency. Found: {string.Join(", ", currencies)}.");
+            return BadRequest($"All items must share the same currency. Found: {string.Join(", ", currencies)}.");
 
         var currency = currencies[0];
 
-        // TODO: Check if a registered user with that email exists.
-        //       Use an existing customer entry if so.
         var customer = new Customer
         {
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Email = request.Email
+            FirstName = request.FirstName.Trim(),
+            LastName = request.LastName.Trim(),
+            Email = request.Email.Trim()
         };
+
         await customerService.CreateAsync(customer, ct);
 
         var totalCents = ticketTypes.Sum(x => x.TicketType.PriceCents * x.Quantity);
+
         var order = new Order
         {
             CustomerId = customer.Id,
             TotalPriceCents = totalCents,
             Currency = currency,
-            Status = OrderStatus.Pending
+            Status = OrderStatus.AwaitingPayment
         };
-        await orderService.CreateAsync(order, ct);
 
-        var generatedTickets = new List<Ticket>();
+        await orderService.CreateAsync(order, ct);
 
         foreach (var (ticketType, quantity) in ticketTypes)
         {
@@ -97,48 +92,30 @@ public class TicketsController(
                 UnitPriceCents = ticketType.PriceCents,
                 Currency = ticketType.Currency
             };
-            await orderItemService.CreateAsync(orderItem, ct);
 
-            for (var i = 0; i < quantity; i++)
-            {
-                var ticket = await ticketService.CreateAsync(new Ticket
-                {
-                    TicketTypeId = ticketType.Id,
-                    OrderItemId = orderItem.Id,
-                }, ct);
-                generatedTickets.Add(ticket);
-            }
+            await orderItemService.CreateAsync(orderItem, ct);
         }
 
-        order.Status = OrderStatus.Completed;
-        await orderService.UpdateAsync(order, ct);
+        var payment = new Payment
+        {
+            OrderId = order.Id,
+            AmountCents = totalCents,
+            Currency = currency,
+            StripeStatus = "created"
+        };
 
-        var pdf = await pdfService.GeneratePdfAsync(order.Id, ct);
+        await paymentRepository.AddAsync(payment, ct);
+        await paymentRepository.SaveChangesAsync(ct);
 
+        var loadedOrder = await orderService.GetByIdAsync(order.Id, ct);
 
-        await mail.SendTicketAsync(
-            customer.Email,
-            $"{customer.FirstName} {customer.LastName}",
-            ticketTypes.First().TicketType.Event.Title,
-            pdf,
-            ct);
+        if (loadedOrder is null)
+            return Problem("Order was created but could not be loaded.");
 
-        var downloadUrl = Url.Action(
-            nameof(DownloadPdf),
-            "Tickets",
-            new { orderId = order.Id },
-            Request.Scheme)!;
+        var checkoutUrl = await stripeCheckoutService.CreateCheckoutSessionAsync(loadedOrder, ct);
 
         return Ok(new CheckoutResponseDto(
-            order.Id,
-            generatedTickets.Select(t => t.Id).ToList(),
-            downloadUrl,
-            customer.Email));
+            loadedOrder.Id,
+            checkoutUrl));
     }
-
-    private static TicketDto MapToDto(Ticket t) => new(
-        t.Id,
-        t.TicketTypeId,
-        t.OrderItemId,
-        t.TimesUsed);
 }

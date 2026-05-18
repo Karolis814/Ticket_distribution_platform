@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TicketPlatform.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using TicketPlatform.Infrastructure.Persistence;
 namespace TicketPlatform.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260517161017_AddStripeInvoiceFields")]
+    partial class AddStripeInvoiceFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,45 +127,6 @@ namespace TicketPlatform.Infrastructure.Migrations
                     b.HasIndex("HostId");
 
                     b.ToTable("Events", (string)null);
-                });
-
-            modelBuilder.Entity("TicketPlatform.Core.Entities.HostPaymentSettings", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("ChargesEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("DetailsSubmitted")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("HostId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset?>("OnboardedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("PayoutsEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("StripeAccountId")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HostId")
-                        .IsUnique();
-
-                    b.ToTable("HostPaymentSettings", (string)null);
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Order", b =>
@@ -532,17 +496,6 @@ namespace TicketPlatform.Infrastructure.Migrations
                         .WithMany("HostedEvents")
                         .HasForeignKey("HostId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Host");
-                });
-
-            modelBuilder.Entity("TicketPlatform.Core.Entities.HostPaymentSettings", b =>
-                {
-                    b.HasOne("TicketPlatform.Core.Entities.User", "Host")
-                        .WithOne()
-                        .HasForeignKey("TicketPlatform.Core.Entities.HostPaymentSettings", "HostId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Host");

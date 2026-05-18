@@ -13,4 +13,7 @@ public class Payment : BaseEntity
     public string? StripeCheckoutSessionId { get; set; }
     public string? StripeStatus { get; set; }
     public DateTimeOffset? SucceededAt { get; set; }
+    public string? StripeInvoiceId { get; set; }
+public string? StripeInvoiceUrl { get; set; }
+public string? StripeInvoicePdfUrl { get; set; }
 }
