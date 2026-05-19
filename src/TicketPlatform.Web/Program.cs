@@ -17,6 +17,9 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseU
 // Register IEventsClient with HttpClient
 builder.Services.AddScoped<IEventsClient>(sp => new EventsClient(sp.GetRequiredService<HttpClient>()));
 
+// Register IPlacesClient with HttpClient
+builder.Services.AddScoped<IPlacesClient>(sp => new PlacesClient(sp.GetRequiredService<HttpClient>()));
+
 builder.Services.AddRadzenComponents();
 
 await builder.Build().RunAsync();

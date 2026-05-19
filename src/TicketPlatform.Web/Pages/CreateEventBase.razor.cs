@@ -38,24 +38,25 @@ public partial class CreateEventBase : ComponentBase
 
     // Inject the HTTP client service to communicate with the API
     [Inject] protected IEventsClient EventsClient { get; set; } = default!;
+    [Inject] protected IPlacesClient PlacesClient { get; set; } = default!;
     [Inject] protected NotificationService NotificationService { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
     [Inject] protected HttpClient HttpClient { get; set; } = default!;
 
     protected Guid CurrentUserId { get; set; } = Guid.Empty;
     protected bool IsInitialized { get; set; } = false;
+    protected List<PlacePredictionDto> LocationSuggestions { get; set; } = new();
+    protected bool IsSearchingLocations { get; set; } = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         /*
         try
         {
             // Try to get the first user from the API
-            // In a real app, this would be authenticated user info
             var response = await HttpClient.GetAsync("api/users?pageSize=1");
             if (response.IsSuccessStatusCode)
             {
-                // For now, we'll use a hardcoded approach
                 // This is temporary - in production, use proper authentication
                 CurrentUserId = Guid.Parse("284528b2-9266-4e13-978c-67238952e543");
             }
@@ -228,7 +229,7 @@ public partial class CreateEventBase : ComponentBase
         }
     }
 
-    protected async Task OnFileChange(InputFileChangeEventArgs e)
+    protected void OnFileChange(InputFileChangeEventArgs e)
     {
         try
         {
@@ -256,6 +257,76 @@ public partial class CreateEventBase : ComponentBase
                 Duration = 5000
             });
         }
+    }
+
+    protected async Task OnLocationChange(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || value.Length < 3)
+        {
+            LocationSuggestions.Clear();
+            return;
+        }
+
+        IsSearchingLocations = true;
+        try
+        {
+            LocationSuggestions = (await PlacesClient.SearchAsync(value)).ToList();
+        }
+        catch
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "Location Search Error",
+                Detail = "Could not fetch location suggestions. You can still enter the location manually.",
+                Duration = 5000
+            });
+        }
+        finally
+        {
+            IsSearchingLocations = false;
+        }
+    }
+
+    protected async Task OnLocationChangeHandler(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            await OnLocationChange("");
+        }
+        else
+        {
+            await OnLocationChange(value);
+        }
+    }
+
+    protected async Task OnLoadLocationData(LoadDataArgs args)
+    {
+        if (string.IsNullOrWhiteSpace(args.Filter) || args.Filter.Length < 3)
+        {
+            LocationSuggestions.Clear();
+            return;
+        }
+
+        await OnLocationChange(args.Filter);
+    }
+
+    protected void OnLocationSelect(PlacePredictionDto? location)
+    {
+        if (location != null)
+        {
+            Model.Location = location.MainText;
+            if (!string.IsNullOrEmpty(location.SecondaryText))
+            {
+                Model.Location += ", " + location.SecondaryText;
+            }
+            LocationSuggestions.Clear();
+        }
+    }
+
+    protected IEnumerable<PlacePredictionDto> OnLocationFilter(IEnumerable<PlacePredictionDto> items)
+    {
+        return items;
     }
 }
 

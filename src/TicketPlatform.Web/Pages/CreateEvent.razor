@@ -1,5 +1,6 @@
 @page "/createEvent"
 @inherits CreateEventBase
+@using TicketPlatform.Web.Services
 
 <h3>Create Event</h3>
 
@@ -40,15 +41,34 @@
                 </RadzenColumn>
             </RadzenRow>
 
-            <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
-                <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                    <RadzenLabel Text="Location" Component="Location"/>
-                </RadzenColumn>
-                <RadzenColumn Size="12" SizeMD="8">
-                    <RadzenTextBox Name="Location" @bind-Value="Model.Location" Style="display: block; width: 100%;"/>
-                    <ValidationMessage For="@(() => Model.Location)" />
-                </RadzenColumn>
-            </RadzenRow>
+             <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
+                 <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
+                     <RadzenLabel Text="Location" Component="Location"/>
+                 </RadzenColumn>
+                   <RadzenColumn Size="12" SizeMD="8">
+                       <RadzenAutoComplete Name="Location"
+                                            @bind-Value="Model.Location"
+                                            LoadData="@OnLoadLocationData"
+                                            Data="@LocationSuggestions"
+                                            TextProperty="MainText"
+                                            ValueProperty="MainText"
+                                            Placeholder="Type location to search..."
+                                            Style="display: block; width: 100%;"
+                                            IsLoading="@IsSearchingLocations"
+                                            Multiple="false">
+                           <Template Context="prediction">
+                               <RadzenStack Orientation="Orientation.Vertical" Gap="0">
+                                   <RadzenText TextStyle="TextStyle.Body2">@(prediction?.MainText ?? "")</RadzenText>
+                                   @if (!string.IsNullOrEmpty(prediction?.SecondaryText))
+                                   {
+                                       <RadzenText TextStyle="TextStyle.Caption">@(prediction?.SecondaryText)</RadzenText>
+                                   }
+                               </RadzenStack>
+                           </Template>
+                       </RadzenAutoComplete>
+                       <ValidationMessage For="@(() => Model.Location)" />
+                   </RadzenColumn>
+             </RadzenRow>
 
             <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
                 <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">

@@ -1,9 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Infrastructure.Persistence;
+using TicketPlatform.Infrastructure.Services;
 
 namespace TicketPlatform.Infrastructure;
 
@@ -34,6 +37,16 @@ public static class DependencyInjection
         services.AddScoped<IMailService, MailService>();
 
         services.AddScoped<ITicketValidationService, TicketValidationService>();
+
+        // Add Google Places API service
+        services.Configure<GooglePlacesOptions>(configuration.GetSection("GooglePlaces"));
+        services.AddScoped<IPlacesService>(sp =>
+            new GooglePlacesService(
+                new HttpClient(),
+                sp.GetRequiredService<IOptions<GooglePlacesOptions>>(),
+                sp.GetRequiredService<ILogger<GooglePlacesService>>()
+            )
+        );
 
         return services;
     }
