@@ -36,7 +36,6 @@ public partial class CreateEventBase : ComponentBase
         EventStatus.Cancelled
     };
 
-    // Inject the HTTP client service to communicate with the API
     [Inject] protected IEventsClient EventsClient { get; set; } = default!;
     [Inject] protected IPlacesClient PlacesClient { get; set; } = default!;
     [Inject] protected NotificationService NotificationService { get; set; } = default!;
@@ -48,33 +47,73 @@ public partial class CreateEventBase : ComponentBase
     protected List<PlacePredictionDto> LocationSuggestions { get; set; } = new();
     protected bool IsSearchingLocations { get; set; } = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        /*
+        await GetCurrentUserIdAsync();
+        IsInitialized = true;
+    }
+
+    private async Task GetCurrentUserIdAsync()
+    {
         try
         {
-            // Try to get the first user from the API
-            var response = await HttpClient.GetAsync("api/users?pageSize=1");
+            // Try to get the current user from the API
+            // This will work once authentication is properly set up
+            var response = await HttpClient.GetAsync("api/users/me");
             if (response.IsSuccessStatusCode)
             {
-                // This is temporary - in production, use proper authentication
-                CurrentUserId = Guid.Parse("284528b2-9266-4e13-978c-67238952e543");
+                // Parse the actual user ID from the response
+                var content = await response.Content.ReadAsStringAsync();
+                var userResponse = System.Text.Json.JsonSerializer.Deserialize<UserResponse>(
+                    content,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                );
+
+                if (userResponse != null && userResponse.Id != Guid.Empty)
+                {
+                    CurrentUserId = userResponse.Id;
+                }
+                else
+                {
+                    CurrentUserId = GetFallbackUserId();
+                }
+            }
+            else
+            {
+                CurrentUserId = GetFallbackUserId();
             }
         }
         catch
         {
-            // Use default user ID if API call fails
-            CurrentUserId = Guid.Parse("284528b2-9266-4e13-978c-67238952e543");
+            // Use fallback user ID if API call fails (expected until authentication is implemented)
+            CurrentUserId = GetFallbackUserId();
         }
-*/
-        CurrentUserId = Guid.Parse("284528b2-9266-4e13-978c-67238952e543");
-        IsInitialized = true;
+    }
+
+    private record UserResponse(Guid Id);
+
+    private static Guid GetFallbackUserId()
+    {
+        // Fallback user ID to use until authentication is properly implemented
+        return Guid.Parse("284528b2-9266-4e13-978c-67238952e543");
     }
 
     protected async Task OnValidSubmit(EditContext editContext)
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(Model.Location))
+            {
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = "Validation Failed",
+                    Detail = "Location is required. Please select a location from the suggestions.",
+                    Duration = 5000
+                });
+                return;
+            }
+
             if (!Model.TicketReleases.Any())
             {
                 NotificationService.Notify(new NotificationMessage
