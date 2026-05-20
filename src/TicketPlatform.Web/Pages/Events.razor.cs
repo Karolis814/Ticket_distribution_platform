@@ -67,6 +67,11 @@ public class EventsBase : ComponentBase
         Nav.NavigateTo($"/checkout/{eventId}");
     }
 
+    protected void NavigateToDetails(Guid eventId)
+    {
+        Nav.NavigateTo($"/events/{eventId}");
+    }
+
     protected static string GetStartingPriceText(EventDto ev)
     {
         if (ev.TicketTypes.Count == 0) return "Get Tickets";
