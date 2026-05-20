@@ -1,0 +1,157 @@
+@page "/events/{EventId:guid}"
+@inherits SingleEventBase
+
+<PageTitle>Event Details</PageTitle>
+
+<RadzenStack Gap="1rem">
+    <RadzenButton Icon="arrow_back" Text="Back to Events" Click="@(() => NavigationManager.NavigateTo("/events"))" Style="margin-bottom: 1rem;" />
+
+    @if (isLoading)
+    {
+        <RadzenText>Loading event details...</RadzenText>
+    }
+    else if (Event is null)
+    {
+        <RadzenText TextStyle="TextStyle.H5" Text="Event not found." />
+    }
+    else
+    {
+        <RadzenStack Gap="1rem">
+            <!-- Event Header with Thumbnail -->
+            @if (!string.IsNullOrEmpty(Event.ThumbnailUrl))
+            {
+                <div style="max-height: 400px; overflow: hidden; border-radius: 8px;">
+                    <img src="@Event.ThumbnailUrl" alt="@Event.Title" style="width: 100%; height: auto; object-fit: cover;" />
+                </div>
+            }
+
+            <RadzenText TextStyle="TextStyle.H3" Text="@Event.Title"/>
+
+            <!-- Basic Information -->
+            <RadzenCard>
+                <RadzenStack Gap="1rem">
+                    <RadzenText TextStyle="TextStyle.Subtitle1">Event Information</RadzenText>
+
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.5rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenText TextStyle="TextStyle.Body2" class="rz-color-tertiary">Category</RadzenText>
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenBadge Text="@Event.Category" IsPill="true" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.5rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenText TextStyle="TextStyle.Body2" class="rz-color-tertiary">Status</RadzenText>
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenBadge Text="@Event.Status.ToString()" IsPill="true" Variant="@GetStatusVariant(Event.Status)" />
+                        </RadzenColumn>
+                    </RadzenRow>
+
+                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.5rem">
+                         <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                             <RadzenText TextStyle="TextStyle.Body2" class="rz-color-tertiary">Location</RadzenText>
+                         </RadzenColumn>
+                         <RadzenColumn Size="12" SizeMD="9">
+                             <RadzenText TextStyle="TextStyle.Body1">@(Event.Location ?? "Not specified")</RadzenText>
+                         </RadzenColumn>
+                     </RadzenRow>
+
+                    <RadzenRow AlignItems="AlignItems.Start" RowGap="0.5rem">
+                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
+                            <RadzenText TextStyle="TextStyle.Body2" class="rz-color-tertiary">Description</RadzenText>
+                        </RadzenColumn>
+                        <RadzenColumn Size="12" SizeMD="9">
+                            <RadzenText TextStyle="TextStyle.Body1" Text="@Event.Description" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenStack>
+            </RadzenCard>
+
+            <!-- Ticket Types -->
+            <RadzenCard>
+                <RadzenStack Gap="1rem">
+                    <RadzenText TextStyle="TextStyle.Subtitle1">Available Ticket Types</RadzenText>
+
+                    @if (Event.TicketTypes?.Any() == true)
+                    {
+                        @foreach (var ticketType in Event.TicketTypes)
+                        {
+                            <RadzenCard Style="background-color: var(--rz-panel-background); border: 1px solid var(--rz-border-lighter);">
+                                <RadzenStack Gap="0.75rem">
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="8">
+                                            <RadzenText TextStyle="TextStyle.Subtitle2" Text="@ticketType.Title" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-end">
+                                            <RadzenText TextStyle="TextStyle.H6">@FormatPrice(ticketType.PriceCents, ticketType.Currency)</RadzenText>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                    <RadzenRow>
+                                        <RadzenColumn Size="12" SizeMD="6">
+                                            <RadzenStack Gap="0.5rem">
+                                                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-tertiary">Event Occurrence</RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Body2">
+                                                    @ticketType.OccurenceStartDate.ToString("MMM dd, yyyy HH:mm") -
+                                                    @ticketType.OccurenceEndDate.ToString("MMM dd, yyyy HH:mm")
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="6">
+                                            <RadzenStack Gap="0.5rem">
+                                                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-tertiary">Admission Period</RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Body2">
+                                                    @ticketType.AdmissionStartDate.ToString("MMM dd, yyyy HH:mm") -
+                                                    @ticketType.AdmissionEndDate.ToString("MMM dd, yyyy HH:mm")
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                    <RadzenRow>
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenStack Gap="0.25rem">
+                                                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-tertiary">Available</RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Body1">@(ticketType.Quantity - ticketType.Sold) / @ticketType.Quantity</RadzenText>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenStack Gap="0.25rem">
+                                                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-tertiary">Max Uses</RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Body1">@ticketType.MaxUses</RadzenText>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenStack Gap="0.25rem">
+                                                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-tertiary">Sold</RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Body1">@ticketType.Sold</RadzenText>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                </RadzenStack>
+                            </RadzenCard>
+                        }
+                    }
+                    else
+                    {
+                        <RadzenText>No ticket types available for this event.</RadzenText>
+                    }
+                </RadzenStack>
+            </RadzenCard>
+
+            <!-- Action Button -->
+            <RadzenRow AlignItems="AlignItems.Center" class="rz-mt-4">
+                <RadzenColumn Size="12">
+                    <RadzenButton Click="@(args => NavigationManager.NavigateTo($"/checkout/{Event.Id}"))"
+                                  Text="Checkout"
+                                  ButtonStyle="ButtonStyle.Success"
+                                  Size="ButtonSize.Large"
+                                  Icon="shopping_cart" />
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenStack>
+    }
+</RadzenStack>
