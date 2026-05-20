@@ -21,5 +21,5 @@ builder.Services.AddScoped<IEventsClient>(sp => new EventsClient(sp.GetRequiredS
 builder.Services.AddScoped<IPlacesClient>(sp => new PlacesClient(sp.GetRequiredService<HttpClient>()));
 
 builder.Services.AddRadzenComponents();
-
+builder.Services.AddScoped<IEventsClient, EventsClient>();
 await builder.Build().RunAsync();

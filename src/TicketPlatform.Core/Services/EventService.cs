@@ -7,11 +7,24 @@ namespace TicketPlatform.Core.Services;
 
 public class EventService(IRepository<Event> repository) : IEventService
 {
-    public async Task<(IReadOnlyList<Event> Items, int TotalCount)> GetUpcomingPagedAsync(int page, int pageSize,
-        DateTimeOffset fromDate, CancellationToken ct = default)
-    {
+    public async Task<(IReadOnlyList<Event> Items, int TotalCount)> GetUpcomingPagedAsync(
+        int page,
+        int pageSize,
+        DateTimeOffset fromDate,
+        string? category,
+        CancellationToken ct = default){
+
         var baseQuery = repository.Query()
-            .Where(e => e.Status == EventStatus.Published && e.TicketTypes.Max(tt => tt.OccurenceEndDate) >= fromDate)
+            .Where(e =>
+                e.Status == EventStatus.Published &&
+                e.TicketTypes.Max(tt => tt.OccurenceEndDate) >= fromDate);
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            baseQuery = baseQuery.Where(e => e.Category == category);
+        }
+
+        baseQuery = baseQuery
             .OrderBy(e => e.TicketTypes.Min(tt => tt.OccurenceStartDate))
             .AsNoTracking();
 
