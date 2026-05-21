@@ -3,6 +3,7 @@ using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Shared;
 using TicketPlatform.Shared.Dtos;
+using TicketPlatform.Shared.Enums;
 
 namespace TicketPlatform.Api.Controllers;
 
@@ -57,10 +58,9 @@ public class EventsController(IEventService eventService) : ControllerBase
     }
 
     [HttpGet("categories")]
-    public async Task<ActionResult<IReadOnlyList<string>>> GetCategories(CancellationToken ct)
+    public ActionResult<IReadOnlyList<string>> GetCategories()
     {
-        var categories = await eventService.GetCategoriesAsync(ct);
-        return Ok(categories);
+        return Ok(Enum.GetNames<EventCategory>());
     }
 
     [HttpGet("{id:guid}")]

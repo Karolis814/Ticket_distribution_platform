@@ -1,9 +1,7 @@
 @page "/settings"
 @using TicketPlatform.Shared.Dtos
 @inject TicketPlatform.Web.Services.IUserSettingsClient SettingsClient
-@inject TicketPlatform.Web.Services.IHostPaymentsClient HostPaymentsClient
 @inject Radzen.NotificationService Notify
-@inject NavigationManager Nav
 
 <PageTitle>User Settings</PageTitle>
 
@@ -26,53 +24,6 @@
 
     @if (UserSettings is not null)
     {
-        <RadzenCard>
-            <RadzenStack Gap="1rem">
-                <RadzenText TextStyle="TextStyle.H6">Stripe / Payments</RadzenText>
-
-                @if (StripeStatus is null || !StripeStatus.Connected)
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
-                        Stripe is not connected. Connect Stripe before creating events.
-                    </RadzenAlert>
-
-                    <RadzenButton Text="Connect Stripe"
-                                  Icon="account_balance"
-                                  ButtonStyle="ButtonStyle.Warning"
-                                  Click="@(() => Nav.NavigateTo($"/owner/stripe/{LoadedUserId}"))" />
-                }
-                else if (!StripeStatus.Ready)
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
-                        Stripe is connected, but onboarding is not fully completed.
-                    </RadzenAlert>
-
-                    <RadzenButton Text="Continue Stripe setup"
-                                  Icon="account_balance"
-                                  ButtonStyle="ButtonStyle.Warning"
-                                  Click="@(() => Nav.NavigateTo($"/owner/stripe/{LoadedUserId}"))" />
-                }
-                else
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true">
-                        Stripe is connected and ready.
-                    </RadzenAlert>
-
-                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem">
-                        <RadzenButton Text="Stripe Payments"
-                                      Icon="payments"
-                                      ButtonStyle="ButtonStyle.Info"
-                                      Click="@(() => Nav.NavigateTo($"/owner/stripe/{LoadedUserId}"))" />
-
-                        <RadzenButton Text="Owner Dashboard"
-                                      Icon="dashboard"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Click="@(() => Nav.NavigateTo($"/owner/dashboard/{LoadedUserId}"))" />
-                    </RadzenStack>
-                }
-            </RadzenStack>
-        </RadzenCard>
-
         <RadzenCard>
             <RadzenStack Gap="1rem">
                 <RadzenText TextStyle="TextStyle.H6">Email</RadzenText>
@@ -136,10 +87,7 @@
 
 @code {
     private string UserIdText { get; set; } = "";
-    private Guid LoadedUserId { get; set; }
-
     private UserSettingsDto? UserSettings { get; set; }
-    private HostStripeStatusDto? StripeStatus { get; set; }
 
     private string NewEmail { get; set; } = "";
     private string CurrentPassword { get; set; } = "";
@@ -165,46 +113,23 @@
 
         try
         {
-            LoadedUserId = userId;
-
             UserSettings = await SettingsClient.GetAsync(userId);
 
             if (UserSettings is null)
             {
-                StripeStatus = null;
-
                 Notify.Notify(Radzen.NotificationSeverity.Warning,
                     "User not found",
                     "No user was found with this ID.");
-
                 return;
             }
 
             EmailRemindersEnabled = UserSettings.EmailRemindersEnabled;
-
-            StripeStatus = await HostPaymentsClient.GetStatusAsync(userId);
         }
         catch (Exception ex)
         {
             Notify.Notify(Radzen.NotificationSeverity.Error,
                 "Failed to load settings",
                 ex.Message);
-        }
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        var uri = Nav.ToAbsoluteUri(Nav.Uri);
-        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-
-        var userIdText = query["userId"];
-
-        if (!string.IsNullOrWhiteSpace(userIdText) &&
-            Guid.TryParse(userIdText, out var userId))
-        {
-            UserIdText = userId.ToString();
-
-            await LoadSettingsAsync();
         }
     }
 

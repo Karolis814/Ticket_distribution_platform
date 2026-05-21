@@ -65,7 +65,8 @@ public class TicketsController(
         {
             FirstName = request.FirstName.Trim(),
             LastName = request.LastName.Trim(),
-            Email = request.Email.Trim()
+            Email = request.Email.Trim(),
+            EmailRemindersEnabled = true
         };
 
         await customerService.CreateAsync(customer, ct);
