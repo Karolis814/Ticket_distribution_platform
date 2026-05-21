@@ -4,6 +4,7 @@ using Stripe;
 using Stripe.Checkout;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
+using TicketPlatform.Core.Mail.Templates;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Shared.Enums;
 
@@ -122,12 +123,11 @@ public class StripeWebhookController : ControllerBase
                     .Event
                     .Title;
 
-                await _mailService.SendTicketAsync(
-                    order.Customer.Email,
-                    $"{order.Customer.FirstName} {order.Customer.LastName}",
-                    eventName,
-                    pdf,
-                    ct);
+                await _mailService.SendAsync(EmailTemplates.TicketDelivery(
+                    toEmail: order.Customer.Email,
+                    toName: $"{order.Customer.FirstName} {order.Customer.LastName}",
+                    eventTitle: eventName,
+                    pdf: pdf), ct);
 
                 Console.WriteLine($"Order {order.Id} completed and tickets emailed.");
             }

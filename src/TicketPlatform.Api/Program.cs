@@ -24,6 +24,7 @@ StripeConfiguration.ApiKey =
 builder.Services.AddScoped<
     IStripeCheckoutService,
     StripeCheckoutService>();
+builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
 
 const string blazorCors = "BlazorClient";
 builder.Services.AddCors(options =>

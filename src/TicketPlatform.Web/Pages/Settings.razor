@@ -1,0 +1,226 @@
+@page "/settings"
+@using TicketPlatform.Shared.Dtos
+@inject TicketPlatform.Web.Services.IUserSettingsClient SettingsClient
+@inject Radzen.NotificationService Notify
+
+<PageTitle>User Settings</PageTitle>
+
+<RadzenStack Gap="1rem" Style="max-width: 720px;">
+    <RadzenText TextStyle="TextStyle.H4">User Settings</RadzenText>
+
+    <RadzenCard>
+        <RadzenStack Gap="1rem">
+            <RadzenText TextStyle="TextStyle.H6">Load user</RadzenText>
+
+            <RadzenTextBox @bind-Value="UserIdText"
+                           Placeholder="User ID"
+                           Style="width:100%" />
+
+            <RadzenButton Text="Load settings"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click="@LoadSettingsAsync" />
+        </RadzenStack>
+    </RadzenCard>
+
+    @if (UserSettings is not null)
+    {
+        <RadzenCard>
+            <RadzenStack Gap="1rem">
+                <RadzenText TextStyle="TextStyle.H6">Email</RadzenText>
+
+                <RadzenText Text="Current email:" />
+                <RadzenText Text="@UserSettings.Email" />
+
+                @if (!string.IsNullOrWhiteSpace(UserSettings.PendingEmail))
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning">
+                        Pending email confirmation: @UserSettings.PendingEmail
+                    </RadzenAlert>
+                }
+
+                <RadzenTextBox @bind-Value="NewEmail"
+                               Placeholder="New email"
+                               Style="width:100%" />
+
+                <RadzenButton Text="Request email change"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click="@ChangeEmailAsync" />
+            </RadzenStack>
+        </RadzenCard>
+
+        <RadzenCard>
+            <RadzenStack Gap="1rem">
+                <RadzenText TextStyle="TextStyle.H6">Password</RadzenText>
+
+                <RadzenPassword @bind-Value="CurrentPassword"
+                                Placeholder="Current password"
+                                Style="width:100%" />
+
+                <RadzenPassword @bind-Value="NewPassword"
+                                Placeholder="New password"
+                                Style="width:100%" />
+
+                <RadzenButton Text="Change password"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click="@ChangePasswordAsync" />
+            </RadzenStack>
+        </RadzenCard>
+
+        <RadzenCard>
+            <RadzenStack Gap="1rem">
+                <RadzenText TextStyle="TextStyle.H6">Email reminders</RadzenText>
+
+                <RadzenStack Orientation="Orientation.Horizontal"
+                             AlignItems="AlignItems.Center"
+                             Gap="0.75rem">
+                    <RadzenCheckBox @bind-Value="EmailRemindersEnabled" />
+                    <RadzenText Text="Receive email reminders" />
+                </RadzenStack>
+
+                <RadzenButton Text="Save reminder preferences"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click="@SaveReminderSettingsAsync" />
+            </RadzenStack>
+        </RadzenCard>
+    }
+</RadzenStack>
+
+@code {
+    private string UserIdText { get; set; } = "";
+    private UserSettingsDto? UserSettings { get; set; }
+
+    private string NewEmail { get; set; } = "";
+    private string CurrentPassword { get; set; } = "";
+    private string NewPassword { get; set; } = "";
+    private bool EmailRemindersEnabled { get; set; }
+
+    private bool TryGetUserId(out Guid userId)
+    {
+        if (Guid.TryParse(UserIdText, out userId))
+            return true;
+
+        Notify.Notify(Radzen.NotificationSeverity.Warning,
+            "Invalid user ID",
+            "Please enter a valid user ID.");
+
+        return false;
+    }
+
+    private async Task LoadSettingsAsync()
+    {
+        if (!TryGetUserId(out var userId))
+            return;
+
+        try
+        {
+            UserSettings = await SettingsClient.GetAsync(userId);
+
+            if (UserSettings is null)
+            {
+                Notify.Notify(Radzen.NotificationSeverity.Warning,
+                    "User not found",
+                    "No user was found with this ID.");
+                return;
+            }
+
+            EmailRemindersEnabled = UserSettings.EmailRemindersEnabled;
+        }
+        catch (Exception ex)
+        {
+            Notify.Notify(Radzen.NotificationSeverity.Error,
+                "Failed to load settings",
+                ex.Message);
+        }
+    }
+
+    private async Task ChangeEmailAsync()
+    {
+        if (!TryGetUserId(out var userId))
+            return;
+
+        if (string.IsNullOrWhiteSpace(NewEmail) || !NewEmail.Contains('@'))
+        {
+            Notify.Notify(Radzen.NotificationSeverity.Warning,
+                "Invalid email",
+                "Please enter a valid email address.");
+            return;
+        }
+
+        try
+        {
+            await SettingsClient.ChangeEmailAsync(
+                new ChangeEmailRequest(userId, NewEmail.Trim()));
+
+            Notify.Notify(Radzen.NotificationSeverity.Success,
+                "Email confirmation sent",
+                "Check the new email inbox.");
+
+            NewEmail = "";
+            await LoadSettingsAsync();
+        }
+        catch (Exception ex)
+        {
+            Notify.Notify(Radzen.NotificationSeverity.Error,
+                "Email change failed",
+                ex.Message);
+        }
+    }
+
+    private async Task ChangePasswordAsync()
+    {
+        if (!TryGetUserId(out var userId))
+            return;
+
+        if (string.IsNullOrWhiteSpace(CurrentPassword) ||
+            string.IsNullOrWhiteSpace(NewPassword))
+        {
+            Notify.Notify(Radzen.NotificationSeverity.Warning,
+                "Missing password",
+                "Please enter both current and new password.");
+            return;
+        }
+
+        try
+        {
+            await SettingsClient.ChangePasswordAsync(
+                new ChangePasswordRequest(userId, CurrentPassword, NewPassword));
+
+            CurrentPassword = "";
+            NewPassword = "";
+
+            Notify.Notify(Radzen.NotificationSeverity.Success,
+                "Password changed",
+                "Your password has been updated.");
+        }
+        catch (Exception ex)
+        {
+            Notify.Notify(Radzen.NotificationSeverity.Error,
+                "Password change failed",
+                ex.Message);
+        }
+    }
+
+    private async Task SaveReminderSettingsAsync()
+    {
+        if (!TryGetUserId(out var userId))
+            return;
+
+        try
+        {
+            await SettingsClient.UpdateEmailRemindersAsync(
+                new UpdateEmailRemindersRequest(userId, EmailRemindersEnabled));
+
+            Notify.Notify(Radzen.NotificationSeverity.Success,
+                "Settings saved",
+                "Email reminder preferences updated.");
+
+            await LoadSettingsAsync();
+        }
+        catch (Exception ex)
+        {
+            Notify.Notify(Radzen.NotificationSeverity.Error,
+                "Failed to save settings",
+                ex.Message);
+        }
+    }
+}

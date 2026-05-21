@@ -15,4 +15,5 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseU
 
 builder.Services.AddRadzenComponents();
 builder.Services.AddScoped<IEventsClient, EventsClient>();
+builder.Services.AddScoped<IUserSettingsClient, UserSettingsClient>();
 await builder.Build().RunAsync();

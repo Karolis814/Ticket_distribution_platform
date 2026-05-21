@@ -39,9 +39,10 @@ public class EventService(IRepository<Event> repository) : IEventService
                 e.Location.ToLower().Contains(locationFilter));
         }
 
-        if (!string.IsNullOrWhiteSpace(category))
+        if (!string.IsNullOrWhiteSpace(category) &&
+            Enum.TryParse<EventCategory>(category, true, out var parsedCategory))
         {
-            query = query.Where(e => e.Category == category);
+            query = query.Where(e => e.Category == parsedCategory);
         }
 
         query = query
@@ -91,21 +92,14 @@ public class EventService(IRepository<Event> repository) : IEventService
         return (items, total);
     }
 
-    public async Task<IReadOnlyList<string>> GetCategoriesAsync(
+    public Task<IReadOnlyList<string>> GetCategoriesAsync(
         CancellationToken ct = default)
     {
-        var categories = await repository.Query()
-            .Where(e =>
-                e.Status == EventStatus.Published &&
-                e.Category != null &&
-                e.Category != string.Empty)
-            .Select(e => e.Category)
-            .Distinct()
+        IReadOnlyList<string> categories = Enum.GetNames<EventCategory>()
             .OrderBy(c => c)
-            .AsNoTracking()
-            .ToListAsync(ct);
+            .ToList();
 
-        return categories;
+        return Task.FromResult(categories);
     }
 
     public async Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default)
