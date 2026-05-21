@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
+using TicketPlatform.Core.Mail.Templates;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Shared.Dtos;
 using TicketPlatform.Shared.Enums;
@@ -116,12 +117,11 @@ public class TicketsController(
         var pdf = await pdfService.GeneratePdfAsync(order.Id, ct);
 
 
-        await mail.SendTicketAsync(
-            customer.Email,
-            $"{customer.FirstName} {customer.LastName}",
-            ticketTypes.First().TicketType.Event.Title,
-            pdf,
-            ct);
+        await mail.SendAsync(EmailTemplates.TicketDelivery(
+            toEmail: customer.Email,
+            toName: $"{customer.FirstName} {customer.LastName}",
+            eventTitle: ticketTypes.First().TicketType.Event.Title,
+            pdf: pdf), ct);
 
         var downloadUrl = Url.Action(
             nameof(DownloadPdf),
