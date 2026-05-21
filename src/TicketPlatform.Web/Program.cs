@@ -14,5 +14,8 @@ var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 
 builder.Services.AddRadzenComponents();
+
+builder.Services.AddScoped<IImagesClient, ImagesClient>();
+
 builder.Services.AddScoped<IEventsClient, EventsClient>();
 await builder.Build().RunAsync();
