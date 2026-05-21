@@ -1,9 +1,12 @@
+using Azure.Storage.Blobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Infrastructure.Persistence;
+using TicketPlatform.Infrastructure.Storage;
 
 namespace TicketPlatform.Infrastructure;
 
@@ -35,6 +38,14 @@ public static class DependencyInjection
         services.AddScoped<IMailService, MailService>();
 
         services.AddScoped<ITicketValidationService, TicketValidationService>();
+
+        services.Configure<BlobStorageOptions>(configuration.GetSection("BlobStorage"));
+        services.AddSingleton(sp =>
+        {
+            var opts = sp.GetRequiredService<IOptions<BlobStorageOptions>>().Value;
+            return new BlobServiceClient(opts.ConnectionString);
+        });
+        services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
 
         return services;
     }
