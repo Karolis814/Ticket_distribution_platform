@@ -17,4 +17,5 @@ builder.Services.AddRadzenComponents();
 
 builder.Services.AddScoped<IImagesClient, ImagesClient>();
 
+builder.Services.AddScoped<IEventsClient, EventsClient>();
 await builder.Build().RunAsync();
