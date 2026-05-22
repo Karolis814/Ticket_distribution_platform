@@ -1,10 +1,10 @@
 using Serilog;
-using Stripe;
+using System.Text;
 using TicketPlatform.Api.Middleware;
-using TicketPlatform.Core.Services;
 using TicketPlatform.Infrastructure;
-using TicketPlatform.Infrastructure.Payments;
-using TicketPlatform.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using TicketPlatform.Core.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,33 +19,12 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
-StripeConfiguration.ApiKey =
-    builder.Configuration["Stripe:SecretKey"];
-
-builder.Services.AddScoped<
-    IStripeCheckoutService,
-    StripeCheckoutService>();
-
-builder.Services.AddScoped<
-    IUserSettingsService,
-    UserSettingsService>();
-
-builder.Services.Configure<GooglePlacesOptions>(
-    builder.Configuration.GetSection("GooglePlacesOptions"));
-
-builder.Services.AddHttpClient<
-    IPlacesService,
-    GooglePlacesService>();
-
 const string blazorCors = "BlazorClient";
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(blazorCors, policy => policy
         .WithOrigins(
-            builder.Configuration
-                .GetSection("Cors:AllowedOrigins")
-                .Get<string[]>() ?? [])
+            builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
         .AllowAnyHeader()
         .AllowAnyMethod());
 });

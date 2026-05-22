@@ -1,0 +1,47 @@
+@page "/register"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+
+@inherits RegisterBase
+@* @layout AuthLayout *@
+
+<div class="auth-container">
+    <h2>Create account</h2>
+
+    @if (errorMessage is not null)
+    {
+        <div class="error-banner">@errorMessage</div>
+    }
+
+    <EditForm EditContext="editContext" OnValidSubmit="HandleRegister">
+        <DataAnnotationsValidator />
+
+        <div class="field">
+            <label>Email</label>
+            <InputText @bind-Value="Email" type="email" placeholder="you@example.com" />
+            <ValidationMessage For="@(() => Email)" />
+        </div>
+
+        <div class="field">
+            <label>Password</label>
+            <InputText @bind-Value="Password" type="password" placeholder="••••••••" />
+            <ValidationMessage For="@(() => Password)" />
+        </div>
+
+        <div class="field">
+            <label>Username</label>
+            <InputText @bind-Value="Name" placeholder="Optional" />
+        </div>
+
+        <div class="field">
+            <label>Phone number</label>
+            <InputText @bind-Value="PhoneNumber" placeholder="Optional" />
+        </div>
+
+        <button type="submit" disabled="@isLoading">
+            @(isLoading ? "Creating account…" : "Register")
+        </button>
+    </EditForm>
+
+    <p>Already have an account? <a href="/login">Sign in</a></p>
+</div>

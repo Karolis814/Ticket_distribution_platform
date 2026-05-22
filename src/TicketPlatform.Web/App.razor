@@ -1,7 +1,13 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+﻿@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.Authorization;
+@using TicketPlatform.Web.Pages;
+<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"></AuthorizeRouteView>
+        <NotAuthorized>
+                    <RedirectToLogin />
+        </NotAuthorized>
     </Found>
     <NotFound>
         <PageTitle>Not found</PageTitle>

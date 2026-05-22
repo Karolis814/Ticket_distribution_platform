@@ -9,7 +9,10 @@ using TicketPlatform.Core.Services;
 using TicketPlatform.Infrastructure.Persistence;
 using TicketPlatform.Infrastructure.Services;
 using TicketPlatform.Infrastructure.Storage;
-
+using TicketPlatform.Core.Settings;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 namespace TicketPlatform.Infrastructure;
 
 public static class DependencyInjection
@@ -57,7 +60,30 @@ public static class DependencyInjection
             return new BlobServiceClient(opts.ConnectionString);
         });
         services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
+        services.AddScoped<IUserPermissionGroupService, UserPermissionGroupService>();
+        services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<IUserService, UserService>();
+        services.Configure<JWTSettings>(configuration.GetSection("JwtSettings"));
+        services.AddScoped<IJWTService, JWTService>();
 
+        
+        var jwtSettings = configuration.GetSection("JwtSettings").Get<JWTSettings>();
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(o =>
+    {
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer           = true,
+            ValidateAudience         = true,
+            ValidateLifetime         = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer              = jwtSettings.Issuer,
+            ValidAudience            = jwtSettings.Audience,
+            IssuerSigningKey         = new SymmetricSecurityKey(
+                                           Encoding.UTF8.GetBytes(jwtSettings.Secret)),
+            ClockSkew                = TimeSpan.Zero  
+        };
+    });
         return services;
     }
 }

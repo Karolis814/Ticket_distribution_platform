@@ -1,0 +1,39 @@
+@page "/login"
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+
+@inherits LoginBase
+@* @layout AuthLayout *@
+
+@inject NavigationManager Nav
+
+<div class="auth-container">
+    <h2>Sign in</h2>
+
+    @if (errorMessage is not null)
+    {
+        <div class="error-banner">@errorMessage</div>
+    }
+
+    <EditForm Model="model" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator />
+
+        <div class="field">
+            <label>Email</label>
+            <InputText @bind-Value="model.Email" type="email" placeholder="you@example.com" />
+            <ValidationMessage For="@(() => model.Email)" />
+        </div>
+
+        <div class="field">
+            <label>Password</label>
+            <InputText @bind-Value="model.Password" type="password" placeholder="••••••••" />
+            <ValidationMessage For="@(() => model.Password)" />
+        </div>
+
+        <button type="submit" disabled="@isLoading">
+            @(isLoading ? "Signing in…" : "Sign in")
+        </button>
+    </EditForm>
+
+    <p>Don't have an account? <a href="/register">Register</a></p>
+</div>
