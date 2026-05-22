@@ -1,0 +1,48 @@
+@page "/purchase-history"
+
+@using Microsoft.AspNetCore.Authorization;
+@attribute [Authorize]
+@inherits PurchaseHistoryBase
+
+<h2>Purchase History</h2>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (orders.Count == 0)
+{
+    <p>You have no purchases yet.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Event</th>
+                <th>Ticket Type</th>
+                <th>Date</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Purchased</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in orders)
+            {
+                <tr>
+                    <td>@item.EventTitle</td>
+                    <td>@item.TicketTypeTitle</td>
+                    <td>@item.EventDate.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@item.Quantity</td>
+                    <td>@FormatPrice(item.UnitPriceCents, item.Currency)</td>
+                    <td>@FormatPrice(item.TotalPriceCents, item.Currency)</td>
+                    <td>@item.Status</td>
+                    <td>@item.PurchasedAt.ToString("yyyy-MM-dd")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -11,22 +11,31 @@ public class JwtAuthStateProvider(ILocalStorageService localStorage) : Authentic
     private static readonly AuthenticationState Anonymous =
         new(new ClaimsPrincipal(new ClaimsIdentity()));
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+{
+    var token = await localStorage.GetItemAsStringAsync("authToken");
+
+    if (string.IsNullOrWhiteSpace(token))
+        return Anonymous;
+
+    JwtSecurityToken jwt;
+    try
     {
-        var token = await localStorage.GetItemAsStringAsync("authToken");
+        jwt = _handler.ReadJwtToken(token);
+    }
+    catch
+    {
+        await localStorage.RemoveItemAsync("authToken");
+        return Anonymous;
+    }
 
-        if (string.IsNullOrWhiteSpace(token))
-            return Anonymous;
+    if (jwt.ValidTo < DateTime.UtcNow)
+    {
+        await localStorage.RemoveItemAsync("authToken");
+        return Anonymous;
+    }
 
-        var jwt = _handler.ReadJwtToken(token);
-
-        if (jwt.ValidTo < DateTime.UtcNow)
-        {
-            await localStorage.RemoveItemAsync("authToken");
-            return Anonymous;
-        }
-
-        var identity = new ClaimsIdentity(jwt.Claims, "jwt");
-        return new AuthenticationState(new ClaimsPrincipal(identity));
+    var identity = new ClaimsIdentity(jwt.Claims, "jwt");
+    return new AuthenticationState(new ClaimsPrincipal(identity));
     }
 
     public void NotifyUserLoggedIn(string token)
