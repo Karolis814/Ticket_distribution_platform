@@ -13,6 +13,14 @@ public record EventDto(
     EventStatus Status,
     IReadOnlyList<TicketTypeDto> TicketTypes,
     DateTimeOffset CreatedAt
+    HostDto? Host = null
+);
+
+public record HostDto(
+    Guid Id,
+    string? Username,
+    string Email,
+    string? Company
 );
 
 public record CreateEventRequest(

@@ -191,5 +191,11 @@ public class EventsController(IEventService eventService) : ControllerBase{
             tt.Tickets.Count
         )).ToList(),
         e.CreatedAt
+        e.Host is null ? null : new HostDto(
+            e.Host.Id,
+            e.Host.Username,
+            e.Host.Email,
+            e.Host.Company
+        )
     );
 }
