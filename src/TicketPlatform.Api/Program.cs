@@ -1,6 +1,8 @@
 using Serilog;
 using TicketPlatform.Api.Middleware;
 using TicketPlatform.Infrastructure;
+using TicketPlatform.Infrastructure.Services; // 1. Added for GooglePlacesOptions & Service
+using TicketPlatform.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// This tells .NET to map the "GooglePlacesOptions" config section to your C# class
+builder.Services.Configure<GooglePlacesOptions>(builder.Configuration.GetSection("GooglePlacesOptions"));
+builder.Services.AddHttpClient<IPlacesService, GooglePlacesService>();
 
 const string blazorCors = "BlazorClient";
 builder.Services.AddCors(options =>
