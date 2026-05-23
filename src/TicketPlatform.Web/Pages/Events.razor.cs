@@ -17,7 +17,7 @@ public class EventsBase : ComponentBase
     protected IReadOnlyList<EventDto> Events { get; private set; } = [];
     protected IReadOnlyList<string> LocationSuggestions { get; private set; } = [];
     protected IReadOnlyList<string> TitleSuggestions { get; private set; } = [];
-    protected bool IsLoading { get; private set; }
+    protected bool IsLoading { get; private set; } = true;
 
     protected string SearchText { get; set; } = string.Empty;
     protected string LocationText { get; set; } = string.Empty;

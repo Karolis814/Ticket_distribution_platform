@@ -189,6 +189,7 @@ public class EventsController(IEventService eventService) : ControllerBase{
             tt.MaxUses,
             tt.Quantity,
             tt.Tickets.Count
-        )).ToList()
+        )).ToList(),
+        e.CreatedAt
     );
 }

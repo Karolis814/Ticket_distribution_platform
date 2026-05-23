@@ -61,7 +61,14 @@ public partial class EventCardsBase : ComponentBase
             $"Starting from {FormatPrice(minPriceTicket.PriceCents, minPriceTicket.Currency)}";
     }
 
-    private static string FormatPrice(
+    protected static string? GetMinPriceText(EventDto ev)
+    {
+        if (!ev.TicketTypes.Any()) return null;
+        var min = ev.TicketTypes.OrderBy(t => t.PriceCents).First();
+        return FormatPrice(min.PriceCents, min.Currency);
+    }
+
+    protected static string FormatPrice(
         int cents,
         string currency = "USD") =>
         cents == 0

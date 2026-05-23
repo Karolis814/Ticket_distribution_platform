@@ -11,7 +11,8 @@ public record EventDto(
     string? Location,
     string? ThumbnailUrl,
     EventStatus Status,
-    IReadOnlyList<TicketTypeDto> TicketTypes
+    IReadOnlyList<TicketTypeDto> TicketTypes,
+    DateTimeOffset CreatedAt
 );
 
 public record CreateEventRequest(
