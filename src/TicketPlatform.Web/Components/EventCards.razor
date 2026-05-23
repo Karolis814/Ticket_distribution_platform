@@ -30,7 +30,7 @@ else
             <RadzenColumn Size="@ColSizeSm" SizeMd="@ColSizeMd" SizeLg="@ColSizeLg" Class="rz-mb-4">
                 <RadzenCard Class="rz-h-100 rz-display-flex rz-flex-column rz-overflow-hidden rz-p-0"
                             Style="cursor:pointer;"
-                            @onclick="@(() => NavigateToCheckout(ev.Id))">
+                            @onclick="@(() => NavigateToDetails(ev.Id))">
                     <RadzenImage Path="@(ev.ThumbnailUrl ?? "https://placehold.net/8.png")"
                                  Class="rz-w-100"
                                  Style="height:200px;object-fit:cover;"/>
@@ -109,7 +109,7 @@ else
                             <RadzenButton Text="Get Tickets"
                                           ButtonStyle="ButtonStyle.Primary"
                                           Icon="confirmation_number"
-                                          Click="@(() => NavigateToCheckout(ev.Id))"
+                                          Click="@(() => NavigateToDetails(ev.Id))"
                                           Class="rz-w-100"/>
                         }
                     </div>

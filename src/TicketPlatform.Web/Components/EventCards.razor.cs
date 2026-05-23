@@ -20,9 +20,9 @@ public partial class EventCardsBase : ComponentBase
     [Inject] private NavigationManager Nav { get; set; } = null!;
 
 
-    protected void NavigateToCheckout(Guid eventId)
+    protected void NavigateToDetails(Guid eventId)
     {
-        Nav.NavigateTo($"/checkout/{eventId}");
+        Nav.NavigateTo($"/events/{eventId}");
     }
 
     protected static string GetDescriptionExcerpt(string description)
