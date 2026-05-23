@@ -76,17 +76,9 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
 
     public async Task<EventDto?> CreateAsync(CreateEventRequest request, CancellationToken ct = default)
     {
-        try
-        {
-            var response = await http.PostAsJsonAsync("api/events", request, ct);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<EventDto>(cancellationToken: ct);
-        }
-        catch (Exception ex)
-        {
-            Notify(ex, "Failed to create event");
-            return null;
-        }
+        var response = await http.PostAsJsonAsync("api/events", request, ct);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<EventDto>(cancellationToken: ct);
     }
 
     public async Task<IReadOnlyList<string>> GetLocationSuggestionsAsync(string input, CancellationToken ct = default)

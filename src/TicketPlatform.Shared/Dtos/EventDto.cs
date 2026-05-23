@@ -4,16 +4,15 @@ namespace TicketPlatform.Shared.Dtos;
 
 public record EventDto(
     Guid Id,
-    Guid HostId,
     string Category,
     string Title,
     string Description,
     string? Location,
     string? ThumbnailUrl,
     EventStatus Status,
-    IReadOnlyList<TicketTypeDto> TicketTypes,
-    DateTimeOffset CreatedAt
-    HostDto? Host = null
+    DateTimeOffset CreatedAt,
+    HostDto Host,
+    IReadOnlyList<TicketTypeDto> TicketTypes
 );
 
 public record HostDto(

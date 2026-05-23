@@ -8,50 +8,51 @@ namespace TicketPlatform.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class EventsController(IEventService eventService) : ControllerBase{
+public class EventsController(IEventService eventService) : ControllerBase
+{
     [HttpGet]
     public async Task<ActionResult<PagedResult<EventDto>>> GetUpcomingPaged(
-    [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 20,
-    [FromQuery] DateTimeOffset? fromDate = null,
-    [FromQuery] string? title = null,
-    [FromQuery] string? location = null,
-    [FromQuery] string? category = null,
-    CancellationToken ct = default)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] DateTimeOffset? fromDate = null,
+        [FromQuery] string? title = null,
+        [FromQuery] string? location = null,
+        [FromQuery] string? category = null,
+        CancellationToken ct = default)
     {
-    if (page < 1 || pageSize is < 1 or > 100)
-        return BadRequest("page ≥ 1, pageSize between 1 and 100.");
+        if (page < 1 || pageSize is < 1 or > 100)
+            return BadRequest("page ≥ 1, pageSize between 1 and 100.");
 
-    (IReadOnlyList<Event> events, int total) =
-        await eventService.GetUpcomingPagedAsync(
+        (IReadOnlyList<Event> events, int total) =
+            await eventService.GetUpcomingPagedAsync(
+                page,
+                pageSize,
+                fromDate ?? DateTimeOffset.UtcNow,
+                category,
+                ct);
+
+        var query = events.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            query = query.Where(e =>
+                Contains(e.Title, title) ||
+                Contains(e.Description, title));
+        }
+
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            query = query.Where(e =>
+                Contains(e.Location, location));
+        }
+
+        var filtered = query.ToList();
+
+        return Ok(new PagedResult<EventDto>(
+            filtered.Select(MapToEventDto).ToList(),
             page,
             pageSize,
-            fromDate ?? DateTimeOffset.UtcNow,
-            category,
-            ct);
-
-    var query = events.AsEnumerable();
-
-    if (!string.IsNullOrWhiteSpace(title))
-    {
-        query = query.Where(e =>
-            Contains(e.Title, title) ||
-            Contains(e.Description, title));
-    }
-
-    if (!string.IsNullOrWhiteSpace(location))
-    {
-        query = query.Where(e =>
-            Contains(e.Location, location));
-    }
-
-    var filtered = query.ToList();
-
-    return Ok(new PagedResult<EventDto>(
-        filtered.Select(MapToEventDto).ToList(),
-        page,
-        pageSize,
-        filtered.Count));
+            filtered.Count));
     }
 
     [HttpGet("locations")]
@@ -59,27 +60,27 @@ public class EventsController(IEventService eventService) : ControllerBase{
         [FromQuery] string input,
         CancellationToken ct)
     {
-    if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
-        return Ok(Array.Empty<string>());
+        if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
+            return Ok(Array.Empty<string>());
 
-    (IReadOnlyList<Event> events, var total) =
-        await eventService.GetUpcomingPagedAsync(
-            1,
-            100,
-            DateTimeOffset.UtcNow,
-            null,
-            ct);
+        (IReadOnlyList<Event> events, var total) =
+            await eventService.GetUpcomingPagedAsync(
+                1,
+                100,
+                DateTimeOffset.UtcNow,
+                null,
+                ct);
 
-    var locations = events
-        .Select(e => e.Location)
-        .Where(l => !string.IsNullOrWhiteSpace(l))
-        .Distinct()
-        .Where(l => Contains(l, input))
-        .OrderBy(l => l)
-        .Take(10)
-        .ToList();
+        var locations = events
+            .Select(e => e.Location)
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .Distinct()
+            .Where(l => Contains(l, input))
+            .OrderBy(l => l)
+            .Take(10)
+            .ToList();
 
-    return Ok(locations);
+        return Ok(locations);
     }
 
     [HttpGet("categories")]
@@ -164,18 +165,24 @@ public class EventsController(IEventService eventService) : ControllerBase{
     private static bool Contains(string? value, string search)
     {
         return !string.IsNullOrWhiteSpace(value)
-            && value.Contains(search, StringComparison.OrdinalIgnoreCase);
+               && value.Contains(search, StringComparison.OrdinalIgnoreCase);
     }
 
     private static EventDto MapToEventDto(Event e) => new(
         e.Id,
-        e.HostId,
         e.Category,
         e.Title,
         e.Description,
         e.Location,
         e.ThumbnailUrl,
         e.Status,
+        e.CreatedAt,
+        new HostDto(
+            e.Host.Id,
+            e.Host.Username,
+            e.Host.Email,
+            e.Host.Company
+        ),
         e.TicketTypes.Select(tt => new TicketTypeDto(
             tt.Id,
             tt.EventId,
@@ -189,13 +196,6 @@ public class EventsController(IEventService eventService) : ControllerBase{
             tt.MaxUses,
             tt.Quantity,
             tt.Tickets.Count
-        )).ToList(),
-        e.CreatedAt
-        e.Host is null ? null : new HostDto(
-            e.Host.Id,
-            e.Host.Username,
-            e.Host.Email,
-            e.Host.Company
-        )
+        )).ToList()
     );
 }
