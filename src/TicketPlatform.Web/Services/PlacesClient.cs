@@ -37,6 +37,30 @@ public class PlacesClient : IPlacesClient
             return new List<PlacePredictionDto>();
         }
     }
+
+    public async Task<PlaceDetailsDto?> GetDetailsAsync(
+        string placeId,
+        string? sessionToken = null,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(placeId))
+            return null;
+
+        try
+        {
+            var url = $"api/places/details?placeId={Uri.EscapeDataString(placeId)}";
+            if (!string.IsNullOrEmpty(sessionToken))
+                url += $"&sessionToken={Uri.EscapeDataString(sessionToken)}";
+
+            var options = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            return await _http.GetFromJsonAsync<PlaceDetailsDto>(url, options, ct);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
-
-

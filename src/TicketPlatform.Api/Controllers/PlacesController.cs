@@ -27,6 +27,30 @@ public class PlacesController(IPlacesService placesService) : ControllerBase
             p.Description
         )).ToList());
     }
+
+    [HttpGet("details")]
+    public async Task<ActionResult<PlaceDetailsDto>> Details(
+        [FromQuery] string placeId,
+        [FromQuery] string? sessionToken = null,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(placeId))
+            return BadRequest("placeId is required.");
+
+        var details = await placesService.GetPlaceDetailsAsync(placeId, sessionToken, ct);
+        if (details is null)
+            return NotFound();
+
+        return Ok(new PlaceDetailsDto(
+            details.PlaceId,
+            details.Name,
+            details.StreetAddress,
+            details.PostalCode,
+            details.City,
+            details.Country,
+            details.FormattedAddress
+        ));
+    }
 }
 
 public record PlacePredictionDto(
@@ -36,3 +60,12 @@ public record PlacePredictionDto(
     string? Description
 );
 
+public record PlaceDetailsDto(
+    string PlaceId,
+    string? Name,
+    string? StreetAddress,
+    string? PostalCode,
+    string? City,
+    string? Country,
+    string? FormattedAddress
+);

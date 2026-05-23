@@ -36,6 +36,13 @@ public partial class CreateEventBase : ComponentBase
         EventStatus.Cancelled
     };
 
+    protected List<string> Currencies { get; set; } = new()
+    {
+        "EUR",
+        "USD",
+        "GBP"
+    };
+
     [Inject] protected IEventsClient EventsClient { get; set; } = default!;
     [Inject] protected IPlacesClient PlacesClient { get; set; } = default!;
     [Inject] protected NotificationService NotificationService { get; set; } = default!;
@@ -95,7 +102,7 @@ public partial class CreateEventBase : ComponentBase
     private static Guid GetFallbackUserId()
     {
         // Fallback user ID to use until authentication is properly implemented
-        return Guid.Parse("284528b2-9266-4e13-978c-67238952e543");
+        return Guid.Parse("8dc55ac3-5e02-49fb-867e-7aa82d3ca8bc");
     }
 
     protected async Task OnValidSubmit(EditContext editContext)
@@ -165,7 +172,7 @@ public partial class CreateEventBase : ComponentBase
                     return;
                 }
 
-                if (release.PriceCents < 0)
+                if (release.Price < 0)
                 {
                     NotificationService.Notify(new NotificationMessage
                     {
@@ -185,7 +192,7 @@ public partial class CreateEventBase : ComponentBase
                 OccurenceEndDate: tt.OccurenceEndDate,
                 AdmissionStartDate: tt.AdmissionStartDate,
                 AdmissionEndDate: tt.AdmissionEndDate,
-                PriceCents: tt.PriceCents,
+                PriceCents: (int)Math.Round(tt.Price * 100m, MidpointRounding.AwayFromZero),
                 Currency: tt.Currency,
                 MaxUses: tt.MaxUses,
                 Quantity: tt.Quantity
@@ -350,22 +357,80 @@ public partial class CreateEventBase : ComponentBase
         await OnLocationChange(args.Filter);
     }
 
-    protected void OnLocationSelect(PlacePredictionDto? location)
+    protected async Task OnLocationSelected(object value)
     {
-        if (location != null)
+        if (value is null)
         {
-            Model.Location = location.MainText;
-            if (!string.IsNullOrEmpty(location.SecondaryText))
-            {
-                Model.Location += ", " + location.SecondaryText;
-            }
-            LocationSuggestions.Clear();
+            return;
+        }
+
+        var selectedMainText = value.ToString();
+        var prediction = LocationSuggestions.FirstOrDefault(p =>
+            string.Equals(p.MainText, selectedMainText, StringComparison.Ordinal));
+
+        if (prediction is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var details = await PlacesClient.GetDetailsAsync(prediction.PlaceId);
+            Model.Location = BuildFullAddress(prediction, details);
+        }
+        catch
+        {
+            Model.Location = BuildFullAddress(prediction, null);
         }
     }
 
-    protected IEnumerable<PlacePredictionDto> OnLocationFilter(IEnumerable<PlacePredictionDto> items)
+    private static string BuildFullAddress(PlacePredictionDto prediction, PlaceDetailsDto? details)
     {
-        return items;
+        if (details is null)
+        {
+            var fallback = prediction.MainText;
+            if (!string.IsNullOrEmpty(prediction.SecondaryText))
+            {
+                fallback += ", " + prediction.SecondaryText;
+            }
+            return fallback;
+        }
+
+        var name = !string.IsNullOrWhiteSpace(details.Name) ? details.Name : prediction.MainText;
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            parts.Add(name!);
+        }
+
+        if (!string.IsNullOrWhiteSpace(details.StreetAddress) &&
+            !string.Equals(details.StreetAddress, name, StringComparison.OrdinalIgnoreCase))
+        {
+            parts.Add(details.StreetAddress!);
+        }
+
+        if (!string.IsNullOrWhiteSpace(details.PostalCode))
+        {
+            parts.Add(details.PostalCode!);
+        }
+
+        if (!string.IsNullOrWhiteSpace(details.City))
+        {
+            parts.Add(details.City!);
+        }
+
+        if (!string.IsNullOrWhiteSpace(details.Country))
+        {
+            parts.Add(details.Country!);
+        }
+
+        if (parts.Count == 0)
+        {
+            return details.FormattedAddress ?? prediction.MainText;
+        }
+
+        return string.Join(", ", parts);
     }
 }
 
@@ -414,12 +479,12 @@ public class TicketReleaseModel
     public DateTimeOffset AdmissionEndDate { get; set; } = DateTimeOffset.UtcNow.AddDays(1);
 
     [Required]
-    [Range(0, int.MaxValue, ErrorMessage = "Price cannot be negative.")]
-    public int PriceCents { get; set; } = 0;
+    [Range(0, double.MaxValue, ErrorMessage = "Price cannot be negative.")]
+    public decimal Price { get; set; } = 0m;
 
     [Required]
     [StringLength(3, ErrorMessage = "Currency must be 3 characters.")]
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = "EUR";
 
     [Required]
     [Range(1, int.MaxValue, ErrorMessage = "Max uses must be at least 1.")]

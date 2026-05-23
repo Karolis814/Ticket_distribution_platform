@@ -58,18 +58,73 @@ public partial class SingleEventBase : ComponentBase
 
     protected string FormatPrice(int priceCents, string currency)
     {
-        var priceInDollars = priceCents / 100.0;
-        return $"{currency} {priceInDollars:F2}";
+        var price = priceCents / 100m;
+        return $"{price:0.00} {currency}";
     }
 
-    protected Variant GetStatusVariant(EventStatus status)
+    protected string? GetStartingFromText(EventDto evt)
     {
-        return status switch
+        var ticketTypes = evt.TicketTypes;
+        if (ticketTypes is null || ticketTypes.Count == 0)
         {
-            EventStatus.Draft => Variant.Outlined,
-            EventStatus.Published => Variant.Flat,
-            EventStatus.Cancelled => Variant.Filled,
-            _ => Variant.Outlined
-        };
+            return null;
+        }
+
+        var cheapest = ticketTypes.OrderBy(t => t.PriceCents).First();
+        return $"Starting from {FormatPrice(cheapest.PriceCents, cheapest.Currency)}";
+    }
+
+    protected EventDisplayStatus GetDisplayStatus(EventDto evt)
+    {
+        if (evt.Status == EventStatus.Cancelled)
+        {
+            return EventDisplayStatus.Cancelled;
+        }
+
+        if (evt.TicketTypes is { Count: > 0 } &&
+            evt.TicketTypes.All(t => t.Sold >= t.Quantity))
+        {
+            return EventDisplayStatus.SoldOut;
+        }
+
+        return EventDisplayStatus.EventAdded;
+    }
+
+    protected string GetStatusLabel(EventDisplayStatus status) => status switch
+    {
+        EventDisplayStatus.SoldOut => "Sold out",
+        EventDisplayStatus.Cancelled => "Cancelled",
+        EventDisplayStatus.EventAdded => "Event added",
+        _ => status.ToString()
+    };
+
+    protected BadgeStyle GetStatusBadgeStyle(EventDisplayStatus status) => status switch
+    {
+        EventDisplayStatus.SoldOut => BadgeStyle.Warning,
+        EventDisplayStatus.Cancelled => BadgeStyle.Danger,
+        EventDisplayStatus.EventAdded => BadgeStyle.Success,
+        _ => BadgeStyle.Light
+    };
+
+    protected bool ShouldShowCheckout(EventDto evt)
+    {
+        var status = GetDisplayStatus(evt);
+        return status == EventDisplayStatus.EventAdded;
+    }
+
+    protected string GetHostDisplayName(HostDto host)
+    {
+        if (!string.IsNullOrWhiteSpace(host.Company))
+            return host.Company!;
+        if (!string.IsNullOrWhiteSpace(host.Username))
+            return host.Username!;
+        return host.Email;
+    }
+
+    protected enum EventDisplayStatus
+    {
+        EventAdded,
+        SoldOut,
+        Cancelled
     }
 }

@@ -34,6 +34,7 @@ public interface IEventsClient
 public interface IPlacesClient
 {
     Task<IReadOnlyList<PlacePredictionDto>> SearchAsync(string input, string? sessionToken = null, CancellationToken ct = default);
+    Task<PlaceDetailsDto?> GetDetailsAsync(string placeId, string? sessionToken = null, CancellationToken ct = default);
 }
 
 public record PlacePredictionDto(
@@ -43,4 +44,12 @@ public record PlacePredictionDto(
     [property: JsonPropertyName("description")] string? Description
 );
 
-
+public record PlaceDetailsDto(
+    [property: JsonPropertyName("placeId")] string PlaceId,
+    [property: JsonPropertyName("name")] string? Name,
+    [property: JsonPropertyName("streetAddress")] string? StreetAddress,
+    [property: JsonPropertyName("postalCode")] string? PostalCode,
+    [property: JsonPropertyName("city")] string? City,
+    [property: JsonPropertyName("country")] string? Country,
+    [property: JsonPropertyName("formattedAddress")] string? FormattedAddress
+);

@@ -49,6 +49,7 @@
                        <RadzenAutoComplete Name="Location"
                                             @bind-Value="Model.Location"
                                             LoadData="@OnLoadLocationData"
+                                            Change="@OnLocationSelected"
                                             Data="@LocationSuggestions"
                                             TextProperty="MainText"
                                             ValueProperty="MainText"
@@ -123,11 +124,11 @@
 
                         <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
                             <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                                <RadzenLabel Text="Price (Cents)" Component="@($"Price_{currentIndex}")"/>
+                                <RadzenLabel Text="Price" Component="@($"Price_{currentIndex}")"/>
                             </RadzenColumn>
                             <RadzenColumn Size="12" SizeMD="8">
-                                <RadzenNumeric TValue="int" Name="@($"Price_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].PriceCents" Style="display: block; width: 100%;"/>
-                                <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].PriceCents)" />
+                                <RadzenNumeric TValue="decimal" Format="0.00" Min="0" Step="0.01m" Name="@($"Price_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].Price" Style="display: block; width: 100%;"/>
+                                <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].Price)" />
                             </RadzenColumn>
                         </RadzenRow>
 
@@ -136,7 +137,7 @@
                                 <RadzenLabel Text="Currency" Component="@($"Currency_{currentIndex}")"/>
                             </RadzenColumn>
                             <RadzenColumn Size="12" SizeMD="8">
-                                <RadzenTextBox Name="@($"Currency_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].Currency" Placeholder="USD" Style="display: block; width: 100%;"/>
+                                <RadzenDropDown TValue="string" Name="@($"Currency_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].Currency" Data="@Currencies" Placeholder="Select currency" Style="display: block; width: 100%;"/>
                                 <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].Currency)" />
                             </RadzenColumn>
                         </RadzenRow>
