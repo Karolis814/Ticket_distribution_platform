@@ -20,6 +20,7 @@ public class StripeWebhookController : ControllerBase
     private readonly ITicketPdfService _pdfService;
     private readonly IMailService _mailService;
     private readonly IRepository<Payment> _paymentRepository;
+    private readonly IHostPaymentSettingsService _hostPaymentSettingsService;
 
     public StripeWebhookController(
         IConfiguration configuration,
@@ -27,7 +28,8 @@ public class StripeWebhookController : ControllerBase
         ITicketService ticketService,
         ITicketPdfService pdfService,
         IMailService mailService,
-        IRepository<Payment> paymentRepository)
+        IRepository<Payment> paymentRepository,
+        IHostPaymentSettingsService hostPaymentSettingsService)
     {
         _configuration = configuration;
         _orderService = orderService;
@@ -35,6 +37,7 @@ public class StripeWebhookController : ControllerBase
         _pdfService = pdfService;
         _mailService = mailService;
         _paymentRepository = paymentRepository;
+        _hostPaymentSettingsService = hostPaymentSettingsService;
     }
 
     [HttpPost]
@@ -158,26 +161,78 @@ public class StripeWebhookController : ControllerBase
                     await _paymentRepository.SaveChangesAsync(ct);
                 }
 
-                Console.WriteLine("Invoice paid.");
-                Console.WriteLine($"Invoice ID: {invoice.Id}");
-                Console.WriteLine($"Invoice URL: {invoice.HostedInvoiceUrl}");
-                Console.WriteLine($"Invoice PDF: {invoice.InvoicePdf}");
+                Console.WriteLine($"Invoice paid: {invoice.Id}");
             }
 
             if (stripeEvent.Type == "invoice.payment_failed")
             {
                 var invoice = stripeEvent.Data.Object as Invoice;
 
-                Console.WriteLine("Invoice payment failed.");
-                Console.WriteLine($"Invoice ID: {invoice?.Id}");
+                if (invoice?.Metadata != null &&
+                    invoice.Metadata.TryGetValue("orderId", out var orderIdRaw) &&
+                    Guid.TryParse(orderIdRaw, out var orderId))
+                {
+                    var order = await _orderService.GetByIdAsync(orderId, ct);
+
+                    if (order is not null && order.Status == OrderStatus.AwaitingPayment)
+                    {
+                        order.Status = OrderStatus.Canceled;
+                        order.UpdatedAt = DateTimeOffset.UtcNow;
+                        await _orderService.UpdateAsync(order, ct);
+                    }
+                }
+
+                Console.WriteLine($"Invoice payment failed: {invoice?.Id}");
             }
 
             if (stripeEvent.Type == "charge.refunded")
             {
                 var charge = stripeEvent.Data.Object as Charge;
 
-                Console.WriteLine("Charge refunded.");
-                Console.WriteLine($"Charge ID: {charge?.Id}");
+                if (!string.IsNullOrWhiteSpace(charge?.PaymentIntentId))
+                {
+                    var payment = await _paymentRepository.Query()
+                        .FirstOrDefaultAsync(p => p.StripePaymentIntentId == charge.PaymentIntentId, ct);
+
+                    if (payment is not null)
+                    {
+                        var order = await _orderService.GetByIdAsync(payment.OrderId, ct);
+
+                        if (order is not null && order.Status != OrderStatus.Refunded)
+                        {
+                            order.Status = OrderStatus.Refunded;
+                            order.UpdatedAt = DateTimeOffset.UtcNow;
+                            await _orderService.UpdateAsync(order, ct);
+                        }
+                    }
+                }
+
+                Console.WriteLine($"Charge refunded: {charge?.Id}");
+            }
+
+            if (stripeEvent.Type == "account.updated")
+            {
+                var account = stripeEvent.Data.Object as Account;
+
+                if (account is not null)
+                {
+                    var settings = await _hostPaymentSettingsService.GetByStripeAccountIdAsync(account.Id, ct);
+
+                    if (settings is not null)
+                    {
+                        settings.ChargesEnabled = account.ChargesEnabled;
+                        settings.PayoutsEnabled = account.PayoutsEnabled;
+                        settings.DetailsSubmitted = account.DetailsSubmitted;
+                        settings.UpdatedAt = DateTimeOffset.UtcNow;
+
+                        if (account.ChargesEnabled && account.PayoutsEnabled && account.DetailsSubmitted)
+                            settings.OnboardedAt ??= DateTimeOffset.UtcNow;
+
+                        await _hostPaymentSettingsService.UpdateAsync(settings, ct);
+
+                        Console.WriteLine($"account.updated synced for {account.Id}: charges={account.ChargesEnabled} payouts={account.PayoutsEnabled}");
+                    }
+                }
             }
 
             return Ok();

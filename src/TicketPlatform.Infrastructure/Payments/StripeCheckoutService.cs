@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+using Stripe;
 using Stripe.Checkout;
 using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
@@ -5,9 +7,11 @@ using TicketPlatform.Core.Services;
 namespace TicketPlatform.Infrastructure.Payments;
 
 public class StripeCheckoutService(
-    IHostPaymentSettingsService hostPaymentSettingsService) : IStripeCheckoutService
+    IHostPaymentSettingsService hostPaymentSettingsService,
+    IConfiguration configuration) : IStripeCheckoutService
 {
-    private const decimal PlatformFeeRate = 0.05m;
+    private decimal PlatformFeeRate =>
+        (configuration.GetValue<decimal?>("Stripe:PlatformFeePercent") ?? 5m) / 100m;
 
     public async Task<string> CreateCheckoutSessionAsync(
         Order order,
@@ -33,7 +37,8 @@ public class StripeCheckoutService(
 
         if (settings is null ||
             string.IsNullOrWhiteSpace(settings.StripeAccountId) ||
-            !settings.ChargesEnabled)
+            !settings.ChargesEnabled ||
+            !settings.PayoutsEnabled)
         {
             throw new InvalidOperationException("Event host has not completed Stripe onboarding.");
         }
@@ -84,6 +89,7 @@ public class StripeCheckoutService(
             PaymentIntentData = new SessionPaymentIntentDataOptions
             {
                 ApplicationFeeAmount = platformFeeCents,
+                OnBehalfOf = settings.StripeAccountId,
                 TransferData = new SessionPaymentIntentDataTransferDataOptions
                 {
                     Destination = settings.StripeAccountId
@@ -101,12 +107,13 @@ public class StripeCheckoutService(
 
             Metadata = metadata,
 
-            SuccessUrl = "https://localhost:7174/payment-success?session_id={CHECKOUT_SESSION_ID}",
-            CancelUrl = "https://localhost:7174/events?payment=cancelled"
+            SuccessUrl = $"{configuration["ClientBaseUrl"]}/payment-success?session_id={{CHECKOUT_SESSION_ID}}",
+            CancelUrl = $"{configuration["ClientBaseUrl"]}/events?payment=cancelled"
         };
 
         var service = new SessionService();
-        var session = await service.CreateAsync(options, cancellationToken: ct);
+        var requestOptions = new RequestOptions { IdempotencyKey = order.Id.ToString() };
+        var session = await service.CreateAsync(options, requestOptions, cancellationToken: ct);
 
         return session.Url;
     }
