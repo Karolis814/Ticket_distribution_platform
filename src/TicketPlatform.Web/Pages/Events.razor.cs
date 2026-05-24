@@ -134,6 +134,11 @@ public class EventsBase : ComponentBase
         Nav.NavigateTo($"/checkout/{eventId}");
     }
 
+    protected void NavigateToDetails(Guid eventId)
+    {
+        Nav.NavigateTo($"/events/{eventId}");
+    }
+
     protected static int RemainingTickets(EventDto ev)
     {
         var total = ev.TicketTypes.Sum(t => t.Quantity);

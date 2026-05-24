@@ -1,9 +1,10 @@
 using Serilog;
-using TicketPlatform.Api.Middleware;
-using TicketPlatform.Infrastructure;
 using Stripe;
+using TicketPlatform.Api.Middleware;
 using TicketPlatform.Core.Services;
+using TicketPlatform.Infrastructure;
 using TicketPlatform.Infrastructure.Payments;
+using TicketPlatform.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,14 +25,27 @@ StripeConfiguration.ApiKey =
 builder.Services.AddScoped<
     IStripeCheckoutService,
     StripeCheckoutService>();
-builder.Services.AddScoped<IUserSettingsService, UserSettingsService>();
+
+builder.Services.AddScoped<
+    IUserSettingsService,
+    UserSettingsService>();
+
+builder.Services.Configure<GooglePlacesOptions>(
+    builder.Configuration.GetSection("GooglePlacesOptions"));
+
+builder.Services.AddHttpClient<
+    IPlacesService,
+    GooglePlacesService>();
 
 const string blazorCors = "BlazorClient";
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(blazorCors, policy => policy
         .WithOrigins(
-            builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
+            builder.Configuration
+                .GetSection("Cors:AllowedOrigins")
+                .Get<string[]>() ?? [])
         .AllowAnyHeader()
         .AllowAnyMethod());
 });

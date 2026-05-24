@@ -142,6 +142,12 @@ public class EventsController(IEventService eventService) : ControllerBase
             tt.MaxUses,
             tt.Quantity,
             tt.Tickets.Count
-        )).ToList()
+        )).ToList(),
+        e.Host is null ? null : new HostDto(
+            e.Host.Id,
+            e.Host.Username,
+            e.Host.Email,
+            e.Host.Company
+        )
     );
 }

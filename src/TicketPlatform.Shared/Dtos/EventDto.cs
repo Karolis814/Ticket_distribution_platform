@@ -11,7 +11,15 @@ public record EventDto(
     string? Location,
     string? ThumbnailUrl,
     EventStatus Status,
-    IReadOnlyList<TicketTypeDto> TicketTypes
+    IReadOnlyList<TicketTypeDto> TicketTypes,
+    HostDto? Host = null
+);
+
+public record HostDto(
+    Guid Id,
+    string? Username,
+    string Email,
+    string? Company
 );
 
 public record CreateEventRequest(
