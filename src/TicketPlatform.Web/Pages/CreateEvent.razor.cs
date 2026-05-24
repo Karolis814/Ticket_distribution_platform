@@ -1,6 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using System.ComponentModel.DataAnnotations;
 using Radzen;
 using TicketPlatform.Shared.Dtos;
 using TicketPlatform.Shared.Enums;
@@ -45,9 +45,9 @@ public partial class CreateEventBase : ComponentBase
 
     [Inject] protected IEventsClient EventsClient { get; set; } = default!;
     [Inject] protected IPlacesClient PlacesClient { get; set; } = default!;
+    [Inject] protected IUsersClient UsersClient { get; set; } = default!;
     [Inject] protected NotificationService NotificationService { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] protected HttpClient HttpClient { get; set; } = default!;
 
     protected Guid CurrentUserId { get; set; } = Guid.Empty;
     protected bool IsInitialized { get; set; } = false;
@@ -62,47 +62,7 @@ public partial class CreateEventBase : ComponentBase
 
     private async Task GetCurrentUserIdAsync()
     {
-        try
-        {
-            // Try to get the current user from the API
-            // This will work once authentication is properly set up
-            var response = await HttpClient.GetAsync("api/users/me");
-            if (response.IsSuccessStatusCode)
-            {
-                // Parse the actual user ID from the response
-                var content = await response.Content.ReadAsStringAsync();
-                var userResponse = System.Text.Json.JsonSerializer.Deserialize<UserResponse>(
-                    content,
-                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                );
-
-                if (userResponse != null && userResponse.Id != Guid.Empty)
-                {
-                    CurrentUserId = userResponse.Id;
-                }
-                else
-                {
-                    CurrentUserId = GetFallbackUserId();
-                }
-            }
-            else
-            {
-                CurrentUserId = GetFallbackUserId();
-            }
-        }
-        catch
-        {
-            // Use fallback user ID if API call fails (expected until authentication is implemented)
-            CurrentUserId = GetFallbackUserId();
-        }
-    }
-
-    private record UserResponse(Guid Id);
-
-    private static Guid GetFallbackUserId()
-    {
-        // Fallback user ID to use until authentication is properly implemented
-        return Guid.Parse("8dc55ac3-5e02-49fb-867e-7aa82d3ca8bc");
+        CurrentUserId = await UsersClient.GetCurrentUserIdAsync();
     }
 
     protected async Task OnValidSubmit(EditContext editContext)
