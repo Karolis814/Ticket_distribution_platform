@@ -31,6 +31,7 @@ public class EventService(IRepository<Event> repository) : IEventService
         var total = await baseQuery.CountAsync(ct);
 
         var items = await baseQuery
+            .Include(e => e.Host)
             .Include(e => e.TicketTypes)
             .ThenInclude(tt => tt.Tickets)
             .Skip((page - 1) * pageSize)
