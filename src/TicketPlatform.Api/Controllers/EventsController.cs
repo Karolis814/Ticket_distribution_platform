@@ -135,6 +135,7 @@ public class EventsController(IEventService eventService) : ControllerBase
 
     private static EventDto MapToEventDto(Event e) => new(
         e.Id,
+        e.HostId,
         e.Category,
         e.Title,
         e.Description,

@@ -5,7 +5,7 @@ namespace TicketPlatform.Web.Services;
 public class UsersClient(HttpClient http) : IUsersClient
 {
     // Fallback until authentication is implemented
-    private static readonly Guid FallbackUserId = Guid.Parse("8dc55ac3-5e02-49fb-867e-7aa82d3ca8bc");
+    private static readonly Guid FallbackUserId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
     public async Task<Guid> GetCurrentUserIdAsync(CancellationToken ct = default)
     {
