@@ -73,7 +73,7 @@ public class TicketPdfService(IOrderService orderService) : ITicketPdfService
 
                         col.Item().PaddingTop(3).Text(
                                 isMultiDay
-                                    ? $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} on {ticket.TicketType.AdmissionStartDate:YYYY-MM-dd}"
+                                    ? $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} on {ticket.TicketType.AdmissionStartDate:yyyy-MM-dd}"
                                     : $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm}")
                             .FontSize(9).FontColor(Colors.Grey.Medium).AlignCenter();
 

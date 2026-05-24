@@ -13,6 +13,12 @@ public class HostPaymentSettingsService(
         => await repository.Query()
             .FirstOrDefaultAsync(x => x.HostId == hostId, ct);
 
+    public async Task<HostPaymentSettings?> GetByStripeAccountIdAsync(
+        string stripeAccountId,
+        CancellationToken ct = default)
+        => await repository.Query()
+            .FirstOrDefaultAsync(x => x.StripeAccountId == stripeAccountId, ct);
+
     public async Task<HostPaymentSettings> CreateAsync(
         HostPaymentSettings entity,
         CancellationToken ct = default)
