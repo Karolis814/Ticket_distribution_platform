@@ -52,8 +52,9 @@ public class EventService(IRepository<Event> repository) : IEventService
         var total = await query.CountAsync(ct);
 
         var items = await query
+            .Include(e => e.Host)
             .Include(e => e.TicketTypes)
-            .ThenInclude(tt => tt.Tickets)
+                .ThenInclude(tt => tt.Tickets)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(ct);
@@ -106,7 +107,7 @@ public class EventService(IRepository<Event> repository) : IEventService
         => await repository.Query()
             .Include(e => e.Host)
             .Include(e => e.TicketTypes)
-            .ThenInclude(tt => tt.Tickets)
+                .ThenInclude(tt => tt.Tickets)
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 

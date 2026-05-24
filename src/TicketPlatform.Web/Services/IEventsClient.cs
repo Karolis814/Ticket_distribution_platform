@@ -1,3 +1,4 @@
+using TicketPlatform.Shared;
 using TicketPlatform.Shared.Dtos;
 using System.Text.Json.Serialization;
 
@@ -5,6 +6,15 @@ namespace TicketPlatform.Web.Services;
 
 public interface IEventsClient
 {
+    Task<PagedResult<EventDto>?> GetPagedAsync(
+        int page,
+        int pageSize,
+        string? title = null,
+        DateTimeOffset? fromDate = null,
+        string? location = null,
+        string? category = null,
+        CancellationToken ct = default);
+
     Task<IReadOnlyList<EventDto>> GetAllAsync(
         CancellationToken ct = default);
 
@@ -14,13 +24,6 @@ public interface IEventsClient
 
     Task<EventDto?> CreateAsync(
         CreateEventRequest request,
-        CancellationToken ct = default);
-
-    Task<IReadOnlyList<EventDto>> SearchAsync(
-        string? title,
-        DateTimeOffset? fromDate,
-        string? location,
-        string? category,
         CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> GetLocationSuggestionsAsync(

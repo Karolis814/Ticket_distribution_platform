@@ -54,7 +54,11 @@ public class EventsController(IEventService eventService) : ControllerBase
         (IReadOnlyList<string> locations, int total) =
             await eventService.GetLocationSuggestionsAsync(input, page, pageSize, ct);
 
-        return Ok(new PagedResult<string>(locations, page, pageSize, total));
+        return Ok(new PagedResult<string>(
+            locations,
+            page,
+            pageSize,
+            total));
     }
 
     [HttpGet("categories")]
@@ -64,10 +68,15 @@ public class EventsController(IEventService eventService) : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<EventDto>> GetById(Guid id, CancellationToken ct)
+    public async Task<ActionResult<EventDto>> GetById(
+        Guid id,
+        CancellationToken ct)
     {
         var @event = await eventService.GetByIdAsync(id, ct);
-        return @event is null ? NotFound() : Ok(MapToEventDto(@event));
+
+        return @event is null
+            ? NotFound()
+            : Ok(MapToEventDto(@event));
     }
 
     [HttpPost]
@@ -117,18 +126,28 @@ public class EventsController(IEventService eventService) : ControllerBase
         }, ct);
 
         var created = await eventService.GetByIdAsync(@event.Id, ct);
-        return CreatedAtAction(nameof(GetById), new { id = created!.Id }, MapToEventDto(created));
+
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = created!.Id },
+            MapToEventDto(created));
     }
 
     private static EventDto MapToEventDto(Event e) => new(
         e.Id,
-        e.HostId,
         e.Category,
         e.Title,
         e.Description,
         e.Location,
         e.ThumbnailUrl,
         e.Status,
+        e.CreatedAt,
+        new HostDto(
+            e.Host.Id,
+            e.Host.Username,
+            e.Host.Email,
+            e.Host.Company
+        ),
         e.TicketTypes.Select(tt => new TicketTypeDto(
             tt.Id,
             tt.EventId,
@@ -142,12 +161,6 @@ public class EventsController(IEventService eventService) : ControllerBase
             tt.MaxUses,
             tt.Quantity,
             tt.Tickets.Count
-        )).ToList(),
-        e.Host is null ? null : new HostDto(
-            e.Host.Id,
-            e.Host.Username,
-            e.Host.Email,
-            e.Host.Company
-        )
+        )).ToList()
     );
 }

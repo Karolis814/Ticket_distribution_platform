@@ -11,8 +11,9 @@ public record EventDto(
     string? Location,
     string? ThumbnailUrl,
     EventStatus Status,
-    IReadOnlyList<TicketTypeDto> TicketTypes,
-    HostDto? Host = null
+    DateTimeOffset CreatedAt,
+    HostDto Host,
+    IReadOnlyList<TicketTypeDto> TicketTypes
 );
 
 public record HostDto(
