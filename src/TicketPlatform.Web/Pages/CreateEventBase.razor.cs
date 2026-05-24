@@ -16,18 +16,8 @@ public partial class CreateEventBase : ComponentBase
         TicketReleases = new List<TicketReleaseModel> { new() }
     };
 
-    protected List<string> Categories { get; set; } = new()
-    {
-        "Conference",
-        "Concert",
-        "Theater",
-        "Sports",
-        "Workshop",
-        "Meetup",
-        "Festival",
-        "Exhibition",
-        "Other"
-    };
+    protected List<EventCategory> Categories { get; set; } =
+        Enum.GetValues<EventCategory>().ToList();
 
     protected List<EventStatus> EventStatuses { get; set; } = new()
     {
@@ -48,6 +38,7 @@ public partial class CreateEventBase : ComponentBase
     [Inject] protected NotificationService NotificationService { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
     [Inject] protected HttpClient HttpClient { get; set; } = default!;
+    [Inject] protected IHostPaymentsClient HostPaymentsClient { get; set; } = default!;
 
     protected Guid CurrentUserId { get; set; } = Guid.Empty;
     protected bool IsInitialized { get; set; } = false;
@@ -57,6 +48,23 @@ public partial class CreateEventBase : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         await GetCurrentUserIdAsync();
+
+        var stripeStatus = await HostPaymentsClient.GetStatusAsync(CurrentUserId);
+
+        if (!stripeStatus.Ready)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "Stripe setup required",
+                Detail = "Connect Stripe before creating events.",
+                Duration = 7000
+            });
+
+            NavigationManager.NavigateTo($"/owner/stripe/{CurrentUserId}");
+            return;
+        }
+
         IsInitialized = true;
     }
 
@@ -102,7 +110,7 @@ public partial class CreateEventBase : ComponentBase
     private static Guid GetFallbackUserId()
     {
         // Fallback user ID to use until authentication is properly implemented
-        return Guid.Parse("8dc55ac3-5e02-49fb-867e-7aa82d3ca8bc");
+        return Guid.Parse("22222222-2222-2222-2222-222222222222");
     }
 
     protected async Task OnValidSubmit(EditContext editContext)
@@ -437,8 +445,7 @@ public partial class CreateEventBase : ComponentBase
 public class CreateEventFormModel
 {
     [Required]
-    [StringLength(100, ErrorMessage = "Category cannot exceed 100 characters.")]
-    public string Category { get; set; } = string.Empty;
+    public EventCategory Category { get; set; } = EventCategory.Other;
 
     [Required]
     [StringLength(200, ErrorMessage = "Title cannot exceed 200 characters.")]

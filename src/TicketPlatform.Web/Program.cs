@@ -20,6 +20,8 @@ builder.Services.AddScoped<IEventsClient>(sp => new EventsClient(sp.GetRequiredS
 // Register IPlacesClient with HttpClient
 builder.Services.AddScoped<IPlacesClient>(sp => new PlacesClient(sp.GetRequiredService<HttpClient>()));
 
+builder.Services.AddScoped<IHostPaymentsClient, HostPaymentsClient>();
+
 builder.Services.AddRadzenComponents();
 
 builder.Services.AddScoped<IImagesClient, ImagesClient>();
