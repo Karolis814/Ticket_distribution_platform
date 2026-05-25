@@ -1,4 +1,7 @@
 using System.Net.Http.Json;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Radzen;
 using TicketPlatform.Shared.Dtos;
@@ -10,12 +13,15 @@ public class CheckoutBase : ComponentBase
     [Inject] protected HttpClient Http { get; set; } = null!;
     [Inject] protected NavigationManager Nav { get; set; } = null!;
     [Inject] protected NotificationService Notify { get; set; } = null!;
+    [Inject] protected ILocalStorageService LocalStorage { get; set; } = null!;
 
     [Parameter] public Guid EventId { get; set; }
 
     protected string FirstName { get; set; } = string.Empty;
     protected string LastName { get; set; } = string.Empty;
     protected string Email { get; set; } = string.Empty;
+
+    protected string? UserEmail { get; set; } = "Jane@example.com";
 
     private Dictionary<Guid, int> Cart { get; } = new();
 
@@ -100,6 +106,54 @@ public class CheckoutBase : ComponentBase
 
         ShowDetails = true;
     }
+    protected void ProceedToDetailsAsUser()
+    {
+         if (!CartHasItems)
+        {
+            Notify.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "Empty cart",
+                Detail = "Please add at least one ticket before continuing.",
+                Duration = 4000
+            });
+
+             var token = LocalStorage.GetItemAsStringAsync("authToken");
+           
+                if (string.IsNullOrWhiteSpace(token.Result))
+                {
+                    Notify.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary = "Not logged in",
+                        Detail = "Please log in to proceed with user checkout.",
+                        Duration = 4000
+                    });
+                }
+                else
+                {
+                    Notify.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary = "Invalid token",
+                        Detail = "Your authentication token is invalid. Please log in again.",
+                        Duration = 4000
+                    });
+                    LocalStorage.RemoveItemAsync("authToken");
+                }
+            
+            var user = Http.GetFromJsonAsync<WhoAmIDTO>($"api/auth/me");
+
+             UserEmail = user.Result.email;
+
+            
+            return;
+        }
+
+
+        ShowDetails = true;
+    
+    }
 
     protected void GoBackToSelection() => ShowDetails = false;
 
@@ -120,7 +174,7 @@ public class CheckoutBase : ComponentBase
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(Email) || !Email.Contains('@'))
+        if (string.IsNullOrWhiteSpace(Email) || !Email.Contains('@') || !Email.Contains('.'))
         {
             Notify.Notify(new NotificationMessage
             {

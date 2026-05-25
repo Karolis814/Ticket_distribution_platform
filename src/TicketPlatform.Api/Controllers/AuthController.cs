@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
@@ -72,7 +73,25 @@ public class AuthController(
         var response = BuildAuthResponse(user);
         return Ok(response);
     }
+    // which get user id  
+    [HttpGet("me")]
+    [ProducesResponseType(typeof(WhoAmIDTO), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+     public async Task<IActionResult> GetCurrentUser(CancellationToken ct)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? User.FindFirstValue("sub");
 
+        if (userId is null)
+            return Unauthorized();
+
+        var user = await userService.GetByIdAsync(Guid.Parse(userId), ct);
+
+        return Ok(new WhoAmIDTO(
+            user.Id,
+            user.Email ?? string.Empty
+        ));
+    }
 
     private AuthResponseDTO BuildAuthResponse(User user)
     {
@@ -87,4 +106,5 @@ public class AuthController(
             PermissionGroup = user.UserPermissionGroup.Title
         };
     }
+
 }

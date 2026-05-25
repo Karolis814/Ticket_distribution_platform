@@ -271,6 +271,14 @@
                           Click="ProceedToDetails"
                           Style="width:100%" />
 
+            <RadzenButton Text="Pay as user"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Size="ButtonSize.Large"
+                          Icon="arrow_forward"
+                          Disabled="@(!CartHasItems || EventLoadFailed)"
+                          Click="ProceedToDetailsAsUser"
+                          Style="width:100%" />
+
             <RadzenButton Text="Back to Events"
                           ButtonStyle="ButtonStyle.Light"
                           Icon="arrow_back"
@@ -384,7 +392,7 @@ else
                              Style="width:100%">
 
                 <RadzenTextBox @bind-Value="Email"
-                               Placeholder="jane@example.com"
+                               Placeholder="@UserEmail"
                                Style="width:100%" />
 
             </RadzenFormField>
