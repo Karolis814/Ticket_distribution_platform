@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
@@ -22,6 +23,17 @@ public class TicketsController(
         [FromBody] CheckoutRequestDto request,
         CancellationToken ct)
     {
+
+        Guid userId;
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    ?? User.FindFirstValue("sub");
+
+        if (userIdStr is null || !Guid.TryParse(userIdStr, out userId) || userId == Guid.Empty);
+    
+        if (userIdStr != null)
+             userId = Guid.Parse(userIdStr);
+        else userId = Guid.Empty;
+        
         if (request.Items is not { Count: > 0 })
             return BadRequest("At least one item is required.");
 
@@ -66,7 +78,8 @@ public class TicketsController(
             FirstName = request.FirstName.Trim(),
             LastName = request.LastName.Trim(),
             Email = request.Email.Trim(),
-            EmailRemindersEnabled = true
+            EmailRemindersEnabled = true,
+            UserId = userId
         };
 
         await customerService.CreateAsync(customer, ct);

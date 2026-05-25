@@ -11,6 +11,7 @@ public class UsersClient(HttpClient http) : IUsersClient
     {
         try
         {
+            
             var response = await http.GetAsync("api/users/me", ct);
             if (!response.IsSuccessStatusCode)
                 return FallbackUserId;

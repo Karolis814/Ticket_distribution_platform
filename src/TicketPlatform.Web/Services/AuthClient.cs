@@ -28,14 +28,14 @@ public class AuthClient : IAuthClient
 
         if (response.IsSuccessStatusCode)
         {
-           // var result = await response.Content.ReadFromJsonAsync<AuthResponseDTO>();
-         //   await StoreTokenAsync(result!);
+           var result = await response.Content.ReadFromJsonAsync<AuthResponseDTO>();
+           await StoreTokenAsync(result!);
             return (true, null);
         }
 
-      //  var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
-      //  var message = problem.TryGetProperty("message", out var msg) ? msg.GetString() : "Registration failed.";
-        return (false, "FAIL");
+       var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+       var message = problem.TryGetProperty("message", out var msg) ? msg.GetString() : "Registration failed.";
+        return (false, message);
     }
 
     public async Task<(bool success, string? error)> LoginAsync(UserLoginDTO dto)
