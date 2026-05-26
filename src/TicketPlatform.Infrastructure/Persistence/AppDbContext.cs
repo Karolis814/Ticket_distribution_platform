@@ -31,5 +31,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.ConfigureTicketType();
         modelBuilder.ConfigureUser();
         modelBuilder.ConfigureUserPermissionGroup();
+        modelBuilder.ConfigureHostPaymentSettings();
     }
 }

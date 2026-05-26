@@ -42,6 +42,14 @@ public static class PaymentConfiguration
                 .WithOne(x => x.Payment)
                 .HasForeignKey<Payment>(x => x.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
+            builder.Property(x => x.StripeInvoiceId)
+                .HasMaxLength(255);
+
+            builder.Property(x => x.StripeInvoiceUrl)
+                .HasMaxLength(1000);
+
+            builder.Property(x => x.StripeInvoicePdfUrl)
+                .HasMaxLength(1000);
         });
     }
 }

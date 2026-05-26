@@ -15,4 +15,11 @@ public class User : BaseEntity
     public string? PhoneNumber { get; set; }
 
     public ICollection<Event> HostedEvents { get; set; } = new List<Event>();
+
+    public bool EmailConfirmed { get; set; } = true;
+    public string? PendingEmail { get; set; }
+    public string? EmailConfirmationTokenHash { get; set; }
+    public DateTimeOffset? EmailConfirmationTokenExpiresAt { get; set; }
+    public bool EmailRemindersEnabled { get; set; } = true;
+
 }

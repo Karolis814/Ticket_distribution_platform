@@ -9,11 +9,20 @@ public class MailService(IOptions<SmtpOptions> opts) : IMailService
 {
     private readonly SmtpOptions _opts = opts.Value;
 
-    public async Task SendAsync(EmailMessage message, CancellationToken ct = default)
+    public async Task SendAsync(
+        EmailMessage message,
+        CancellationToken ct = default)
     {
         var mime = new MimeMessage();
-        mime.From.Add(new MailboxAddress("Ticket Platform", _opts.From));
-        mime.To.Add(new MailboxAddress(message.ToName, message.To));
+
+        mime.From.Add(new MailboxAddress(
+            "Ticket Platform",
+            _opts.From));
+
+        mime.To.Add(new MailboxAddress(
+            message.ToName,
+            message.To));
+
         mime.Subject = message.Subject;
 
         var builder = new BodyBuilder
@@ -36,18 +45,27 @@ public class MailService(IOptions<SmtpOptions> opts) : IMailService
         mime.Body = builder.ToMessageBody();
 
         using var client = new SmtpClient();
+
         var secureSocket = _opts.EnableSsl
             ? SecureSocketOptions.StartTlsWhenAvailable
             : SecureSocketOptions.None;
 
-        await client.ConnectAsync(_opts.Host, _opts.Port, secureSocket, ct);
+        await client.ConnectAsync(
+            _opts.Host,
+            _opts.Port,
+            secureSocket,
+            ct);
 
-        if (!string.IsNullOrEmpty(_opts.Username))
+        if (!string.IsNullOrWhiteSpace(_opts.Username))
         {
-            await client.AuthenticateAsync(_opts.Username, _opts.Password ?? string.Empty, ct);
+            await client.AuthenticateAsync(
+                _opts.Username,
+                _opts.Password ?? string.Empty,
+                ct);
         }
 
         await client.SendAsync(mime, ct);
+
         await client.DisconnectAsync(true, ct);
     }
 }

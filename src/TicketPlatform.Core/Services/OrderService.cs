@@ -6,13 +6,16 @@ namespace TicketPlatform.Core.Services;
 
 public class OrderService(IRepository<Order> repository) : IOrderService
 {
-    public async Task<Order?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
-        await repository.Query()
+    public async Task<Order?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        => await repository.Query()
+            .Include(o => o.Customer)
+            .Include(o => o.Payment)
             .Include(o => o.OrderItems)
-            .ThenInclude(oi => oi.Tickets)
-            .ThenInclude(t => t.TicketType)
-            .ThenInclude(tt => tt.Event)
-            .ThenInclude(e => e.Host)
+                .ThenInclude(oi => oi.Tickets)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.TicketType)
+                    .ThenInclude(tt => tt.Event)
+                        .ThenInclude(e => e.Host)
             .FirstOrDefaultAsync(o => o.Id == id, ct);
 
     public async Task<Order> CreateAsync(Order entity, CancellationToken ct = default)

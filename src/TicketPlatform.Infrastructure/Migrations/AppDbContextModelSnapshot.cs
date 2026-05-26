@@ -51,6 +51,9 @@ namespace TicketPlatform.Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<bool>("EmailRemindersEnabled")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -124,6 +127,45 @@ namespace TicketPlatform.Infrastructure.Migrations
                     b.HasIndex("HostId");
 
                     b.ToTable("Events", (string)null);
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.HostPaymentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ChargesEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("DetailsSubmitted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("HostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("OnboardedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("PayoutsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("StripeAccountId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HostId")
+                        .IsUnique();
+
+                    b.ToTable("HostPaymentSettings", (string)null);
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Order", b =>
@@ -228,6 +270,18 @@ namespace TicketPlatform.Infrastructure.Migrations
                     b.Property<string>("StripeCheckoutSessionId")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<string>("StripeInvoiceId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("StripeInvoicePdfUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("StripeInvoiceUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<string>("StripePaymentIntentId")
                         .HasMaxLength(255)
@@ -389,6 +443,18 @@ namespace TicketPlatform.Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<DateTimeOffset?>("EmailConfirmationTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EmailConfirmationTokenHash")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("EmailRemindersEnabled")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
@@ -396,6 +462,10 @@ namespace TicketPlatform.Infrastructure.Migrations
                     b.Property<string>("PasswordSalt")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("PendingEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)
@@ -481,6 +551,17 @@ namespace TicketPlatform.Infrastructure.Migrations
                         .WithMany("HostedEvents")
                         .HasForeignKey("HostId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Host");
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.HostPaymentSettings", b =>
+                {
+                    b.HasOne("TicketPlatform.Core.Entities.User", "Host")
+                        .WithOne()
+                        .HasForeignKey("TicketPlatform.Core.Entities.HostPaymentSettings", "HostId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Host");

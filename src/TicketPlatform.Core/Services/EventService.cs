@@ -11,29 +11,50 @@ public class EventService(IRepository<Event> repository) : IEventService
         int page,
         int pageSize,
         DateTimeOffset fromDate,
+        string? title,
+        string? location,
         string? category,
-        CancellationToken ct = default){
-
-        var baseQuery = repository.Query()
+        CancellationToken ct = default)
+    {
+        var query = repository.Query()
             .Where(e =>
                 e.Status == EventStatus.Published &&
                 e.TicketTypes.Max(tt => tt.OccurenceEndDate) >= fromDate);
 
-        if (!string.IsNullOrWhiteSpace(category))
+        if (!string.IsNullOrWhiteSpace(title))
         {
-            baseQuery = baseQuery.Where(e => e.Category == category);
+            var titleFilter = title.ToLower();
+
+            query = query.Where(e =>
+                e.Title.ToLower().Contains(titleFilter) ||
+                e.Description.ToLower().Contains(titleFilter));
         }
 
-        baseQuery = baseQuery
+        if (!string.IsNullOrWhiteSpace(location))
+        {
+            var locationFilter = location.ToLower();
+
+            query = query.Where(e =>
+                e.Location != null &&
+                e.Location.ToLower().Contains(locationFilter));
+        }
+
+        if (!string.IsNullOrWhiteSpace(category) &&
+            Enum.TryParse<EventCategory>(category, true, out var parsedCategory))
+        {
+            query = query.Where(e => e.Category == parsedCategory);
+        }
+
+        query = query
             .OrderBy(e => e.TicketTypes.Min(tt => tt.OccurenceStartDate))
             .AsNoTracking();
 
-        var total = await baseQuery.CountAsync(ct);
+        var total = await query.CountAsync(ct);
 
-        var items = await baseQuery
+        var items = await query
             .Include(e => e.Host)
             .Include(e => e.TicketTypes)
-            .ThenInclude(tt => tt.Tickets)
+                .ThenInclude(tt => tt.Tickets)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(ct);
@@ -41,11 +62,52 @@ public class EventService(IRepository<Event> repository) : IEventService
         return (items, total);
     }
 
+    public async Task<(IReadOnlyList<string> Items, int TotalCount)> GetLocationSuggestionsAsync(
+        string input,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
+            return (Array.Empty<string>(), 0);
+
+        var inputFilter = input.ToLower();
+
+        var query = repository.Query()
+            .Where(e =>
+                e.Status == EventStatus.Published &&
+                e.Location != null &&
+                e.Location.ToLower().Contains(inputFilter))
+            .Select(e => e.Location!)
+            .Distinct()
+            .OrderBy(l => l)
+            .AsNoTracking();
+
+        var total = await query.CountAsync(ct);
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
+
+    public Task<IReadOnlyList<string>> GetCategoriesAsync(
+        CancellationToken ct = default)
+    {
+        IReadOnlyList<string> categories = Enum.GetNames<EventCategory>()
+            .OrderBy(c => c)
+            .ToList();
+
+        return Task.FromResult(categories);
+    }
+
     public async Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => await repository.Query()
             .Include(e => e.Host)
             .Include(e => e.TicketTypes)
-            .ThenInclude(tt => tt.Tickets)
+                .ThenInclude(tt => tt.Tickets)
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 

@@ -4,7 +4,8 @@ namespace TicketPlatform.Shared.Dtos;
 
 public record EventDto(
     Guid Id,
-    string Category,
+    Guid HostId,
+    EventCategory Category,
     string Title,
     string Description,
     string? Location,
@@ -24,7 +25,7 @@ public record HostDto(
 
 public record CreateEventRequest(
     Guid HostId,
-    string Category,
+    EventCategory Category,
     string Title,
     string Description,
     string? Location,

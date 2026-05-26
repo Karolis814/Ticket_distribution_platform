@@ -11,7 +11,10 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
                  ?? throw new InvalidOperationException("ApiBaseUrl is not configured in appsettings.json.");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri(apiBaseUrl)
+});
 
 builder.Services.AddRadzenComponents();
 
@@ -19,10 +22,15 @@ builder.Services.AddScoped<IEventsClient>(sp => new EventsClient(
     sp.GetRequiredService<HttpClient>(),
     sp.GetRequiredService<NotificationService>()));
 
-builder.Services.AddScoped<IPlacesClient>(sp => new PlacesClient(sp.GetRequiredService<HttpClient>()));
+builder.Services.AddScoped<IPlacesClient>(sp =>
+    new PlacesClient(sp.GetRequiredService<HttpClient>()));
 
 builder.Services.AddScoped<IImagesClient, ImagesClient>();
 
 builder.Services.AddScoped<IUsersClient, UsersClient>();
+
+builder.Services.AddScoped<IHostPaymentsClient, HostPaymentsClient>();
+
+builder.Services.AddScoped<IUserSettingsClient, UserSettingsClient>();
 
 await builder.Build().RunAsync();

@@ -47,11 +47,15 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         }
     }
 
-    public async Task<IReadOnlyList<EventDto>> GetAllAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<EventDto>> GetAllAsync(
+        CancellationToken ct = default)
     {
         try
         {
-            var result = await http.GetFromJsonAsync<PagedResult<EventDto>>("api/events", ct);
+            var result = await http.GetFromJsonAsync<PagedResult<EventDto>>(
+                "api/events",
+                ct);
+
             return result?.Items ?? [];
         }
         catch (Exception ex)
@@ -61,11 +65,15 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         }
     }
 
-    public async Task<EventDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<EventDto?> GetByIdAsync(
+        Guid id,
+        CancellationToken ct = default)
     {
         try
         {
-            return await http.GetFromJsonAsync<EventDto>($"api/events/{id}", ct);
+            return await http.GetFromJsonAsync<EventDto>(
+                $"api/events/{id}",
+                ct);
         }
         catch (Exception ex)
         {
@@ -74,24 +82,78 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         }
     }
 
-    public async Task<EventDto?> CreateAsync(CreateEventRequest request, CancellationToken ct = default)
+    public async Task<EventDto?> CreateAsync(
+        CreateEventRequest request,
+        CancellationToken ct = default)
     {
-        var response = await http.PostAsJsonAsync("api/events", request, ct);
+        var response = await http.PostAsJsonAsync(
+            "api/events",
+            request,
+            ct);
+
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<EventDto>(cancellationToken: ct);
+
+        return await response.Content.ReadFromJsonAsync<EventDto>(
+            cancellationToken: ct);
     }
 
-    public async Task<IReadOnlyList<string>> GetLocationSuggestionsAsync(string input, CancellationToken ct = default)
+    public async Task<IReadOnlyList<EventDto>> SearchAsync(
+        string? title,
+        DateTimeOffset? fromDate,
+        string? location,
+        string? category,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var query = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(title))
+                query.Add($"title={Uri.EscapeDataString(title)}");
+
+            if (fromDate.HasValue)
+                query.Add($"fromDate={Uri.EscapeDataString(fromDate.Value.UtcDateTime.ToString("O"))}");
+
+            if (!string.IsNullOrWhiteSpace(location))
+                query.Add($"location={Uri.EscapeDataString(location)}");
+
+            if (!string.IsNullOrWhiteSpace(category))
+                query.Add($"category={Uri.EscapeDataString(category)}");
+
+            var url = query.Count == 0
+                ? "api/events"
+                : $"api/events?{string.Join("&", query)}";
+
+            var result = await http.GetFromJsonAsync<PagedResult<EventDto>>(
+                url,
+                ct);
+
+            return result?.Items ?? [];
+        }
+        catch (Exception ex)
+        {
+            Notify(ex, "Failed to search events");
+            return [];
+        }
+    }
+
+    public async Task<IReadOnlyList<string>> GetLocationSuggestionsAsync(
+        string input,
+        CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(input) || input.Length < 2)
             return [];
 
         try
         {
-            var result = await http.GetFromJsonAsync<IReadOnlyList<string>>(
-                $"api/events/locations?input={Uri.EscapeDataString(input)}",
+            var url =
+                $"api/events/locations?input={Uri.EscapeDataString(input)}&page=1&pageSize=10";
+
+            var result = await http.GetFromJsonAsync<PagedResult<string>>(
+                url,
                 ct);
-            return result ?? [];
+
+            return result?.Items ?? [];
         }
         catch (Exception ex)
         {
@@ -100,11 +162,15 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         }
     }
 
-    public async Task<IReadOnlyList<string>> GetCategoriesAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<string>> GetCategoriesAsync(
+        CancellationToken ct = default)
     {
         try
         {
-            var result = await http.GetFromJsonAsync<IReadOnlyList<string>>("api/events/categories", ct);
+            var result = await http.GetFromJsonAsync<IReadOnlyList<string>>(
+                "api/events/categories",
+                ct);
+
             return result ?? [];
         }
         catch (Exception ex)

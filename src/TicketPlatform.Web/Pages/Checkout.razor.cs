@@ -58,7 +58,6 @@ public class CheckoutBase : ComponentBase
             }
             else
             {
-                // pre-populate cart keys so binding works immediately
                 foreach (var tt in EventDetails.TicketTypes)
                     Cart[tt.Id] = 0;
             }
@@ -80,6 +79,7 @@ public class CheckoutBase : ComponentBase
     {
         var tt = EventDetails?.TicketTypes.FirstOrDefault(t => t.Id == id);
         if (tt is null) return;
+
         Cart[id] = Math.Clamp(value, 0, Remaining(tt));
     }
 
@@ -94,6 +94,7 @@ public class CheckoutBase : ComponentBase
                 Detail = "Please add at least one ticket before continuing.",
                 Duration = 4000
             });
+
             return;
         }
 
@@ -115,6 +116,7 @@ public class CheckoutBase : ComponentBase
                 Detail = "Please enter both your first and last name.",
                 Duration = 4000
             });
+
             return;
         }
 
@@ -127,6 +129,7 @@ public class CheckoutBase : ComponentBase
                 Detail = "Please enter a valid email address.",
                 Duration = 4000
             });
+
             return;
         }
 
@@ -151,6 +154,7 @@ public class CheckoutBase : ComponentBase
             if (!response.IsSuccessStatusCode)
             {
                 var detail = await response.Content.ReadAsStringAsync();
+
                 Notify.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
@@ -160,21 +164,26 @@ public class CheckoutBase : ComponentBase
                         : detail,
                     Duration = 6000
                 });
+
                 return;
             }
 
             var result = await response.Content.ReadFromJsonAsync<CheckoutResponseDto>();
-            if (result is null) return;
 
-            Notify.Notify(new NotificationMessage
+            if (result is null || string.IsNullOrWhiteSpace(result.CheckoutUrl))
             {
-                Severity = NotificationSeverity.Success,
-                Summary = "Purchase complete!",
-                Detail = $"Your ticket(s) have been sent to {result.EmailSentTo}.",
-                Duration = 6000
-            });
+                Notify.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Checkout failed",
+                    Detail = "The server did not return a valid Stripe checkout URL.",
+                    Duration = 6000
+                });
 
-            Nav.NavigateTo(result.DownloadUrl, forceLoad: true);
+                return;
+            }
+
+            Nav.NavigateTo(result.CheckoutUrl, forceLoad: true);
         }
         catch (Exception ex)
         {
@@ -188,17 +197,19 @@ public class CheckoutBase : ComponentBase
         }
         finally
         {
-            Cart.Clear();
             Busy = false;
-            ShowDetails = false;
         }
     }
 
     protected string FormatPrice(int cents, string currency = "USD") =>
         cents == 0
             ? "Free"
-            : (cents / 100m).ToString($"0.00 {currency.ToUpper()}", System.Globalization.CultureInfo.InvariantCulture);
+            : (cents / 100m).ToString($"0.00 {currency.ToUpper()}",
+                System.Globalization.CultureInfo.InvariantCulture);
 
-    protected static DateTimeOffset StartDate(EventDto e) => e.TicketTypes.Min(tt => tt.OccurenceStartDate);
-    protected static DateTimeOffset EndDate(EventDto e) => e.TicketTypes.Max(tt => tt.OccurenceEndDate);
+    protected static DateTimeOffset StartDate(EventDto e) =>
+        e.TicketTypes.Min(tt => tt.OccurenceStartDate);
+
+    protected static DateTimeOffset EndDate(EventDto e) =>
+        e.TicketTypes.Max(tt => tt.OccurenceEndDate);
 }

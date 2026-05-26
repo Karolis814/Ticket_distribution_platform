@@ -16,18 +16,8 @@ public partial class CreateEventBase : ComponentBase
         TicketReleases = new List<TicketReleaseModel> { new() }
     };
 
-    protected List<string> Categories { get; set; } = new()
-    {
-        "Conference",
-        "Concert",
-        "Theater",
-        "Sports",
-        "Workshop",
-        "Meetup",
-        "Festival",
-        "Exhibition",
-        "Other"
-    };
+    protected List<EventCategory> Categories { get; set; } =
+        Enum.GetValues<EventCategory>().ToList();
 
     protected List<EventStatus> EventStatuses { get; set; } = new()
     {
@@ -46,6 +36,7 @@ public partial class CreateEventBase : ComponentBase
     [Inject] protected IEventsClient EventsClient { get; set; } = default!;
     [Inject] protected IPlacesClient PlacesClient { get; set; } = default!;
     [Inject] protected IUsersClient UsersClient { get; set; } = default!;
+    [Inject] protected IHostPaymentsClient HostPaymentsClient { get; set; } = default!;
     [Inject] protected NotificationService NotificationService { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
 
@@ -57,6 +48,23 @@ public partial class CreateEventBase : ComponentBase
     protected override async Task OnInitializedAsync()
     {
         await GetCurrentUserIdAsync();
+
+        var stripeStatus = await HostPaymentsClient.GetStatusAsync(CurrentUserId);
+
+        if (!stripeStatus.Ready)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "Stripe setup required",
+                Detail = "Connect Stripe before creating events.",
+                Duration = 7000
+            });
+
+            NavigationManager.NavigateTo($"/owner/stripe/{CurrentUserId}");
+            return;
+        }
+
         IsInitialized = true;
     }
 
@@ -93,7 +101,6 @@ public partial class CreateEventBase : ComponentBase
                 return;
             }
 
-            // Validate ticket releases
             foreach (var release in Model.TicketReleases)
             {
                 if (release.OccurenceEndDate <= release.OccurenceStartDate)
@@ -146,7 +153,7 @@ public partial class CreateEventBase : ComponentBase
             }
 
             var ticketTypes = Model.TicketReleases.Select(tt => new CreateTicketTypeRequest(
-                EventId: Guid.Empty, // Will be set by the server
+                EventId: Guid.Empty,
                 Title: tt.Title,
                 OccurenceStartDate: tt.OccurenceStartDate,
                 OccurenceEndDate: tt.OccurenceEndDate,
@@ -179,7 +186,6 @@ public partial class CreateEventBase : ComponentBase
                 Duration = 5000
             });
 
-            // Reset the form
             Model = new CreateEventFormModel
             {
                 Status = EventStatus.Draft,
@@ -209,6 +215,7 @@ public partial class CreateEventBase : ComponentBase
             Detail = "Please check all required fields and correct any errors.",
             Duration = 5000
         });
+
         return Task.CompletedTask;
     }
 
@@ -240,10 +247,11 @@ public partial class CreateEventBase : ComponentBase
         try
         {
             var file = e.GetMultipleFiles(1).FirstOrDefault();
+
             if (file != null)
             {
-                // Store the file name for now (not binding to anything as per requirements)
                 Model.ThumbnailFileName = file.Name;
+
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Info,
@@ -274,6 +282,7 @@ public partial class CreateEventBase : ComponentBase
         }
 
         IsSearchingLocations = true;
+
         try
         {
             LocationSuggestions = (await PlacesClient.SearchAsync(value)).ToList();
@@ -320,18 +329,15 @@ public partial class CreateEventBase : ComponentBase
     protected async Task OnLocationSelected(object value)
     {
         if (value is null)
-        {
             return;
-        }
 
         var selectedMainText = value.ToString();
+
         var prediction = LocationSuggestions.FirstOrDefault(p =>
             string.Equals(p.MainText, selectedMainText, StringComparison.Ordinal));
 
         if (prediction is null)
-        {
             return;
-        }
 
         try
         {
@@ -344,25 +350,28 @@ public partial class CreateEventBase : ComponentBase
         }
     }
 
-    private static string BuildFullAddress(PlacePredictionDto prediction, PlaceDetailsDto? details)
+    private static string BuildFullAddress(
+        PlacePredictionDto prediction,
+        PlaceDetailsDto? details)
     {
         if (details is null)
         {
             var fallback = prediction.MainText;
+
             if (!string.IsNullOrEmpty(prediction.SecondaryText))
-            {
                 fallback += ", " + prediction.SecondaryText;
-            }
+
             return fallback;
         }
 
-        var name = !string.IsNullOrWhiteSpace(details.Name) ? details.Name : prediction.MainText;
+        var name = !string.IsNullOrWhiteSpace(details.Name)
+            ? details.Name
+            : prediction.MainText;
+
         var parts = new List<string>();
 
         if (!string.IsNullOrWhiteSpace(name))
-        {
             parts.Add(name!);
-        }
 
         if (!string.IsNullOrWhiteSpace(details.StreetAddress) &&
             !string.Equals(details.StreetAddress, name, StringComparison.OrdinalIgnoreCase))
@@ -371,24 +380,16 @@ public partial class CreateEventBase : ComponentBase
         }
 
         if (!string.IsNullOrWhiteSpace(details.PostalCode))
-        {
             parts.Add(details.PostalCode!);
-        }
 
         if (!string.IsNullOrWhiteSpace(details.City))
-        {
             parts.Add(details.City!);
-        }
 
         if (!string.IsNullOrWhiteSpace(details.Country))
-        {
             parts.Add(details.Country!);
-        }
 
         if (parts.Count == 0)
-        {
             return details.FormattedAddress ?? prediction.MainText;
-        }
 
         return string.Join(", ", parts);
     }
@@ -397,8 +398,7 @@ public partial class CreateEventBase : ComponentBase
 public class CreateEventFormModel
 {
     [Required]
-    [StringLength(100, ErrorMessage = "Category cannot exceed 100 characters.")]
-    public string Category { get; set; } = string.Empty;
+    public EventCategory Category { get; set; } = EventCategory.Other;
 
     [Required]
     [StringLength(200, ErrorMessage = "Title cannot exceed 200 characters.")]
@@ -427,16 +427,20 @@ public class TicketReleaseModel
     public string Title { get; set; } = "Standard Ticket";
 
     [Required]
-    public DateTimeOffset OccurenceStartDate { get; set; } = DateTimeOffset.UtcNow.AddDays(1);
+    public DateTimeOffset OccurenceStartDate { get; set; } =
+        DateTimeOffset.UtcNow.AddDays(1);
 
     [Required]
-    public DateTimeOffset OccurenceEndDate { get; set; } = DateTimeOffset.UtcNow.AddDays(2);
+    public DateTimeOffset OccurenceEndDate { get; set; } =
+        DateTimeOffset.UtcNow.AddDays(2);
 
     [Required]
-    public DateTimeOffset AdmissionStartDate { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset AdmissionStartDate { get; set; } =
+        DateTimeOffset.UtcNow;
 
     [Required]
-    public DateTimeOffset AdmissionEndDate { get; set; } = DateTimeOffset.UtcNow.AddDays(1);
+    public DateTimeOffset AdmissionEndDate { get; set; } =
+        DateTimeOffset.UtcNow.AddDays(1);
 
     [Required]
     [Range(0, double.MaxValue, ErrorMessage = "Price cannot be negative.")]
