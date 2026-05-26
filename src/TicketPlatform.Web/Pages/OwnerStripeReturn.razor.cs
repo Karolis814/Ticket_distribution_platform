@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace TicketPlatform.Web.Pages;
 
-public class StripeReturnBase : ComponentBase
+public class OwnerStripeReturnBase : ComponentBase
 {
     [Inject] private NavigationManager Nav { get; set; } = null!;
 

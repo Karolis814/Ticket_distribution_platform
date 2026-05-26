@@ -2,7 +2,7 @@
 
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Host")]
-@inherits StripeRefreshBase
+@inherits OwnerStripeRefreshBase
 
 <RadzenRow JustifyContent="JustifyContent.Center" Class="rz-mt-8">
     <RadzenColumn Size="12" SizeMd="7" SizeLg="5">

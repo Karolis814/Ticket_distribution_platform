@@ -1,5 +1,5 @@
 @page "/stripe/return/{HostId:guid}"
-@inherits StripeReturnBase
+@inherits OwnerStripeReturnBase
 
     protected override void OnInitialized()
         => Nav.NavigateTo("/user/settings", replace: true);

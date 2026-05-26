@@ -6,7 +6,7 @@ using TicketPlatform.Shared.Dtos;
 
 namespace TicketPlatform.Web.Pages;
 
-public class OrderHistoryBase : ComponentBase, IAsyncDisposable
+public class PurchaseHistoryBase : ComponentBase, IAsyncDisposable
 {
     [Inject] protected HttpClient Http { get; set; } = null!;
     [Inject] protected NavigationManager Nav { get; set; } = null!;

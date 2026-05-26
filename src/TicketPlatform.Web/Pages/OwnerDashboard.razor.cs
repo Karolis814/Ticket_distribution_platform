@@ -5,7 +5,7 @@ using TicketPlatform.Shared.Dtos;
 
 namespace TicketPlatform.Web.Pages;
 
-public class SalesOverviewBase : ComponentBase
+public class OwnerDashboardBase : ComponentBase
 {
     [Inject] private HttpClient Http { get; set; } = null!;
     [Inject] protected NavigationManager Nav { get; set; } = null!;
