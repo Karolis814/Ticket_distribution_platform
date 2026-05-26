@@ -25,9 +25,6 @@ public static class CustomerConfiguration
                 .IsRequired()
                 .HasMaxLength(255);
 
-            builder.HasIndex(x => x.Email)
-                .IsUnique()
-                .HasFilter("\"UserId\" IS NOT NULL");
 
             builder.Property(x => x.CreatedAt)
                 .IsRequired();
@@ -40,8 +37,6 @@ public static class CustomerConfiguration
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            builder.Property(x => x.EmailRemindersEnabled)
-                .IsRequired();
         });
     }
 }

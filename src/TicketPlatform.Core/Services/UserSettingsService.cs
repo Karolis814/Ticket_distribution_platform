@@ -23,9 +23,12 @@ public class UserSettingsService(
             : new UserSettingsDto(
                 user.Id,
                 user.Email,
-                user.EmailConfirmed,
-                user.PendingEmail,
-                user.EmailRemindersEnabled);
+                user.FirstName,
+                user.LastName,
+                user.PhoneNumber,
+                user.Company,
+                user.Address,
+                user.TaxCode);
     }
 
     public async Task RequestEmailChangeAsync(
@@ -59,11 +62,11 @@ public class UserSettingsService(
         await userRepository.SaveChangesAsync(ct);
 
         var confirmationUrl =
-            $"{confirmationBaseUrl.TrimEnd('/')}/settings/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+            $"{confirmationBaseUrl.TrimEnd('/')}/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
 
         await mail.SendAsync(EmailTemplates.ConfirmEmailChange(
             toEmail: newEmail,
-            toName: user.Username ?? user.Email,
+            toName: (user.FirstName != null ? $"{user.FirstName} {user.LastName}".Trim() : null) ?? user.Email,
             confirmationUrl: confirmationUrl), ct);
     }
 
@@ -98,6 +101,29 @@ public class UserSettingsService(
         await userRepository.SaveChangesAsync(ct);
     }
 
+    public async Task UpdateProfileAsync(
+        Guid userId,
+        UpdateProfileRequest request,
+        CancellationToken ct = default)
+    {
+        var user = await userRepository.Query()
+            .FirstOrDefaultAsync(x => x.Id == userId, ct);
+
+        if (user is null)
+            throw new InvalidOperationException("User not found.");
+
+        user.FirstName = request.FirstName?.Trim();
+        user.LastName = request.LastName?.Trim();
+        user.PhoneNumber = request.PhoneNumber?.Trim();
+        user.Company = request.Company?.Trim();
+        user.Address = request.Address?.Trim();
+        user.TaxCode = request.TaxCode?.Trim();
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+
+        userRepository.Update(user);
+        await userRepository.SaveChangesAsync(ct);
+    }
+
     public async Task ChangePasswordAsync(
         Guid userId,
         string currentPassword,
@@ -124,10 +150,7 @@ public class UserSettingsService(
         await userRepository.SaveChangesAsync(ct);
     }
 
-    public async Task UpdateEmailRemindersAsync(
-        Guid userId,
-        bool enabled,
-        CancellationToken ct = default)
+    public async Task DeleteAccountAsync(Guid userId, CancellationToken ct = default)
     {
         var user = await userRepository.Query()
             .FirstOrDefaultAsync(x => x.Id == userId, ct);
@@ -135,10 +158,7 @@ public class UserSettingsService(
         if (user is null)
             throw new InvalidOperationException("User not found.");
 
-        user.EmailRemindersEnabled = enabled;
-        user.UpdatedAt = DateTimeOffset.UtcNow;
-
-        userRepository.Update(user);
+        userRepository.Remove(user);
         await userRepository.SaveChangesAsync(ct);
     }
 

@@ -1,99 +1,111 @@
-@page "/settings"
-@using TicketPlatform.Shared.Dtos
-@inject TicketPlatform.Web.Services.IUserSettingsClient SettingsClient
-@inject TicketPlatform.Web.Services.IHostPaymentsClient HostPaymentsClient
-@inject Radzen.NotificationService Notify
-@inject NavigationManager Nav
+@page "/user/settings"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inherits SettingsBase
 
-<PageTitle>User Settings</PageTitle>
+<PageTitle>Settings</PageTitle>
 
 <RadzenStack Gap="1rem" Style="max-width: 720px;">
-    <RadzenText TextStyle="TextStyle.H4">User Settings</RadzenText>
+    <RadzenText TextStyle="TextStyle.H4">Settings</RadzenText>
 
-    <RadzenCard>
-        <RadzenStack Gap="1rem">
-            <RadzenText TextStyle="TextStyle.H6">Load user</RadzenText>
-
-            <RadzenTextBox @bind-Value="UserIdText"
-                           Placeholder="User ID"
-                           Style="width:100%" />
-
-            <RadzenButton Text="Load settings"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Click="@LoadSettingsAsync" />
-        </RadzenStack>
-    </RadzenCard>
-
-    @if (UserSettings is not null)
+    @if (IsLoading)
+    {
+        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else if (UserSettings is not null)
     {
         <RadzenCard>
             <RadzenStack Gap="1rem">
                 <RadzenText TextStyle="TextStyle.H6">Stripe / Payments</RadzenText>
 
-                @if (StripeStatus is null || !StripeStatus.Connected)
+                @if (!string.IsNullOrWhiteSpace(StripeError))
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true">@StripeError</RadzenAlert>
+                }
+
+                @if (StripeStatus is null || string.IsNullOrWhiteSpace(StripeStatus.StripeAccountId))
                 {
                     <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
                         Stripe is not connected. Connect Stripe before creating events.
                     </RadzenAlert>
 
-                    <RadzenButton Text="Connect Stripe"
+                    <RadzenButton Text="@(Connecting ? "Connecting…" : "Connect Stripe")"
                                   Icon="account_balance"
                                   ButtonStyle="ButtonStyle.Warning"
-                                  Click="@(() => Nav.NavigateTo($"/owner/stripe/{LoadedUserId}"))" />
+                                  Disabled="@Connecting"
+                                  Click="@ConnectStripeAsync" />
                 }
                 else if (!StripeStatus.Ready)
                 {
                     <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
-                        Stripe is connected, but onboarding is not fully completed.
+                        Stripe account connected but onboarding is incomplete. Continue setup to start accepting payments.
                     </RadzenAlert>
 
-                    <RadzenButton Text="Continue Stripe setup"
+                    <RadzenButton Text="@(Connecting ? "Connecting…" : "Continue Stripe setup")"
                                   Icon="account_balance"
                                   ButtonStyle="ButtonStyle.Warning"
-                                  Click="@(() => Nav.NavigateTo($"/owner/stripe/{LoadedUserId}"))" />
+                                  Disabled="@Connecting"
+                                  Click="@ConnectStripeAsync" />
+
+                    @if (PollingStripe)
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Small" />
+                            <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color)">
+                                Checking status in @StripeCountdown s…
+                            </RadzenText>
+                        </RadzenStack>
+                    }
                 }
                 else
                 {
                     <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true">
                         Stripe is connected and ready.
                     </RadzenAlert>
-
-                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem">
-                        <RadzenButton Text="Stripe Payments"
-                                      Icon="payments"
-                                      ButtonStyle="ButtonStyle.Info"
-                                      Click="@(() => Nav.NavigateTo($"/owner/stripe/{LoadedUserId}"))" />
-
-                        <RadzenButton Text="Owner Dashboard"
-                                      Icon="dashboard"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Click="@(() => Nav.NavigateTo($"/owner/dashboard/{LoadedUserId}"))" />
-                    </RadzenStack>
                 }
             </RadzenStack>
         </RadzenCard>
 
         <RadzenCard>
             <RadzenStack Gap="1rem">
-                <RadzenText TextStyle="TextStyle.H6">Email</RadzenText>
+                <RadzenText TextStyle="TextStyle.H6">Profile</RadzenText>
 
-                <RadzenText Text="Current email:" />
-                <RadzenText Text="@UserSettings.Email" />
+                <RadzenFormField Text="Email" Variant="Variant.Outlined" Style="width:100%">
+                    <RadzenTextBox Value="@UserSettings.Email" Disabled="true" Style="width:100%" />
+                </RadzenFormField>
 
-                @if (!string.IsNullOrWhiteSpace(UserSettings.PendingEmail))
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Warning">
-                        Pending email confirmation: @UserSettings.PendingEmail
-                    </RadzenAlert>
-                }
+                <RadzenRow Gap="0.75rem">
+                    <RadzenColumn Size="12" SizeSm="6">
+                        <RadzenFormField Text="First name" Variant="Variant.Outlined" Style="width:100%">
+                            <RadzenTextBox @bind-Value="FirstName" Style="width:100%" />
+                        </RadzenFormField>
+                    </RadzenColumn>
+                    <RadzenColumn Size="12" SizeSm="6">
+                        <RadzenFormField Text="Last name" Variant="Variant.Outlined" Style="width:100%">
+                            <RadzenTextBox @bind-Value="LastName" Style="width:100%" />
+                        </RadzenFormField>
+                    </RadzenColumn>
+                </RadzenRow>
 
-                <RadzenTextBox @bind-Value="NewEmail"
-                               Placeholder="New email"
-                               Style="width:100%" />
+                <RadzenFormField Text="Phone number" Variant="Variant.Outlined" Style="width:100%">
+                    <RadzenTextBox @bind-Value="PhoneNumber" Style="width:100%" />
+                </RadzenFormField>
 
-                <RadzenButton Text="Request email change"
+                <RadzenFormField Text="Company" Variant="Variant.Outlined" Style="width:100%">
+                    <RadzenTextBox @bind-Value="Company" Style="width:100%" />
+                </RadzenFormField>
+
+                <RadzenFormField Text="Address" Variant="Variant.Outlined" Style="width:100%">
+                    <RadzenTextBox @bind-Value="Address" Style="width:100%" />
+                </RadzenFormField>
+
+                <RadzenFormField Text="Tax / Company ID" Variant="Variant.Outlined" Style="width:100%">
+                    <RadzenTextBox @bind-Value="TaxCode" Style="width:100%" />
+                </RadzenFormField>
+
+                <RadzenButton Text="Save profile"
                               ButtonStyle="ButtonStyle.Primary"
-                              Click="@ChangeEmailAsync" />
+                              Click="@SaveProfileAsync" />
             </RadzenStack>
         </RadzenCard>
 
@@ -117,185 +129,33 @@
 
         <RadzenCard>
             <RadzenStack Gap="1rem">
-                <RadzenText TextStyle="TextStyle.H6">Email reminders</RadzenText>
+                <RadzenText TextStyle="TextStyle.H6" Style="color: var(--rz-danger)">Danger zone</RadzenText>
 
-                <RadzenStack Orientation="Orientation.Horizontal"
-                             AlignItems="AlignItems.Center"
-                             Gap="0.75rem">
-                    <RadzenCheckBox @bind-Value="EmailRemindersEnabled" />
-                    <RadzenText Text="Receive email reminders" />
-                </RadzenStack>
-
-                <RadzenButton Text="Save reminder preferences"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Click="@SaveReminderSettingsAsync" />
+                @if (!ConfirmDelete)
+                {
+                    <RadzenButton Text="Delete account"
+                                  Icon="delete_forever"
+                                  ButtonStyle="ButtonStyle.Danger"
+                                  Variant="Variant.Outlined"
+                                  Click="@(() => ConfirmDelete = true)" />
+                }
+                else
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true">
+                        This will permanently delete your account and all associated data. This cannot be undone.
+                    </RadzenAlert>
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem">
+                        <RadzenButton Text="Yes, delete my account"
+                                      Icon="delete_forever"
+                                      ButtonStyle="ButtonStyle.Danger"
+                                      Click="@DeleteAccountAsync" />
+                        <RadzenButton Text="Cancel"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Click="@(() => ConfirmDelete = false)" />
+                    </RadzenStack>
+                }
             </RadzenStack>
         </RadzenCard>
     }
 </RadzenStack>
 
-@code {
-    private string UserIdText { get; set; } = "";
-    private Guid LoadedUserId { get; set; }
-
-    private UserSettingsDto? UserSettings { get; set; }
-    private HostStripeStatusDto? StripeStatus { get; set; }
-
-    private string NewEmail { get; set; } = "";
-    private string CurrentPassword { get; set; } = "";
-    private string NewPassword { get; set; } = "";
-    private bool EmailRemindersEnabled { get; set; }
-
-    private bool TryGetUserId(out Guid userId)
-    {
-        if (Guid.TryParse(UserIdText, out userId))
-            return true;
-
-        Notify.Notify(Radzen.NotificationSeverity.Warning,
-            "Invalid user ID",
-            "Please enter a valid user ID.");
-
-        return false;
-    }
-
-    private async Task LoadSettingsAsync()
-    {
-        if (!TryGetUserId(out var userId))
-            return;
-
-        try
-        {
-            LoadedUserId = userId;
-
-            UserSettings = await SettingsClient.GetAsync(userId);
-
-            if (UserSettings is null)
-            {
-                StripeStatus = null;
-
-                Notify.Notify(Radzen.NotificationSeverity.Warning,
-                    "User not found",
-                    "No user was found with this ID.");
-
-                return;
-            }
-
-            EmailRemindersEnabled = UserSettings.EmailRemindersEnabled;
-
-            StripeStatus = await HostPaymentsClient.GetStatusAsync(userId);
-        }
-        catch (Exception ex)
-        {
-            Notify.Notify(Radzen.NotificationSeverity.Error,
-                "Failed to load settings",
-                ex.Message);
-        }
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        var uri = Nav.ToAbsoluteUri(Nav.Uri);
-        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-
-        var userIdText = query["userId"];
-
-        if (!string.IsNullOrWhiteSpace(userIdText) &&
-            Guid.TryParse(userIdText, out var userId))
-        {
-            UserIdText = userId.ToString();
-
-            await LoadSettingsAsync();
-        }
-    }
-
-    private async Task ChangeEmailAsync()
-    {
-        if (!TryGetUserId(out var userId))
-            return;
-
-        if (string.IsNullOrWhiteSpace(NewEmail) || !NewEmail.Contains('@'))
-        {
-            Notify.Notify(Radzen.NotificationSeverity.Warning,
-                "Invalid email",
-                "Please enter a valid email address.");
-            return;
-        }
-
-        try
-        {
-            await SettingsClient.ChangeEmailAsync(
-                new ChangeEmailRequest(userId, NewEmail.Trim()));
-
-            Notify.Notify(Radzen.NotificationSeverity.Success,
-                "Email confirmation sent",
-                "Check the new email inbox.");
-
-            NewEmail = "";
-            await LoadSettingsAsync();
-        }
-        catch (Exception ex)
-        {
-            Notify.Notify(Radzen.NotificationSeverity.Error,
-                "Email change failed",
-                ex.Message);
-        }
-    }
-
-    private async Task ChangePasswordAsync()
-    {
-        if (!TryGetUserId(out var userId))
-            return;
-
-        if (string.IsNullOrWhiteSpace(CurrentPassword) ||
-            string.IsNullOrWhiteSpace(NewPassword))
-        {
-            Notify.Notify(Radzen.NotificationSeverity.Warning,
-                "Missing password",
-                "Please enter both current and new password.");
-            return;
-        }
-
-        try
-        {
-            await SettingsClient.ChangePasswordAsync(
-                new ChangePasswordRequest(userId, CurrentPassword, NewPassword));
-
-            CurrentPassword = "";
-            NewPassword = "";
-
-            Notify.Notify(Radzen.NotificationSeverity.Success,
-                "Password changed",
-                "Your password has been updated.");
-        }
-        catch (Exception ex)
-        {
-            Notify.Notify(Radzen.NotificationSeverity.Error,
-                "Password change failed",
-                ex.Message);
-        }
-    }
-
-    private async Task SaveReminderSettingsAsync()
-    {
-        if (!TryGetUserId(out var userId))
-            return;
-
-        try
-        {
-            await SettingsClient.UpdateEmailRemindersAsync(
-                new UpdateEmailRemindersRequest(userId, EmailRemindersEnabled));
-
-            Notify.Notify(Radzen.NotificationSeverity.Success,
-                "Settings saved",
-                "Email reminder preferences updated.");
-
-            await LoadSettingsAsync();
-        }
-        catch (Exception ex)
-        {
-            Notify.Notify(Radzen.NotificationSeverity.Error,
-                "Failed to save settings",
-                ex.Message);
-        }
-    }
-}

@@ -1,0 +1,109 @@
+@page "/user/orders"
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+@inherits PurchaseHistoryBase
+
+<PageTitle>My Tickets</PageTitle>
+
+<RadzenStack Gap="1.5rem">
+
+    <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1" Style="margin:0">
+        My Tickets
+    </RadzenText>
+
+    @if (IsLoading)
+    {
+        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"/>
+    }
+    else if (Orders.Count == 0)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
+            You have no purchases yet.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid Data="@Orders" TItem="PurchaseHistoryItemDTO"
+                        AllowSorting="true"
+                        AllowColumnResize="true"
+                        GridLines="DataGridGridLines.Horizontal">
+            <Columns>
+
+                <RadzenDataGridColumn TItem="PurchaseHistoryItemDTO"
+                                      Property="EventTitle"
+                                      Title="Event"
+                                      Width="200px">
+                    <Template Context="item">
+                        <RadzenLink Text="@item.EventTitle"
+                                    Path="@($"/events/{item.EventId}")"/>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="PurchaseHistoryItemDTO"
+                                      Property="TicketTypeTitle"
+                                      Title="Ticket type"
+                                      Width="160px"/>
+
+                <RadzenDataGridColumn TItem="PurchaseHistoryItemDTO"
+                                      Property="Quantity"
+                                      Title="Qty"
+                                      Width="60px"/>
+
+                <RadzenDataGridColumn TItem="PurchaseHistoryItemDTO"
+                                      Title="Unit price"
+                                      Width="110px">
+                    <Template Context="item">
+                        @FormatPrice(item.UnitPriceCents, item.Currency)
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="PurchaseHistoryItemDTO"
+                                      Title="Total"
+                                      Width="110px">
+                    <Template Context="item">
+                        @FormatPrice(item.TotalPriceCents, item.Currency)
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="PurchaseHistoryItemDTO"
+                                      Property="Status"
+                                      Title="Status"
+                                      Width="110px">
+                    <Template Context="item">
+                        <RadzenBadge Text="@item.Status"
+                                     BadgeStyle="@StatusBadge(item.Status)"
+                                     Shade="Shade.Light"/>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="PurchaseHistoryItemDTO"
+                                      Property="PurchasedAt"
+                                      Title="Purchased"
+                                      FormatString="{0:yyyy-MM-dd}"
+                                      Width="110px"/>
+
+                <RadzenDataGridColumn TItem="PurchaseHistoryItemDTO"
+                                      Title="Documents"
+                                      Sortable="false"
+                                      Width="200px">
+                    <Template Context="item">
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem">
+                            @if (!string.IsNullOrEmpty(item.InvoiceUrl))
+                            {
+                                <RadzenLink Text="Invoice" Path="@item.InvoiceUrl" Target="_blank"/>
+                            }
+                            @if (item.Status == "Completed")
+                            {
+                                <RadzenLink Text="Tickets PDF" Path="javascript:void(0)"
+                                            @onclick="@(async () => await DownloadTicketsAsync(item.OrderId))"/>
+                            }
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+
+            </Columns>
+        </RadzenDataGrid>
+    }
+
+</RadzenStack>
