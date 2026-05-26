@@ -5,10 +5,10 @@ using TicketPlatform.Shared.Dtos;
 
 namespace TicketPlatform.Web.Services;
 
-public class AuthTokenHandler(ILocalStorageService localStorage) : DelegatingHandler
+public class AuthTokenHandler(ILocalStorageService localStorage, IConfiguration configuration) : DelegatingHandler
 {
     private const string TokenKey = "authToken";
-    private const int RefreshThresholdMinutes = 2;
+    private int RefreshThresholdMinutes => configuration.GetValue("RefreshThresholdMinutes", 2);
 
     private static readonly SemaphoreSlim RefreshLock = new(1, 1);
 
