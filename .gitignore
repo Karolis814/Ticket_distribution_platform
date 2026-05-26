@@ -430,3 +430,6 @@ FodyWeavers.xsd
 
 .idea
 .DS_Store
+# Local development secrets
+appsettings.Development.json
+src/TicketPlatform.Api/appsettings.Development.json

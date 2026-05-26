@@ -50,6 +50,12 @@ public static class UserConfiguration
                 .WithMany(x => x.Users)
                 .HasForeignKey(x => x.UserPermissionGroupId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Property(x => x.EmailConfirmed).IsRequired();
+            builder.Property(x => x.PendingEmail).HasMaxLength(255);
+            builder.Property(x => x.EmailConfirmationTokenHash);
+            builder.Property(x => x.EmailConfirmationTokenExpiresAt);
+            builder.Property(x => x.EmailRemindersEnabled).IsRequired();
         });
     }
 }

@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TicketPlatform.Shared\TicketPlatform.Shared.csproj"/>
+    <ProjectReference Include="..\TicketPlatform.Shared\TicketPlatform.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

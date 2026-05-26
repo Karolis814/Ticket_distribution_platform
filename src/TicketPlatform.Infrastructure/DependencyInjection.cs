@@ -33,6 +33,7 @@ public static class DependencyInjection
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<ITicketService, TicketService>();
         services.AddScoped<ITicketTypeService, TicketTypeService>();
+        services.AddScoped<IHostPaymentSettingsService, HostPaymentSettingsService>();
 
         services.AddScoped<ITicketPdfService, TicketPdfService>();
         services.Configure<SmtpOptions>(configuration.GetSection("Smtp"));

@@ -5,6 +5,11 @@
 
 <div class="rz-p-0 rz-p-md-12">
     <EditForm Model="@Model" OnValidSubmit="@OnValidSubmit" OnInvalidSubmit="@OnInvalidSubmit">
+
+        <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
+            Stripe must be connected before creating events.
+        </RadzenAlert>
+
         <DataAnnotationsValidator />
         <RadzenStack Gap="1rem">
 
@@ -123,10 +128,18 @@
 
                         <RadzenRow AlignItems="AlignItems.Center" RowGap="0.25rem">
                             <RadzenColumn Size="12" SizeMD="4" class="rz-text-align-start rz-text-align-md-end">
-                                <RadzenLabel Text="Price" Component="@($"Price_{currentIndex}")"/>
+                                <RadzenLabel Text="Price" Component="@($"Price_{currentIndex}")" />
                             </RadzenColumn>
+
                             <RadzenColumn Size="12" SizeMD="8">
-                                <RadzenNumeric TValue="decimal" Format="0.00" Min="0" Step="0.01m" Name="@($"Price_{currentIndex}")" @bind-Value="Model.TicketReleases[currentIndex].Price" Style="display: block; width: 100%;"/>
+                                <RadzenNumeric TValue="decimal"
+                                            Format="0.00"
+                                            Min="0"
+                                            Step="0.01"
+                                            ShowUpDown="false"
+                                            Name="@($"Price_{currentIndex}")"
+                                            @bind-Value="Model.TicketReleases[currentIndex].Price"
+                                            Style="display: block; width: 100%;" />
                                 <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].Price)" />
                             </RadzenColumn>
                         </RadzenRow>

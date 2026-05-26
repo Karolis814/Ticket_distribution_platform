@@ -15,6 +15,7 @@ public static class EventConfiguration
 
             builder.Property(x => x.Category)
                 .IsRequired()
+                .HasConversion<string>()
                 .HasMaxLength(100);
 
             builder.Property(x => x.Title)

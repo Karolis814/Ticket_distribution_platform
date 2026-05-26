@@ -5,7 +5,10 @@
 
 <RadzenRow Class="rz-mt-6 rz-mb-4" AlignItems="AlignItems.Center">
     <RadzenColumn Size="12">
-        <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1">Upcoming Events</RadzenText>
+        <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1">
+            Upcoming Events
+        </RadzenText>
+
         <RadzenText TextStyle="TextStyle.Body1">
             Browse and grab your tickets below.
         </RadzenText>
@@ -58,12 +61,37 @@
 
 </RadzenStack>
 
-<EventCards Events="Events" Size="@PageSize" IsLoading="IsLoading"></EventCards>
+<EventCards Events="Events"
+            Size="@PageSize"
+            IsLoading="IsLoading">
+</EventCards>
 
-@if ((Result?.TotalCount ?? 0) > 0)
+@if (IsLoading)
+{
+    <RadzenRow>
+        @for (var i = 0; i < 6; i++)
+        {
+            <RadzenColumn Size="12" SizeMd="6" SizeLg="4" Class="rz-mb-4">
+                <RadzenCard Style="height:480px"
+                            Class="rz-display-flex rz-align-items-center rz-justify-content-center">
+                    <RadzenProgressBarCircular ShowValue="false"
+                                               Mode="ProgressBarMode.Indeterminate"
+                                               Size="ProgressBarCircularSize.Small" />
+                </RadzenCard>
+            </RadzenColumn>
+        }
+    </RadzenRow>
+}
+else if (!Events.Any())
+{
+    <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
+        No events are currently available. Check back soon!
+    </RadzenAlert>
+}
+else if ((Result?.TotalCount ?? 0) > 0)
 {
     <RadzenPager Count="@(Result!.TotalCount)"
                  PageSize="@PageSize"
                  PageNumbersCount="5"
-                 PageChanged="@OnPageChange"/>
+                 PageChanged="@OnPageChange" />
 }

@@ -39,6 +39,9 @@ public static class CustomerConfiguration
                 .HasForeignKey(x => x.UserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Property(x => x.EmailRemindersEnabled)
+                .IsRequired();
         });
     }
 }

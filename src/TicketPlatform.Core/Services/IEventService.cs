@@ -8,7 +8,18 @@ public interface IEventService
         int page,
         int pageSize,
         DateTimeOffset fromDate,
+        string? title,
+        string? location,
         string? category,
+        CancellationToken ct = default);
+
+    Task<(IReadOnlyList<string> Items, int TotalCount)> GetLocationSuggestionsAsync(
+        string input,
+        int page,
+        int pageSize,
+        CancellationToken ct = default);
+
+    Task<IReadOnlyList<string>> GetCategoriesAsync(
         CancellationToken ct = default);
 
     Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default);

@@ -1,0 +1,55 @@
+@page "/owner/stripe/return/{HostId:guid}"
+@inherits OwnerStripeReturnBase
+
+<RadzenRow JustifyContent="JustifyContent.Center" Class="rz-mt-8">
+    <RadzenColumn Size="12" SizeMd="7" SizeLg="5">
+        <RadzenCard>
+            <RadzenStack Gap="1rem">
+
+                @switch (_state)
+                {
+                    case PageState.Checking:
+                        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                        <RadzenText TextStyle="TextStyle.Body1">
+                            Checking your Stripe account status...
+                        </RadzenText>
+                        break;
+
+                    case PageState.Ready:
+                        <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true">
+                            Stripe is connected and ready to receive payments.
+                        </RadzenAlert>
+                        <RadzenButton Text="Create your first event"
+                                      Icon="add_circle"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Click="@(() => Nav.NavigateTo("/create-event"))"
+                                      Style="width:100%" />
+                        break;
+
+                    case PageState.IncompleteSetup:
+                        <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
+                            Your Stripe setup is not complete yet. Please continue to finish verifying your account.
+                        </RadzenAlert>
+                        <RadzenButton Text="Continue Stripe setup"
+                                      Icon="account_balance"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Click="@(() => Nav.NavigateTo($"/owner/stripe/{HostId}"))"
+                                      Style="width:100%" />
+                        break;
+
+                    case PageState.UnderReview:
+                        <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
+                            Your details have been submitted. Stripe is reviewing your account — this can take a few minutes. You'll be able to accept payments once approved.
+                        </RadzenAlert>
+                        <RadzenButton Text="Go to Stripe settings"
+                                      Icon="settings"
+                                      ButtonStyle="ButtonStyle.Light"
+                                      Click="@(() => Nav.NavigateTo($"/owner/stripe/{HostId}"))"
+                                      Style="width:100%" />
+                        break;
+                }
+
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
