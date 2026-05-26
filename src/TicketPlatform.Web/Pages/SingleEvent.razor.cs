@@ -11,12 +11,12 @@ public partial class SingleEventBase : ComponentBase
     [Parameter]
     public Guid EventId { get; set; }
 
-    [Inject] protected IEventsClient EventsClient { get; set; } = default!;
-    [Inject] protected NotificationService NotificationService { get; set; } = default!;
-    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] protected IEventsClient EventsClient { get; set; } = null!;
+    [Inject] protected NotificationService NotificationService { get; set; } = null!;
+    [Inject] protected NavigationManager NavigationManager { get; set; } = null!;
 
     protected EventDto? Event { get; private set; }
-    protected bool isLoading { get; private set; }
+    protected bool IsLoading { get; private set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -25,7 +25,7 @@ public partial class SingleEventBase : ComponentBase
 
     private async Task LoadEventAsync()
     {
-        isLoading = true;
+        IsLoading = true;
         try
         {
             Event = await EventsClient.GetByIdAsync(EventId);
@@ -52,11 +52,11 @@ public partial class SingleEventBase : ComponentBase
         }
         finally
         {
-            isLoading = false;
+            IsLoading = false;
         }
     }
 
-    protected string FormatPrice(int priceCents, string currency)
+    private string FormatPrice(int priceCents, string currency)
     {
         var price = priceCents / 100m;
         return $"{price:0.00} {currency}";
@@ -116,8 +116,9 @@ public partial class SingleEventBase : ComponentBase
     {
         if (!string.IsNullOrWhiteSpace(host.Company))
             return host.Company!;
-        if (!string.IsNullOrWhiteSpace(host.Username))
-            return host.Username!;
+        var fullName = $"{host.FirstName} {host.LastName}".Trim();
+        if (!string.IsNullOrWhiteSpace(fullName))
+            return fullName;
         return host.Email;
     }
 

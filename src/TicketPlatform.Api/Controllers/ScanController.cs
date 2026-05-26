@@ -12,12 +12,13 @@ namespace TicketPlatform.Api.Controllers;
 [Route("api/[controller]")]
 public class ScanController(ITicketValidationService validationService) : ControllerBase
 {
+    [Authorize(Roles = "Host")]
     [HttpGet("{ticketId:guid}")]
     public async Task<ActionResult<TicketValidationResultDto>> Validate(
         Guid ticketId,
         CancellationToken ct)
-    {   
-       
+    {
+
         var user = User.FindFirstValue(ClaimTypes.NameIdentifier)
                      ?? User.FindFirstValue("sub");
 
@@ -25,7 +26,7 @@ public class ScanController(ITicketValidationService validationService) : Contro
             return Unauthorized();
           Guid userId = Guid.Parse(user);
 
-        
+
         var result = await validationService.ValidateAsync(ticketId, userId, ct);
         return Ok(MapToDto(result));
     }

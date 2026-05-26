@@ -1,10 +1,13 @@
-using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Shared.Dtos;
+using TicketPlatform.Shared.Enums;
 
 namespace TicketPlatform.API.Controllers;
 
@@ -16,7 +19,7 @@ public class AuthController(
     IJWTService jwtService,
     IRepository<User> userRepository) : ControllerBase
 {
-    
+
     [HttpPost("register")]
     [ProducesResponseType(typeof(AuthResponseDTO), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -33,23 +36,9 @@ public class AuthController(
 
 
         // return new JsonResult(dto);
-        User user;
-        try
-        {
-            user = await userService.CreateAsync(dto, ct);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return BadRequest(new { message = ex.Message }); 
-        }
+        var user = await userService.CreateAsync(dto, ct);
 
-        // need to call from service        
-        var userWithPerms = await userRepository.Query()
-            .Include(u => u.UserPermissionGroup)
-                .ThenInclude(g => g.Permissions)
-            .FirstAsync(u => u.Id == user.Id, ct);
-
-        var response = BuildAuthResponse(userWithPerms);
+        var response = BuildAuthResponse(user);
         return CreatedAtAction(nameof(Register), response);
     }
 
@@ -62,18 +51,16 @@ public class AuthController(
         CancellationToken ct)
     {
         var user = await userRepository.Query()
-            .Include(u => u.UserPermissionGroup)
-                .ThenInclude(g => g.Permissions)
             .FirstOrDefaultAsync(u => u.Email == dto.Email, ct);
 
-    
+
         if (user is null || !passwordService.VerifyPassword(dto.Password, user.PasswordSalt, user.PasswordHash))
             return Unauthorized(new { message = "Invalid email or password." });
 
         var response = BuildAuthResponse(user);
         return Ok(response);
     }
-    // which get user id  
+    // which get user id
     [HttpGet("me")]
     [ProducesResponseType(typeof(WhoAmIDTO), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -87,10 +74,27 @@ public class AuthController(
 
         var user = await userService.GetByIdAsync(Guid.Parse(userId), ct);
 
-        return Ok(new WhoAmIDTO(
-            user.Id,
-            user.Email ?? string.Empty
-        ));
+        if (user is null)
+            return Unauthorized();
+
+        return Ok(new WhoAmIDTO(user.Id, user.Email));
+    }
+
+    [HttpPost("refresh")]
+    [Authorize]
+    public IActionResult Refresh()
+    {
+        var newToken = jwtService.RefreshAccessToken(User);
+        var email    = User.FindFirstValue(JwtRegisteredClaimNames.Email) ?? "";
+        Enum.TryParse<UserRole>(User.FindFirstValue("role"), out var role);
+
+        return Ok(new AuthResponseDTO
+        {
+            AccessToken = newToken,
+            ExpiresAt   = DateTime.UtcNow.AddMinutes(jwtService.AccessTokenExpiryMinutes),
+            Email       = email,
+            Role        = role
+        });
     }
 
     private AuthResponseDTO BuildAuthResponse(User user)
@@ -99,11 +103,10 @@ public class AuthController(
 
         return new AuthResponseDTO
         {
-            AccessToken     = accessToken,
-            ExpiresAt       = DateTime.UtcNow.AddMinutes(15), // mirrors JwtSettings value
-            Email           = user.Email,
-            Username        = user.Username,
-            PermissionGroup = user.UserPermissionGroup.Title
+            AccessToken = accessToken,
+            ExpiresAt   = DateTime.UtcNow.AddMinutes(jwtService.AccessTokenExpiryMinutes),
+            Email       = user.Email,
+            Role        = user.Role
         };
     }
 

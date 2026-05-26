@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using TicketPlatform.Web.Services;
@@ -9,62 +10,77 @@ namespace TicketPlatform.Web.Pages;
 
 public class RegisterBase : ComponentBase
 {
-    
     [Inject] protected NavigationManager Nav { get; set; } = null!;
     [Inject] protected ILocalStorageService LocalStorage { get; set; } = null!;
     [Inject] protected AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+    [Inject] protected IAuthClient AuthClient { get; set; } = null!;
 
-    [Inject] protected IAuthClient AuthClient { get; set; } = default!;
+    protected UserSignUpDTO? Model;
 
-    // Initialize with empty strings to match the required constructor parameters
-    protected UserSignUpDTO? model ;
+    [Required(ErrorMessage = "First name is required.")]
+    public string FirstName { get; set; } = "";
 
-    protected string Name { get; set; } = "";
-    protected string Email { get; set; } = "";
-    protected string Password { get; set; } = "";
-    protected string ConfirmPassword { get; set; } = "";
-    protected string SelectedRole { get; set; } = "Customer"; // Default role
-    protected string Company { get; set; } = "";
-    protected string Address { get; set; } = "";
-    protected string TaxCode { get; set; } = "";
-    protected string PhoneNumber { get; set; } = "";
+    [Required(ErrorMessage = "Last name is required.")]
+    public string LastName { get; set; } = "";
 
-     protected EditContext editContext = default!;
+    [Required(ErrorMessage = "Email is required.")]
+    [EmailAddress(ErrorMessage = "Enter a valid email address.")]
+    public string Email { get; set; } = "";
 
+    [Required(ErrorMessage = "Password is required.")]
+    [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
+    public string Password { get; set; } = "";
 
-    protected string? errorMessage;
-    protected bool isLoading;
+    public string ConfirmPassword { get; set; } = "";
+    public string Company { get; set; } = "";
+    public string Address { get; set; } = "";
+    public string TaxCode { get; set; } = "";
+    public string PhoneNumber { get; set; } = "";
 
-    protected override async Task OnInitializedAsync()
+    protected EditContext EditContext = default!;
+    protected string? ErrorMessage;
+    protected bool IsLoading;
+
+    protected override Task OnInitializedAsync()
     {
-       // AuthClient = new AuthClient(new HttpClient(), LocalStorage, AuthenticationStateProvider); 
-        editContext = new EditContext(this);
-
+        EditContext = new EditContext(this);
+        return Task.CompletedTask;
     }
 
     protected async Task HandleRegister()
     {
-        isLoading = true;
-        errorMessage = null;
+        ErrorMessage = null;
+
+        if (!EditContext.Validate())
+            return;
+
+        if (Password != ConfirmPassword)
+        {
+            ErrorMessage = "Passwords do not match.";
+            return;
+        }
+
+        IsLoading = true;
 
         var dto = new UserSignUpDTO(
-            Name,
+            FirstName,
+            LastName,
             Email,
             Password,
-            ConfirmPassword,
             Company,
             Address,
             TaxCode,
             PhoneNumber
-        ) { role = SelectedRole };
+        );
 
-       var (success, error) = await AuthClient.RegisterAsync(dto);
-         
+        var (success, error) = await AuthClient.RegisterAsync(dto);
+
+
         if (success)
-            Nav.NavigateTo("/login");
+            Nav.NavigateTo("/events");
         else
-            errorMessage = error;
+            ErrorMessage = error;
 
-        isLoading = false;
+        IsLoading = false;
     }
 }

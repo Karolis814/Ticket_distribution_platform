@@ -2,23 +2,22 @@ using Microsoft.EntityFrameworkCore;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
 using TicketPlatform.Shared.Dtos;
+using TicketPlatform.Shared.Enums;
 
 namespace TicketPlatform.Core.Services;
 
-public class UserService(IRepository<User> repository, IPasswordService passwordService, IUserPermissionGroupService   permissionGroupService) : IUserService
+public class UserService(IRepository<User> repository, IPasswordService passwordService) : IUserService
 {
-    //private readonly UserPermissionGroupService permissionGroupService = new UserPermissionGroupService(permissionGroupRepository);
     public async Task<User> CreateAsync(UserSignUpDTO entity, CancellationToken ct = default)
     {
         var salt = passwordService.GenerateSalt();
-        var permissionGroup = await permissionGroupService.GetByTitleAsync(entity.role, ct);
 
-        
         User user = new User
         {
-            UserPermissionGroupId = permissionGroup.Id,
+            Role = UserRole.Customer,
             Id = Guid.NewGuid(),
-            Username = entity.Name,
+            FirstName = entity.FirstName,
+            LastName = entity.LastName,
             Email = entity.Email,
             PasswordSalt = salt,
             PasswordHash = passwordService.HashPassword(entity.Password, salt),

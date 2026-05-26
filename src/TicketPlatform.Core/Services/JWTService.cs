@@ -14,14 +14,36 @@ public class JWTService(IOptions<JWTSettings> options) : IJWTService
 {
     private readonly JWTSettings _settings = options.Value;
 
+    public int AccessTokenExpiryMinutes => _settings.AccessTokenExpiryMinutes;
+
     public string GenerateAccessToken(User user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-
-        //cia gyvena visi permisions in refresh token
         var claims = BuildClaims(user);
+
+        var token = new JwtSecurityToken(
+            issuer:             _settings.Issuer,
+            audience:           _settings.Audience,
+            claims:             claims,
+            notBefore:          DateTime.UtcNow,
+            expires:            DateTime.UtcNow.AddMinutes(_settings.AccessTokenExpiryMinutes),
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public string RefreshAccessToken(ClaimsPrincipal principal)
+    {
+        var claims = principal.Claims
+            .Where(c => c.Type != JwtRegisteredClaimNames.Jti)
+            .Append(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()))
+            .ToList();
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer:             _settings.Issuer,
@@ -64,14 +86,9 @@ public class JWTService(IOptions<JWTSettings> options) : IJWTService
         {
             new(JwtRegisteredClaimNames.Sub,   user.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email),
-            new(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),  
-            new("permission_group",            user.UserPermissionGroup.Title),
+            new(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
+            new("role",                             user.Role.ToString()),
         };
-        
-        foreach (var permission in user.UserPermissionGroup.Permissions)
-        {
-           claims.Add(new Claim("permission", permission.Title));
-        }
 
         return claims;
     }

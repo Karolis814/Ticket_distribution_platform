@@ -1,14 +1,13 @@
-@page "/create-event"
+@page "/events/create"
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 @inherits CreateEventBase
 
 <h3>Create Event</h3>
 
 <div class="rz-p-0 rz-p-md-12">
     <EditForm Model="@Model" OnValidSubmit="@OnValidSubmit" OnInvalidSubmit="@OnInvalidSubmit">
-
-        <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
-            Stripe must be connected before creating events.
-        </RadzenAlert>
 
         <DataAnnotationsValidator />
         <RadzenStack Gap="1rem">

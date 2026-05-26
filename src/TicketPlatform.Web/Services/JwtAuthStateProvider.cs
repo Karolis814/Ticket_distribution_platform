@@ -34,14 +34,14 @@ public class JwtAuthStateProvider(ILocalStorageService localStorage) : Authentic
         return Anonymous;
     }
 
-    var identity = new ClaimsIdentity(jwt.Claims, "jwt");
+    var identity = new ClaimsIdentity(jwt.Claims, "jwt", "sub", "role");
     return new AuthenticationState(new ClaimsPrincipal(identity));
     }
 
     public void NotifyUserLoggedIn(string token)
     {
         var jwt = _handler.ReadJwtToken(token);
-        var identity = new ClaimsIdentity(jwt.Claims, "jwt");
+        var identity = new ClaimsIdentity(jwt.Claims, "jwt", "sub", "role");
         var user = new ClaimsPrincipal(identity);
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
     }

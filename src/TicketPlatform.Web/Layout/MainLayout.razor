@@ -1,4 +1,5 @@
 @inherits MainLayoutBase
+@using Microsoft.AspNetCore.Components.Authorization
 
 <RadzenComponents/>
 
@@ -19,7 +20,7 @@
                 <AuthorizeView>
                     <Authorized>
                         <RadzenText TextStyle="TextStyle.Body2" class="rz-m-0">
-                            Logged in as: <b>@user</b>
+                            Logged in as: <b>@User</b>
                         </RadzenText>
                         <RadzenButton Text="Logout" Click="@HandleLogout" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" />
                     </Authorized>

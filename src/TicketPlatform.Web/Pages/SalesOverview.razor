@@ -1,22 +1,22 @@
-@page "/owner/dashboard/{HostId:guid}"
-@using System.Net.Http.Json
-@using TicketPlatform.Shared.Dtos
-@inject HttpClient Http
-@inject NavigationManager Nav
+@page "/host/sales-overview"
 
-<PageTitle>Owner Dashboard</PageTitle>
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Host")]
+@inherits SalesOverviewBase
+
+<PageTitle>Sales Overview</PageTitle>
 
 <RadzenRow JustifyContent="JustifyContent.Center" Class="rz-mt-8">
     <RadzenColumn Size="12" SizeLg="10">
         <RadzenStack Gap="1.5rem">
 
             <RadzenText TextStyle="TextStyle.H3" Style="font-weight:700">
-                Owner Dashboard
+                Sales Overview
             </RadzenText>
 
             @if (Loading)
             {
-                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"/>
             }
             else if (!string.IsNullOrWhiteSpace(Error))
             {
@@ -26,32 +26,6 @@
             }
             else if (Dashboard is not null)
             {
-                <RadzenRow Gap="1rem" Class="rz-mb-2">
-                    <RadzenColumn Size="12" SizeMd="4">
-                        <RadzenButton Text="Create Event"
-                                      Icon="add_circle"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Style="width:100%"
-                                      Click="@(() => Nav.NavigateTo("/createEvent"))" />
-                    </RadzenColumn>
-
-                    <RadzenColumn Size="12" SizeMd="4">
-                        <RadzenButton Text="Stripe Payments"
-                                      Icon="payments"
-                                      ButtonStyle="ButtonStyle.Info"
-                                      Style="width:100%"
-                                      Click="@(() => Nav.NavigateTo($"/owner/stripe/{HostId}"))" />
-                    </RadzenColumn>
-
-                    <RadzenColumn Size="12" SizeMd="4">
-                        <RadzenButton Text="Browse Events"
-                                      Icon="event"
-                                      ButtonStyle="ButtonStyle.Light"
-                                      Style="width:100%"
-                                      Click="@(() => Nav.NavigateTo("/events"))" />
-                    </RadzenColumn>
-                </RadzenRow>
-
                 <RadzenRow Gap="1rem">
                     <RadzenColumn Size="12" SizeMd="3">
                         <RadzenCard>
@@ -199,11 +173,11 @@
                             <Columns>
                                 <RadzenDataGridColumn TItem="EventRevenueDto"
                                                       Property="EventName"
-                                                      Title="Event" />
+                                                      Title="Event"/>
 
                                 <RadzenDataGridColumn TItem="EventRevenueDto"
                                                       Property="TicketsSold"
-                                                      Title="Tickets sold" />
+                                                      Title="Tickets sold"/>
 
                                 <RadzenDataGridColumn TItem="EventRevenueDto"
                                                       Title="Revenue">
@@ -237,11 +211,11 @@
                             <Columns>
                                 <RadzenDataGridColumn TItem="DailySalesDto"
                                                       Property="Date"
-                                                      Title="Date" />
+                                                      Title="Date"/>
 
                                 <RadzenDataGridColumn TItem="DailySalesDto"
                                                       Property="TicketsSold"
-                                                      Title="Tickets sold" />
+                                                      Title="Tickets sold"/>
 
                                 <RadzenDataGridColumn TItem="DailySalesDto"
                                                       Title="Revenue">
@@ -274,7 +248,7 @@
                                 <Columns>
                                     <RadzenDataGridColumn TItem="StripePayoutDto"
                                                           Property="Id"
-                                                          Title="Payout ID" />
+                                                          Title="Payout ID"/>
 
                                     <RadzenDataGridColumn TItem="StripePayoutDto"
                                                           Title="Amount">
@@ -291,17 +265,17 @@
                                             @if (payout.Status == "paid")
                                             {
                                                 <RadzenBadge Text="PAID"
-                                                             BadgeStyle="BadgeStyle.Success" />
+                                                             BadgeStyle="BadgeStyle.Success"/>
                                             }
                                             else if (payout.Status == "pending")
                                             {
                                                 <RadzenBadge Text="PENDING"
-                                                             BadgeStyle="BadgeStyle.Warning" />
+                                                             BadgeStyle="BadgeStyle.Warning"/>
                                             }
                                             else
                                             {
                                                 <RadzenBadge Text="@payout.Status.ToUpper()"
-                                                             BadgeStyle="BadgeStyle.Danger" />
+                                                             BadgeStyle="BadgeStyle.Danger"/>
                                             }
                                         </Template>
                                     </RadzenDataGridColumn>
@@ -321,40 +295,11 @@
                 <RadzenButton Text="Back to settings"
                               Icon="arrow_back"
                               ButtonStyle="ButtonStyle.Light"
-                              Click="@(() => Nav.NavigateTo($"/settings?userId={HostId}"))"
-                              Style="width:100%" />
+                              Click="@(() => Nav.NavigateTo("/user/settings"))"
+                              Style="width:100%"/>
             }
 
         </RadzenStack>
     </RadzenColumn>
 </RadzenRow>
 
-@code {
-    [Parameter] public Guid HostId { get; set; }
-
-    private OwnerDashboardDto? Dashboard { get; set; }
-    private bool Loading { get; set; } = true;
-    private string? Error { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            Dashboard = await Http.GetFromJsonAsync<OwnerDashboardDto>(
-                $"api/owner-dashboard/{HostId}");
-        }
-        catch (Exception ex)
-        {
-            Error = ex.Message;
-        }
-        finally
-        {
-            Loading = false;
-        }
-    }
-
-    private static string FormatMoney(MoneyAmountDto amount)
-    {
-        return $"{amount.AmountCents / 100m:0.00} {amount.Currency.ToUpper()}";
-    }
-}

@@ -7,10 +7,6 @@
 
 <RadzenRow Class="rz-mb-6">
     <RadzenColumn Size="12">
-        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H2" Class="rz-mb-3">
-            Popular Events
-        </RadzenText>
-
         @if (IsLoading)
         {
             <RadzenCard Style="height:420px"
@@ -20,8 +16,12 @@
                                            Size="ProgressBarCircularSize.Medium"/>
             </RadzenCard>
         }
-        else if (PopularEvents.Any())
+        else if (TrendingEvents.Any())
         {
+            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H2" Class="rz-mb-3">
+                Trending Events
+            </RadzenText>
+
             <RadzenCarousel Style="height:420px"
                             Auto="true"
                             Interval="5000"
@@ -30,7 +30,7 @@
                             PagerPosition="PagerPosition.Bottom"
                             PagerOverlay="true">
                 <Items>
-                    @foreach (var ev in PopularEvents)
+                    @foreach (var ev in TrendingEvents)
                     {
                         <RadzenCarouselItem>
                             <div class="rz-w-100 rz-overflow-hidden"
@@ -171,7 +171,7 @@
                           Icon="confirmation_number"
                           ButtonStyle="ButtonStyle.Info"
                           Size="ButtonSize.Large"
-                          Click="@(() => Nav.NavigateTo("/my-tickets"))"/>
+                          Click="@(() => Nav.NavigateTo("/user/orders"))"/>
         </RadzenStack>
     </RadzenStack>
 </RadzenCard>
@@ -194,7 +194,7 @@
                           Icon="add_circle"
                           ButtonStyle="ButtonStyle.Primary"
                           Size="ButtonSize.Large"
-                          Click="@(() => Nav.NavigateTo("/create-event"))"/>
+                          Click="@(() => Nav.NavigateTo("/events/create"))"/>
         </RadzenStack>
     </RadzenStack>
 </RadzenCard>

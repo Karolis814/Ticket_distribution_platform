@@ -20,16 +20,13 @@ public class StripeWebhookController : ControllerBase
     private readonly ITicketPdfService _pdfService;
     private readonly IMailService _mailService;
     private readonly IRepository<Payment> _paymentRepository;
-    private readonly IHostPaymentSettingsService _hostPaymentSettingsService;
-
     public StripeWebhookController(
         IConfiguration configuration,
         IOrderService orderService,
         ITicketService ticketService,
         ITicketPdfService pdfService,
         IMailService mailService,
-        IRepository<Payment> paymentRepository,
-        IHostPaymentSettingsService hostPaymentSettingsService)
+        IRepository<Payment> paymentRepository)
     {
         _configuration = configuration;
         _orderService = orderService;
@@ -37,7 +34,6 @@ public class StripeWebhookController : ControllerBase
         _pdfService = pdfService;
         _mailService = mailService;
         _paymentRepository = paymentRepository;
-        _hostPaymentSettingsService = hostPaymentSettingsService;
     }
 
     [HttpPost]
@@ -208,31 +204,6 @@ public class StripeWebhookController : ControllerBase
                 }
 
                 Console.WriteLine($"Charge refunded: {charge?.Id}");
-            }
-
-            if (stripeEvent.Type == "account.updated")
-            {
-                var account = stripeEvent.Data.Object as Account;
-
-                if (account is not null)
-                {
-                    var settings = await _hostPaymentSettingsService.GetByStripeAccountIdAsync(account.Id, ct);
-
-                    if (settings is not null)
-                    {
-                        settings.ChargesEnabled = account.ChargesEnabled;
-                        settings.PayoutsEnabled = account.PayoutsEnabled;
-                        settings.DetailsSubmitted = account.DetailsSubmitted;
-                        settings.UpdatedAt = DateTimeOffset.UtcNow;
-
-                        if (account.ChargesEnabled && account.PayoutsEnabled && account.DetailsSubmitted)
-                            settings.OnboardedAt ??= DateTimeOffset.UtcNow;
-
-                        await _hostPaymentSettingsService.UpdateAsync(settings, ct);
-
-                        Console.WriteLine($"account.updated synced for {account.Id}: charges={account.ChargesEnabled} payouts={account.PayoutsEnabled}");
-                    }
-                }
             }
 
             return Ok();

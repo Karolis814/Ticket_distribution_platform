@@ -36,8 +36,6 @@ public static class DependencyInjection
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<ITicketService, TicketService>();
         services.AddScoped<ITicketTypeService, TicketTypeService>();
-        services.AddScoped<IHostPaymentSettingsService, HostPaymentSettingsService>();
-
         services.AddScoped<ITicketPdfService, TicketPdfService>();
         services.Configure<SmtpOptions>(configuration.GetSection("Smtp"));
         services.AddScoped<IMailService, MailService>();
@@ -60,14 +58,14 @@ public static class DependencyInjection
             return new BlobServiceClient(opts.ConnectionString);
         });
         services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
-        services.AddScoped<IUserPermissionGroupService, UserPermissionGroupService>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IUserService, UserService>();
         services.Configure<JWTSettings>(configuration.GetSection("JwtSettings"));
         services.AddScoped<IJWTService, JWTService>();
 
         
-        var jwtSettings = configuration.GetSection("JwtSettings").Get<JWTSettings>();
+        var jwtSettings = configuration.GetSection("JwtSettings").Get<JWTSettings>()
+            ?? throw new InvalidOperationException("JwtSettings section is missing from configuration.");
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
     {

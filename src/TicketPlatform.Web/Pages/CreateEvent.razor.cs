@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Radzen;
 using TicketPlatform.Shared.Dtos;
 using TicketPlatform.Shared.Enums;
@@ -13,45 +14,60 @@ public partial class CreateEventBase : ComponentBase
     protected CreateEventFormModel Model { get; set; } = new()
     {
         Status = EventStatus.Draft,
-        TicketReleases = new List<TicketReleaseModel> { new() }
+        TicketReleases = [new TicketReleaseModel()]
     };
 
     protected List<EventCategory> Categories { get; set; } =
         Enum.GetValues<EventCategory>().ToList();
 
-    protected List<EventStatus> EventStatuses { get; set; } = new()
-    {
+    protected List<EventStatus> EventStatuses { get; set; } =
+    [
         EventStatus.Draft,
         EventStatus.Published,
         EventStatus.Cancelled
-    };
+    ];
 
-    protected List<string> Currencies { get; set; } = new()
-    {
+    protected List<string> Currencies { get; set; } =
+    [
         "EUR",
         "USD",
         "GBP"
-    };
+    ];
 
-    [Inject] protected IEventsClient EventsClient { get; set; } = default!;
-    [Inject] protected IPlacesClient PlacesClient { get; set; } = default!;
-    [Inject] protected NotificationService NotificationService { get; set; } = default!;
-    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] protected HttpClient HttpClient { get; set; } = default!;
-    [Inject] protected IHostPaymentsClient HostPaymentsClient { get; set; } = default!;
+    [Inject] protected IEventsClient EventsClient { get; set; } = null!;
+    [Inject] protected IPlacesClient PlacesClient { get; set; } = null!;
+    [Inject] protected IUsersClient UsersClient { get; set; } = null!;
+    [Inject] protected IHostPaymentsClient HostPaymentsClient { get; set; } = null!;
+    [Inject] protected NotificationService NotificationService { get; set; } = null!;
+    [Inject] protected NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] protected AuthenticationStateProvider AuthState { get; set; } = null!;
 
-    protected Guid CurrentUserId { get; set; } = Guid.Empty;
+    private Guid CurrentUserId { get; set; } = Guid.Empty;
     protected bool IsInitialized { get; set; } = false;
-    protected List<PlacePredictionDto> LocationSuggestions { get; set; } = new();
+    protected List<PlacePredictionDto> LocationSuggestions { get; set; } = [];
     protected bool IsSearchingLocations { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
+        var auth = await AuthState.GetAuthenticationStateAsync();
+        if (!auth.User.IsInRole("Host"))
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Info,
+                Summary = "Connect Stripe first",
+                Detail = "Complete Stripe onboarding in Settings to start hosting events.",
+                Duration = 7000
+            });
+            NavigationManager.NavigateTo("/user/settings");
+            return;
+        }
+
         await GetCurrentUserIdAsync();
 
         var stripeStatus = await HostPaymentsClient.GetStatusAsync(CurrentUserId);
 
-        if (!stripeStatus.Ready)
+        if (stripeStatus is null || !stripeStatus.Ready)
         {
             NotificationService.Notify(new NotificationMessage
             {
@@ -61,7 +77,7 @@ public partial class CreateEventBase : ComponentBase
                 Duration = 7000
             });
 
-            NavigationManager.NavigateTo($"/owner/stripe/{CurrentUserId}");
+            NavigationManager.NavigateTo("/user/settings");
             return;
         }
 
@@ -70,47 +86,7 @@ public partial class CreateEventBase : ComponentBase
 
     private async Task GetCurrentUserIdAsync()
     {
-        try
-        {
-            // Try to get the current user from the API
-            // This will work once authentication is properly set up
-            var response = await HttpClient.GetAsync("api/users/me");
-            if (response.IsSuccessStatusCode)
-            {
-                // Parse the actual user ID from the response
-                var content = await response.Content.ReadAsStringAsync();
-                var userResponse = System.Text.Json.JsonSerializer.Deserialize<UserResponse>(
-                    content,
-                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-                );
-
-                if (userResponse != null && userResponse.Id != Guid.Empty)
-                {
-                    CurrentUserId = userResponse.Id;
-                }
-                else
-                {
-                    CurrentUserId = GetFallbackUserId();
-                }
-            }
-            else
-            {
-                CurrentUserId = GetFallbackUserId();
-            }
-        }
-        catch
-        {
-            // Use fallback user ID if API call fails (expected until authentication is implemented)
-            CurrentUserId = GetFallbackUserId();
-        }
-    }
-
-    private record UserResponse(Guid Id);
-
-    private static Guid GetFallbackUserId()
-    {
-        // Fallback user ID to use until authentication is properly implemented
-        return Guid.Parse("22222222-2222-2222-2222-222222222222");
+        CurrentUserId = await UsersClient.GetCurrentUserIdAsync();
     }
 
     protected async Task OnValidSubmit(EditContext editContext)
@@ -141,7 +117,6 @@ public partial class CreateEventBase : ComponentBase
                 return;
             }
 
-            // Validate ticket releases
             foreach (var release in Model.TicketReleases)
             {
                 if (release.OccurenceEndDate <= release.OccurenceStartDate)
@@ -194,7 +169,7 @@ public partial class CreateEventBase : ComponentBase
             }
 
             var ticketTypes = Model.TicketReleases.Select(tt => new CreateTicketTypeRequest(
-                EventId: Guid.Empty, // Will be set by the server
+                EventId: Guid.Empty,
                 Title: tt.Title,
                 OccurenceStartDate: tt.OccurenceStartDate,
                 OccurenceEndDate: tt.OccurenceEndDate,
@@ -227,11 +202,10 @@ public partial class CreateEventBase : ComponentBase
                 Duration = 5000
             });
 
-            // Reset the form
             Model = new CreateEventFormModel
             {
                 Status = EventStatus.Draft,
-                TicketReleases = new List<TicketReleaseModel> { new() }
+                TicketReleases = [new()]
             };
 
             NavigationManager.NavigateTo("/events");
@@ -257,6 +231,7 @@ public partial class CreateEventBase : ComponentBase
             Detail = "Please check all required fields and correct any errors.",
             Duration = 5000
         });
+
         return Task.CompletedTask;
     }
 
@@ -288,10 +263,11 @@ public partial class CreateEventBase : ComponentBase
         try
         {
             var file = e.GetMultipleFiles(1).FirstOrDefault();
+
             if (file != null)
             {
-                // Store the file name for now (not binding to anything as per requirements)
                 Model.ThumbnailFileName = file.Name;
+
                 NotificationService.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Info,
@@ -313,7 +289,7 @@ public partial class CreateEventBase : ComponentBase
         }
     }
 
-    protected async Task OnLocationChange(string value)
+    private async Task OnLocationChange(string value)
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length < 3)
         {
@@ -322,6 +298,7 @@ public partial class CreateEventBase : ComponentBase
         }
 
         IsSearchingLocations = true;
+
         try
         {
             LocationSuggestions = (await PlacesClient.SearchAsync(value)).ToList();
@@ -365,21 +342,18 @@ public partial class CreateEventBase : ComponentBase
         await OnLocationChange(args.Filter);
     }
 
-    protected async Task OnLocationSelected(object value)
+    protected async Task OnLocationSelected(object? value)
     {
         if (value is null)
-        {
             return;
-        }
 
         var selectedMainText = value.ToString();
+
         var prediction = LocationSuggestions.FirstOrDefault(p =>
             string.Equals(p.MainText, selectedMainText, StringComparison.Ordinal));
 
         if (prediction is null)
-        {
             return;
-        }
 
         try
         {
@@ -392,25 +366,28 @@ public partial class CreateEventBase : ComponentBase
         }
     }
 
-    private static string BuildFullAddress(PlacePredictionDto prediction, PlaceDetailsDto? details)
+    private static string BuildFullAddress(
+        PlacePredictionDto prediction,
+        PlaceDetailsDto? details)
     {
         if (details is null)
         {
             var fallback = prediction.MainText;
+
             if (!string.IsNullOrEmpty(prediction.SecondaryText))
-            {
                 fallback += ", " + prediction.SecondaryText;
-            }
+
             return fallback;
         }
 
-        var name = !string.IsNullOrWhiteSpace(details.Name) ? details.Name : prediction.MainText;
+        var name = !string.IsNullOrWhiteSpace(details.Name)
+            ? details.Name
+            : prediction.MainText;
+
         var parts = new List<string>();
 
         if (!string.IsNullOrWhiteSpace(name))
-        {
             parts.Add(name!);
-        }
 
         if (!string.IsNullOrWhiteSpace(details.StreetAddress) &&
             !string.Equals(details.StreetAddress, name, StringComparison.OrdinalIgnoreCase))
@@ -419,24 +396,16 @@ public partial class CreateEventBase : ComponentBase
         }
 
         if (!string.IsNullOrWhiteSpace(details.PostalCode))
-        {
             parts.Add(details.PostalCode!);
-        }
 
         if (!string.IsNullOrWhiteSpace(details.City))
-        {
             parts.Add(details.City!);
-        }
 
         if (!string.IsNullOrWhiteSpace(details.Country))
-        {
             parts.Add(details.Country!);
-        }
 
         if (parts.Count == 0)
-        {
             return details.FormattedAddress ?? prediction.MainText;
-        }
 
         return string.Join(", ", parts);
     }
@@ -464,7 +433,7 @@ public class CreateEventFormModel
 
     public string? ThumbnailFileName { get; set; } = string.Empty;
 
-    public List<TicketReleaseModel> TicketReleases { get; set; } = new();
+    public List<TicketReleaseModel> TicketReleases { get; set; } = [];
 }
 
 public class TicketReleaseModel
@@ -474,16 +443,20 @@ public class TicketReleaseModel
     public string Title { get; set; } = "Standard Ticket";
 
     [Required]
-    public DateTimeOffset OccurenceStartDate { get; set; } = DateTimeOffset.UtcNow.AddDays(1);
+    public DateTimeOffset OccurenceStartDate { get; set; } =
+        DateTimeOffset.UtcNow.AddDays(1);
 
     [Required]
-    public DateTimeOffset OccurenceEndDate { get; set; } = DateTimeOffset.UtcNow.AddDays(2);
+    public DateTimeOffset OccurenceEndDate { get; set; } =
+        DateTimeOffset.UtcNow.AddDays(2);
 
     [Required]
-    public DateTimeOffset AdmissionStartDate { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset AdmissionStartDate { get; set; } =
+        DateTimeOffset.UtcNow;
 
     [Required]
-    public DateTimeOffset AdmissionEndDate { get; set; } = DateTimeOffset.UtcNow.AddDays(1);
+    public DateTimeOffset AdmissionEndDate { get; set; } =
+        DateTimeOffset.UtcNow.AddDays(1);
 
     [Required]
     [Range(0, double.MaxValue, ErrorMessage = "Price cannot be negative.")]

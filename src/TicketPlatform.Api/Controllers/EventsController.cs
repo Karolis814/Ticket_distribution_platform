@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
@@ -54,7 +55,11 @@ public class EventsController(IEventService eventService) : ControllerBase
         (IReadOnlyList<string> locations, int total) =
             await eventService.GetLocationSuggestionsAsync(input, page, pageSize, ct);
 
-        return Ok(new PagedResult<string>(locations, page, pageSize, total));
+        return Ok(new PagedResult<string>(
+            locations,
+            page,
+            pageSize,
+            total));
     }
 
     [HttpGet("categories")]
@@ -64,12 +69,18 @@ public class EventsController(IEventService eventService) : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<EventDto>> GetById(Guid id, CancellationToken ct)
+    public async Task<ActionResult<EventDto>> GetById(
+        Guid id,
+        CancellationToken ct)
     {
         var @event = await eventService.GetByIdAsync(id, ct);
-        return @event is null ? NotFound() : Ok(MapToEventDto(@event));
+
+        return @event is null
+            ? NotFound()
+            : Ok(MapToEventDto(@event));
     }
 
+    [Authorize(Roles = "Host")]
     [HttpPost]
     public async Task<ActionResult<EventDto>> Create(
         [FromBody] CreateEventRequest request,
@@ -117,7 +128,11 @@ public class EventsController(IEventService eventService) : ControllerBase
         }, ct);
 
         var created = await eventService.GetByIdAsync(@event.Id, ct);
-        return CreatedAtAction(nameof(GetById), new { id = created!.Id }, MapToEventDto(created));
+
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = created!.Id },
+            MapToEventDto(created));
     }
 
     private static EventDto MapToEventDto(Event e) => new(
@@ -129,6 +144,14 @@ public class EventsController(IEventService eventService) : ControllerBase
         e.Location,
         e.ThumbnailUrl,
         e.Status,
+        e.CreatedAt,
+        new HostDto(
+            e.Host.Id,
+            e.Host.FirstName,
+            e.Host.LastName,
+            e.Host.Email,
+            e.Host.Company
+        ),
         e.TicketTypes.Select(tt => new TicketTypeDto(
             tt.Id,
             tt.EventId,

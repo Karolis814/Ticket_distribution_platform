@@ -1,39 +1,55 @@
-@page "/login"
+@page "/auth/login"
 @using Microsoft.AspNetCore.Authorization
 @attribute [AllowAnonymous]
-
 @inherits LoginBase
-@* @layout AuthLayout *@
 
-@inject NavigationManager Nav
+<PageTitle>Sign in</PageTitle>
 
-<div class="auth-container">
-    <h2>Sign in</h2>
+<RadzenCard Style="max-width:420px;margin:2rem auto;">
 
-    @if (errorMessage is not null)
-    {
-        <div class="error-banner">@errorMessage</div>
-    }
+    <RadzenStack Gap="1.5rem">
 
-    <EditForm Model="model" OnValidSubmit="HandleLogin">
-        <DataAnnotationsValidator />
+        <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1" Style="margin:0">
+            Sign in
+        </RadzenText>
 
-        <div class="field">
-            <label>Email</label>
-            <InputText @bind-Value="model.Email" type="email" placeholder="you@example.com" />
-            <ValidationMessage For="@(() => model.Email)" />
-        </div>
+        @if (ErrorMessage is not null)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" AllowClose="false">
+                @ErrorMessage
+            </RadzenAlert>
+        }
 
-        <div class="field">
-            <label>Password</label>
-            <InputText @bind-Value="model.Password" type="password" placeholder="••••••••" />
-            <ValidationMessage For="@(() => model.Password)" />
-        </div>
+        <RadzenStack Gap="1rem">
 
-        <button type="submit" disabled="@isLoading">
-            @(isLoading ? "Signing in…" : "Sign in")
-        </button>
-    </EditForm>
+            <RadzenFormField Text="Email address" Variant="Variant.Outlined" Style="width:100%">
+                <RadzenTextBox @bind-Value="Model.Email"
+                               Placeholder="you@example.com"
+                               InputType="InputType.Email"
+                               Style="width:100%" />
+            </RadzenFormField>
 
-    <p>Don't have an account? <a href="/register">Register</a></p>
-</div>
+            <RadzenFormField Text="Password" Variant="Variant.Outlined" Style="width:100%">
+                <RadzenPassword @bind-Value="Model.Password"
+                                Placeholder="••••••••"
+                                Style="width:100%" />
+            </RadzenFormField>
+
+        </RadzenStack>
+
+        <RadzenButton Text="@(IsLoading ? "Signing in…" : "Sign in")"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Size="ButtonSize.Large"
+                      Icon="@(IsLoading ? "" : "login")"
+                      Disabled="@IsLoading"
+                      Click="HandleLogin"
+                      Style="width:100%" />
+
+        <RadzenText TextStyle="TextStyle.Body2" Style="text-align:center;margin:0">
+            Don't have an account?
+            <RadzenLink Path="/auth/register" Text="Register" />
+        </RadzenText>
+
+    </RadzenStack>
+
+</RadzenCard>

@@ -1,4 +1,8 @@
-public enum UserRole{
+namespace TicketPlatform.Shared.Enums;
+
+public enum UserRole
+{
     Customer,
-    EventOrganizer
+    Host,
+    Admin
 }

@@ -48,6 +48,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors(blazorCors);
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

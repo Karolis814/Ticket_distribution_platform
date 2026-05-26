@@ -58,6 +58,17 @@ public class AuthClient : IAuthClient
         ((JwtAuthStateProvider)_authStateProvider).NotifyUserLoggedOut();
     }
 
+    public async Task RefreshAsync()
+    {
+        var response = await _http.PostAsync("api/auth/refresh", null);
+        if (!response.IsSuccessStatusCode)
+            return;
+
+        var result = await response.Content.ReadFromJsonAsync<AuthResponseDTO>();
+        if (result is not null)
+            await StoreTokenAsync(result);
+    }
+
     private async Task StoreTokenAsync(AuthResponseDTO response)
     {
         await _localStorage.SetItemAsStringAsync(TokenKey, response.AccessToken);
