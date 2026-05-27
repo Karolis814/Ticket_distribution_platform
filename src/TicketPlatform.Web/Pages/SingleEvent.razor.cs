@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
 using TicketPlatform.Shared.Dtos;
 using TicketPlatform.Shared.Enums;
@@ -14,12 +15,19 @@ public partial class SingleEventBase : ComponentBase
     [Inject] protected IEventsClient EventsClient { get; set; } = null!;
     [Inject] protected NotificationService NotificationService { get; set; } = null!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] protected AuthenticationStateProvider AuthState { get; set; } = null!;
 
     protected EventDto? Event { get; private set; }
     protected bool IsLoading { get; private set; }
+    private Guid CurrentUserId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var sub = state.User.FindFirst("sub")?.Value;
+        Guid.TryParse(sub, out var id);
+        CurrentUserId = id;
+
         await LoadEventAsync();
     }
 
@@ -94,8 +102,11 @@ public partial class SingleEventBase : ComponentBase
     protected static bool IsSoldOut(EventDto evt) =>
         evt.TicketTypes.Count > 0 && evt.TicketTypes.All(t => t.Sold >= t.Quantity);
 
+    protected bool IsOwner(EventDto evt) =>
+        CurrentUserId != Guid.Empty && CurrentUserId == evt.HostId;
+
     protected bool ShouldShowCheckout(EventDto evt) =>
-        evt.Status != EventStatus.Cancelled && !IsSoldOut(evt);
+        !IsOwner(evt) && evt.Status != EventStatus.Cancelled && !IsSoldOut(evt);
 
     protected static string GetHostDisplayName(HostDto host)
     {

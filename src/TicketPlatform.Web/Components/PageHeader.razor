@@ -1,0 +1,29 @@
+@if (Actions is not null)
+{
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <RadzenStack Gap="0.25rem">
+            <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1" Style="margin:0">@Title</RadzenText>
+            @if (!string.IsNullOrEmpty(Subtitle))
+            {
+                <RadzenText TextStyle="TextStyle.Body1" Style="margin:0">@Subtitle</RadzenText>
+            }
+        </RadzenStack>
+        <div>@Actions</div>
+    </RadzenStack>
+}
+else
+{
+    <RadzenStack Gap="0.25rem">
+        <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1" Style="margin:0">@Title</RadzenText>
+        @if (!string.IsNullOrEmpty(Subtitle))
+        {
+            <RadzenText TextStyle="TextStyle.Body1" Style="margin:0">@Subtitle</RadzenText>
+        }
+    </RadzenStack>
+}
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public RenderFragment? Actions { get; set; }
+}

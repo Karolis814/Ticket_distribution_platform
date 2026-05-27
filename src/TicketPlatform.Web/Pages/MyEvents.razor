@@ -7,11 +7,12 @@
 
 <RadzenStack Gap="1.5rem">
 
-    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
-        <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1" Style="margin:0">My Events</RadzenText>
-        <RadzenButton Text="Create Event" Icon="calendar_add_on" ButtonStyle="ButtonStyle.Primary"
-                      Click="@(() => Nav.NavigateTo("/host/create"))" />
-    </RadzenStack>
+    <PageHeader Title="My Events" Subtitle="Manage and track your created events.">
+        <Actions>
+            <RadzenButton Text="Create Event" Icon="calendar_add_on" ButtonStyle="ButtonStyle.Primary"
+                          Click="@(() => Nav.NavigateTo("/host/create"))" />
+        </Actions>
+    </PageHeader>
 
     @if (IsLoading)
     {

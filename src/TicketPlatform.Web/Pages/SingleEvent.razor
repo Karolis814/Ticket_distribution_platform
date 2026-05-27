@@ -84,7 +84,11 @@
                         }
                     </div>
 
-                    @if (ShouldShowCheckout(Event))
+                    @if (IsOwner(Event))
+                    {
+                        <RadzenButton Text="Edit Event" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Large" Icon="edit" Style="min-width:160px;"/>
+                    }
+                    else if (ShouldShowCheckout(Event))
                     {
                         <RadzenButton Click="@(() => NavigationManager.NavigateTo($"/checkout/{Event.Id}"))"
                                       Text="Get Tickets"

@@ -5,16 +5,14 @@
 
 <PageTitle>Sign in</PageTitle>
 
-<RadzenCard Style="max-width:420px;margin:2rem auto;">
+<RadzenCard Style="width:100%;max-width:420px;margin:2rem auto;">
 
     <EditForm Model="@Model" OnValidSubmit="HandleLogin">
         <DataAnnotationsValidator/>
 
         <RadzenStack Gap="1.5rem">
 
-            <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1" Style="margin:0">
-                Sign in
-            </RadzenText>
+            <PageHeader Title="Sign In" Subtitle="Welcome back." />
 
             @if (ErrorMessage is not null)
             {

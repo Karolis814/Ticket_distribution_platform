@@ -6,13 +6,11 @@
 
 <PageTitle>Sales Overview</PageTitle>
 
-<RadzenRow JustifyContent="JustifyContent.Center" Class="rz-mt-8">
+<RadzenRow JustifyContent="JustifyContent.Center">
     <RadzenColumn Size="12" SizeLg="10">
         <RadzenStack Gap="1.5rem">
 
-            <RadzenText TextStyle="TextStyle.H3" Style="font-weight:700">
-                Sales Overview
-            </RadzenText>
+            <PageHeader Title="Sales Overview" Subtitle="Track revenue, ticket sales, and payouts." />
 
             @if (Loading)
             {
