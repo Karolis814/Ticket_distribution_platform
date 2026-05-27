@@ -103,6 +103,16 @@ public class EventService(IRepository<Event> repository) : IEventService
         return Task.FromResult(categories);
     }
 
+    public async Task<IReadOnlyList<Event>> GetByHostAsync(Guid hostId, CancellationToken ct = default)
+        => await repository.Query()
+            .Where(e => e.HostId == hostId)
+            .Include(e => e.Host)
+            .Include(e => e.TicketTypes)
+                .ThenInclude(tt => tt.Tickets)
+            .OrderByDescending(e => e.CreatedAt)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
     public async Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => await repository.Query()
             .Include(e => e.Host)

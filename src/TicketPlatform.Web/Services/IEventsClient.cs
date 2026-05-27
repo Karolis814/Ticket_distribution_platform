@@ -18,6 +18,9 @@ public interface IEventsClient
     Task<IReadOnlyList<EventDto>> GetAllAsync(
         CancellationToken ct = default);
 
+    Task<IReadOnlyList<EventDto>> GetMyEventsAsync(
+        CancellationToken ct = default);
+
     Task<EventDto?> GetByIdAsync(
         Guid id,
         CancellationToken ct = default);

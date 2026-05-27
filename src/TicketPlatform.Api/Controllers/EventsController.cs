@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketPlatform.Core.Entities;
@@ -66,6 +67,20 @@ public class EventsController(IEventService eventService) : ControllerBase
     public ActionResult<IReadOnlyList<string>> GetCategories()
     {
         return Ok(Enum.GetNames<EventCategory>());
+    }
+
+    [HttpGet("mine")]
+    [Authorize]
+    public async Task<ActionResult<IReadOnlyList<EventDto>>> GetMine(CancellationToken ct)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                        ?? User.FindFirstValue("sub");
+
+        if (!Guid.TryParse(userIdStr, out var userId))
+            return Unauthorized();
+
+        var events = await eventService.GetByHostAsync(userId, ct);
+        return Ok(events.Select(MapToEventDto).ToList());
     }
 
     [HttpGet("{id:guid}")]

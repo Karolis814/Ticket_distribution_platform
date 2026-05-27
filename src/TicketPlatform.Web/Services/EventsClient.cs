@@ -65,6 +65,21 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         }
     }
 
+    public async Task<IReadOnlyList<EventDto>> GetMyEventsAsync(
+        CancellationToken ct = default)
+    {
+        try
+        {
+            return await http.GetFromJsonAsync<IReadOnlyList<EventDto>>(
+                "api/events/mine", ct) ?? [];
+        }
+        catch (Exception ex)
+        {
+            Notify(ex, "Failed to load your events");
+            return [];
+        }
+    }
+
     public async Task<EventDto?> GetByIdAsync(
         Guid id,
         CancellationToken ct = default)
