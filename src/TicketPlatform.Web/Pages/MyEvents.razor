@@ -28,13 +28,14 @@
     }
     else
     {
+        <div style="overflow-x:auto;">
         <RadzenDataGrid Data="@Events" TItem="EventDto"
                         AllowSorting="true"
                         AllowColumnResize="true"
                         GridLines="DataGridGridLines.Horizontal">
             <Columns>
 
-                <RadzenDataGridColumn TItem="EventDto" Title="Title" SortProperty="Title">
+                <RadzenDataGridColumn TItem="EventDto" Title="Title" SortProperty="Title" Width="220px">
                     <Template Context="ev">
                         <RadzenLink Path="@($"/events/{ev.Id}")" Text="@ev.Title" />
                     </Template>
@@ -52,7 +53,7 @@
                     </Template>
                 </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn TItem="EventDto" Title="Starts">
+                <RadzenDataGridColumn TItem="EventDto" Title="Starts" Width="160px">
                     <Template Context="ev">
                         @StartDate(ev).ToString("yyyy-MM-dd HH:mm")
                     </Template>
@@ -64,11 +65,14 @@
                     </Template>
                 </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn TItem="EventDto" Title="" Width="110px" Sortable="false">
+                <RadzenDataGridColumn TItem="EventDto" Title="" Width="90px" Sortable="false">
                     <Template Context="ev">
                         <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem">
-                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
-                                          Click="@(() => Nav.NavigateTo($"/host/events/{ev.Id}/edit"))" />
+                            @if (ev.Status != EventStatus.Cancelled)
+                            {
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                                              Click="@(() => Nav.NavigateTo($"/host/events/{ev.Id}/edit"))" />
+                            }
                             <RadzenButton Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
                                           Click="@(() => Nav.NavigateTo($"/events/{ev.Id}"))" />
                         </RadzenStack>
@@ -77,6 +81,7 @@
 
             </Columns>
         </RadzenDataGrid>
+        </div>
     }
 
 </RadzenStack>

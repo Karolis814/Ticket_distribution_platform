@@ -25,6 +25,7 @@ public partial class CreateEventBase : ComponentBase
         Enum.GetValues<EventCategory>().ToList();
 
     protected bool IsCancelConfirming { get; set; }
+    protected bool IsCancelled { get; private set; }
 
     protected List<string> Currencies { get; set; } =
     [
@@ -141,6 +142,7 @@ public partial class CreateEventBase : ComponentBase
 
     private void PopulateModel(EventDto dto)
     {
+        IsCancelled = dto.Status == EventStatus.Cancelled;
         Model.Category = dto.Category;
         Model.Title = dto.Title;
         Model.Description = dto.Description;
@@ -319,7 +321,7 @@ public partial class CreateEventBase : ComponentBase
                     Description: Model.Description,
                     Location: Model.Location,
                     ThumbnailUrl: Model.ThumbnailUrl,
-                    Status: Model.Status,
+                    Status: IsCancelled ? EventStatus.Cancelled : Model.Status,
                     TicketTypes: ticketTypes
                 );
 

@@ -150,7 +150,8 @@ public class EventService(IRepository<Event> repository) : IEventService
         @event.Description = request.Description;
         @event.Location = request.Location;
         @event.ThumbnailUrl = request.ThumbnailUrl;
-        @event.Status = request.Status;
+        if (@event.Status != EventStatus.Cancelled)
+            @event.Status = request.Status;
 
         var requestIds = request.TicketTypes
             .Where(t => t.Id.HasValue)

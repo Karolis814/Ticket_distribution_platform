@@ -7,7 +7,7 @@
 <div style="width:100%;max-width:900px;margin:0 auto;">
 
     <div style="margin-bottom:1.25rem;">
-        <RadzenButton Icon="arrow_back" Text="Back to Events" Variant="Variant.Text"
+        <RadzenButton Icon="arrow_back" Text="Back to Events" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light"
                       Click="@(() => NavigationManager.NavigateTo("/events"))"/>
     </div>
 
@@ -25,7 +25,8 @@
     else
     {
         <!-- ═══ HERO ═══ -->
-        <div style="border-radius:12px;overflow:hidden;background:var(--rz-base-800);margin-bottom:1.75rem;box-shadow:0 4px 24px rgba(0,0,0,0.35);">
+        <div
+            style="border-radius:12px;overflow:hidden;background:var(--rz-base-800);margin-bottom:1.75rem;box-shadow:0 4px 24px rgba(0,0,0,0.35);">
 
             <!-- Poster – full 16:9, no overlay -->
             <EventPoster Url="@Event.ThumbnailUrl" Alt="@Event.Title"/>
@@ -75,7 +76,10 @@
                     <div>
                         @if (minPrice is not null)
                         {
-                            <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rz-text-secondary-color);margin-bottom:0.15rem;">Tickets from</div>
+                            <div
+                                style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rz-text-secondary-color);margin-bottom:0.15rem;">
+                                Tickets from
+                            </div>
                             <div style="font-size:1.75rem;font-weight:700;line-height:1;">@minPrice</div>
                         }
                         else if (!Event.TicketTypes.Any())
@@ -86,7 +90,9 @@
 
                     @if (IsOwner(Event))
                     {
-                        <RadzenButton Click="@(() => NavigationManager.NavigateTo($"/host/events/{Event.Id}/edit"))" Text="Edit Event" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Large" Icon="edit" Style="min-width:160px;"/>
+                        <RadzenButton Click="@(() => NavigationManager.NavigateTo($"/host/events/{Event.Id}/edit"))"
+                                      Text="Edit Event" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Large"
+                                      Icon="edit" Style="min-width:160px;"/>
                     }
                     else if (ShouldShowCheckout(Event))
                     {
@@ -99,11 +105,13 @@
                     }
                     else if (Event.Status == EventStatus.Cancelled)
                     {
-                        <RadzenButton Text="Cancelled" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Large" Disabled="true"/>
+                        <RadzenButton Text="Cancelled" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Large"
+                                      Disabled="true"/>
                     }
                     else if (IsSoldOut(Event))
                     {
-                        <RadzenButton Text="Sold Out" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Large" Disabled="true"/>
+                        <RadzenButton Text="Sold Out" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Large"
+                                      Disabled="true"/>
                     }
                 </div>
 
@@ -113,7 +121,8 @@
         <!-- ═══ ABOUT ═══ -->
         <RadzenCard Style="margin-bottom:1.25rem;">
             <RadzenStack Gap="0.75rem">
-                <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">About this event</h2>
+                <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">
+                    About this event</h2>
                 <p style="margin:0;line-height:1.7;white-space:pre-wrap;">@Event.Description</p>
             </RadzenStack>
         </RadzenCard>
@@ -123,7 +132,8 @@
         {
             <RadzenCard Style="margin-bottom:1.25rem;padding:0;overflow:hidden;">
                 <div style="padding:1rem 1.25rem 0.75rem;">
-                    <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">Location</h2>
+                    <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">
+                        Location</h2>
                 </div>
                 <iframe
                     src="@($"https://maps.google.com/maps?q={Uri.EscapeDataString(Event.Location)}&output=embed")"
@@ -148,14 +158,19 @@
                 <RadzenColumn Size="12" SizeMD="6">
                     <RadzenCard Style="height:100%;">
                         <RadzenStack Gap="0.9rem">
-                            <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">Organizer</h2>
+                            <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">
+                                Organizer</h2>
 
                             @if (!string.IsNullOrWhiteSpace(Event.Host.Company))
                             {
                                 <div style="display:flex;align-items:flex-start;gap:0.75rem;">
-                                    <RadzenIcon Icon="business" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                    <RadzenIcon Icon="business"
+                                                Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
                                     <div>
-                                        <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Company</div>
+                                        <div
+                                            style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">
+                                            Company
+                                        </div>
                                         <div style="font-size:0.95rem;">@Event.Host.Company</div>
                                     </div>
                                 </div>
@@ -163,9 +178,13 @@
                             @if (!string.IsNullOrWhiteSpace(Event.Host.Address))
                             {
                                 <div style="display:flex;align-items:flex-start;gap:0.75rem;">
-                                    <RadzenIcon Icon="home" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                    <RadzenIcon Icon="home"
+                                                Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
                                     <div>
-                                        <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Address</div>
+                                        <div
+                                            style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">
+                                            Address
+                                        </div>
                                         <div style="font-size:0.95rem;">@Event.Host.Address</div>
                                     </div>
                                 </div>
@@ -173,9 +192,13 @@
                             @if (!string.IsNullOrWhiteSpace(Event.Host.TaxCode))
                             {
                                 <div style="display:flex;align-items:flex-start;gap:0.75rem;">
-                                    <RadzenIcon Icon="receipt_long" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                    <RadzenIcon Icon="receipt_long"
+                                                Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
                                     <div>
-                                        <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Tax code</div>
+                                        <div
+                                            style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">
+                                            Tax / Company ID
+                                        </div>
                                         <div style="font-size:0.95rem;">@Event.Host.TaxCode</div>
                                     </div>
                                 </div>
@@ -194,7 +217,8 @@
                 <RadzenColumn Size="12" SizeMD="6">
                     <RadzenCard Style="height:100%;">
                         <RadzenStack Gap="0.9rem">
-                            <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">Contact</h2>
+                            <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">
+                                Contact</h2>
 
                             @{
                                 var fullName = $"{Event.Host.FirstName} {Event.Host.LastName}".Trim();
@@ -202,27 +226,40 @@
                             @if (!string.IsNullOrWhiteSpace(fullName))
                             {
                                 <div style="display:flex;align-items:flex-start;gap:0.75rem;">
-                                    <RadzenIcon Icon="person" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                    <RadzenIcon Icon="person"
+                                                Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
                                     <div>
-                                        <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Name</div>
+                                        <div
+                                            style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">
+                                            Name
+                                        </div>
                                         <div style="font-size:0.95rem;">@fullName</div>
                                     </div>
                                 </div>
                             }
                             <div style="display:flex;align-items:flex-start;gap:0.75rem;">
-                                <RadzenIcon Icon="email" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                <RadzenIcon Icon="email"
+                                            Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
                                 <div>
-                                    <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Email</div>
+                                    <div
+                                        style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">
+                                        Email
+                                    </div>
                                     <RadzenLink Path="@($"mailto:{Event.Host.Email}")" Text="@Event.Host.Email"/>
                                 </div>
                             </div>
                             @if (!string.IsNullOrWhiteSpace(Event.Host.PhoneNumber))
                             {
                                 <div style="display:flex;align-items:flex-start;gap:0.75rem;">
-                                    <RadzenIcon Icon="phone" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                    <RadzenIcon Icon="phone"
+                                                Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
                                     <div>
-                                        <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Phone</div>
-                                        <RadzenLink Path="@($"tel:{Event.Host.PhoneNumber}")" Text="@Event.Host.PhoneNumber"/>
+                                        <div
+                                            style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">
+                                            Phone
+                                        </div>
+                                        <RadzenLink Path="@($"tel:{Event.Host.PhoneNumber}")"
+                                                    Text="@Event.Host.PhoneNumber"/>
                                     </div>
                                 </div>
                             }

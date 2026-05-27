@@ -60,10 +60,11 @@
 
                         @if (!Payment.InvoiceReady && Polling)
                         {
-                            <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
-                                Invoice is being generated...
-                            </RadzenAlert>
-                            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Small" />
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                                         JustifyContent="JustifyContent.Center" Gap="0.75rem">
+                                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Small" />
+                                <RadzenText TextStyle="TextStyle.Body2">Invoice is being generated…</RadzenText>
+                            </RadzenStack>
                         }
 
                         @if (!Payment.InvoiceReady && !Polling)
