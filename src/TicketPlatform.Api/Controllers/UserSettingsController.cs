@@ -1,5 +1,3 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Shared.Dtos;
@@ -8,20 +6,14 @@ namespace TicketPlatform.Api.Controllers;
 
 [ApiController]
 [Route("api/user-settings")]
-[Authorize]
-public class UserSettingsController(
-    IUserSettingsService service,
-    IConfiguration configuration) : ControllerBase
+public class UserSettingsController(IUserSettingsService service) : ControllerBase
 {
-    private Guid CurrentUserId => Guid.Parse(
-        User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? User.FindFirstValue("sub")
-        ?? throw new InvalidOperationException("User ID not found in token."));
-
-    [HttpGet]
-    public async Task<ActionResult<UserSettingsDto>> Get(CancellationToken ct)
+    [HttpGet("{userId:guid}")]
+    public async Task<ActionResult<UserSettingsDto>> Get(
+        Guid userId,
+        CancellationToken ct)
     {
-        var settings = await service.GetAsync(CurrentUserId, ct);
+        var settings = await service.GetAsync(userId, ct);
         return settings is null ? NotFound() : Ok(settings);
     }
 
@@ -30,36 +22,27 @@ public class UserSettingsController(
         [FromBody] ChangeEmailRequest request,
         CancellationToken ct)
     {
-        var baseUrl = configuration["ClientBaseUrl"]
-            ?? throw new InvalidOperationException("ClientBaseUrl is not configured.");
+        var baseUrl = "https://localhost:7174";
 
-        await service.RequestEmailChangeAsync(CurrentUserId, request.NewEmail, baseUrl, ct);
+        await service.RequestEmailChangeAsync(
+            request.UserId,
+            request.NewEmail,
+            baseUrl,
+            ct);
+
         return Ok();
     }
 
     [HttpPost("confirm-email")]
-    [AllowAnonymous]
     public async Task<IActionResult> ConfirmEmail(
         [FromBody] ConfirmEmailChangeRequest request,
         CancellationToken ct)
     {
-        await service.ConfirmEmailChangeAsync(request.UserId, request.Token, ct);
-        return Ok();
-    }
+        await service.ConfirmEmailChangeAsync(
+            request.UserId,
+            request.Token,
+            ct);
 
-    [HttpPut("profile")]
-    public async Task<IActionResult> UpdateProfile(
-        [FromBody] UpdateProfileRequest request,
-        CancellationToken ct)
-    {
-        await service.UpdateProfileAsync(CurrentUserId, request, ct);
-        return Ok();
-    }
-
-    [HttpDelete]
-    public async Task<IActionResult> DeleteAccount(CancellationToken ct)
-    {
-        await service.DeleteAccountAsync(CurrentUserId, ct);
         return Ok();
     }
 
@@ -69,9 +52,22 @@ public class UserSettingsController(
         CancellationToken ct)
     {
         await service.ChangePasswordAsync(
-            CurrentUserId,
+            request.UserId,
             request.CurrentPassword,
             request.NewPassword,
+            ct);
+
+        return Ok();
+    }
+
+    [HttpPost("email-reminders")]
+    public async Task<IActionResult> UpdateEmailReminders(
+        [FromBody] UpdateEmailRemindersRequest request,
+        CancellationToken ct)
+    {
+        await service.UpdateEmailRemindersAsync(
+            request.UserId,
+            request.EmailRemindersEnabled,
             ct);
 
         return Ok();

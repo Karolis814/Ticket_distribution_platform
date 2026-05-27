@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
@@ -16,19 +15,13 @@ public class TicketsController(
     IOrderService orderService,
     ITicketTypeService ticketTypeService,
     IStripeCheckoutService stripeCheckoutService,
-    IRepository<Payment> paymentRepository,
-    IUserService userService) : ControllerBase
+    IRepository<Payment> paymentRepository) : ControllerBase
 {
     [HttpPost("checkout")]
     public async Task<ActionResult<CheckoutResponseDto>> Checkout(
         [FromBody] CheckoutRequestDto request,
         CancellationToken ct)
     {
-
-        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-        Guid? userId = Guid.TryParse(userIdStr, out var parsed) ? parsed : null;
-        
         if (request.Items is not { Count: > 0 })
             return BadRequest("At least one item is required.");
 
@@ -68,31 +61,12 @@ public class TicketsController(
 
         var currency = currencies[0];
 
-        string firstName, lastName, email;
-
-        if (userId is not null)
-        {
-            var user = await userService.GetByIdAsync(userId.Value, ct);
-            if (user is null)
-                return Unauthorized();
-
-            email     = user.Email;
-            firstName = !string.IsNullOrWhiteSpace(user.FirstName) ? user.FirstName : request.FirstName.Trim();
-            lastName  = !string.IsNullOrWhiteSpace(user.LastName)  ? user.LastName  : request.LastName.Trim();
-        }
-        else
-        {
-            firstName = request.FirstName.Trim();
-            lastName  = request.LastName.Trim();
-            email     = request.Email.Trim();
-        }
-
         var customer = new Customer
         {
-            FirstName = firstName,
-            LastName  = lastName,
-            Email     = email,
-            UserId    = userId
+            FirstName = request.FirstName.Trim(),
+            LastName = request.LastName.Trim(),
+            Email = request.Email.Trim(),
+            EmailRemindersEnabled = true
         };
 
         await customerService.CreateAsync(customer, ct);

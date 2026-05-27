@@ -87,7 +87,7 @@ public class ScannerBase : ComponentBase, IAsyncDisposable
             await _scanModule!.InvokeVoidAsync("resumeScanner");
             Scanning = true;
             StateHasChanged();
-            return; 
+            return; // ← was missing
         }
 
         try

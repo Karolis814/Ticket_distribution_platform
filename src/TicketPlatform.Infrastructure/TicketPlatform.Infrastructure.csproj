@@ -12,18 +12,12 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.7"/>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4"/>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5" />
     <PackageReference Include="Stripe.net" Version="51.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Migrations\"/>
     <Folder Include="Persistence\Migrations\"/>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Migrations\20260525185115_ReplaceUsernameWithFirstLastName.cs" />
-    <Compile Remove="Migrations\20260525185115_ReplaceUsernameWithFirstLastName.Designer.cs" />
   </ItemGroup>
 
   <PropertyGroup>

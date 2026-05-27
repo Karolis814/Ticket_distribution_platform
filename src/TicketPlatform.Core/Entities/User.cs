@@ -1,13 +1,11 @@
-using TicketPlatform.Shared.Enums;
-
 namespace TicketPlatform.Core.Entities;
 
 public class User : BaseEntity
 {
-    public UserRole Role { get; set; }
+    public Guid UserPermissionGroupId { get; set; }
+    public UserPermissionGroup UserPermissionGroup { get; set; } = null!;
 
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
+    public string? Username { get; set; }
     public required string Email { get; set; }
     public required string PasswordHash { get; set; }
     public required string PasswordSalt { get; set; }
@@ -16,14 +14,12 @@ public class User : BaseEntity
     public string? TaxCode { get; set; }
     public string? PhoneNumber { get; set; }
 
-    public string? StripeAccountId { get; set; }
-    public DateTimeOffset? StripeOnboardedAt { get; set; }
-
     public ICollection<Event> HostedEvents { get; set; } = new List<Event>();
 
     public bool EmailConfirmed { get; set; } = true;
     public string? PendingEmail { get; set; }
     public string? EmailConfirmationTokenHash { get; set; }
     public DateTimeOffset? EmailConfirmationTokenExpiresAt { get; set; }
+    public bool EmailRemindersEnabled { get; set; } = true;
 
 }

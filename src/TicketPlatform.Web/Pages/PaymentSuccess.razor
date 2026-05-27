@@ -1,5 +1,4 @@
-@page "/checkout/success"
-
+@page "/payment-success"
 @inherits PaymentSuccessBase
 
 <PageTitle>Payment successful</PageTitle>
@@ -8,6 +7,14 @@
     <RadzenColumn Size="12" SizeMd="7" SizeLg="5">
         <RadzenCard>
             <RadzenStack Gap="1rem">
+
+                <RadzenText TextStyle="TextStyle.H4" Style="font-weight:700">
+                    Payment successful
+                </RadzenText>
+
+                <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true">
+                    Tickets were sent to your email.
+                </RadzenAlert>
 
                 @if (Loading)
                 {
@@ -18,7 +25,6 @@
                 }
                 else if (!string.IsNullOrWhiteSpace(Error))
                 {
-
                     <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
                         @Error
                     </RadzenAlert>
@@ -31,19 +37,25 @@
                 }
                 else if (Payment is not null)
                 {
-                    <RadzenText TextStyle="TextStyle.H4" Style="font-weight:700">
-                        Payment successful
+                    <RadzenText TextStyle="TextStyle.Body1">
+                        Your tickets were sent to:
+                        <strong>@Payment.Email</strong>
                     </RadzenText>
-
-                    <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true">
-                        Your tickets were sent to: <strong>@Payment.Email</strong>
-                    </RadzenAlert>
 
                     <RadzenButton Text="Download tickets"
                                   Icon="download"
                                   ButtonStyle="ButtonStyle.Success"
-                                  Click="DownloadTicketsAsync"
+                                  Click="@(() => Nav.NavigateTo(DownloadTicketsUrl, forceLoad: true))"
                                   Style="width:100%" />
+
+                    @if (Payment.InvoiceReady && !string.IsNullOrWhiteSpace(Payment.InvoicePdfUrl))
+                    {
+                        <RadzenButton Text="Download invoice PDF"
+                                      Icon="receipt"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Click="@(() => Nav.NavigateTo(Payment.InvoicePdfUrl!, forceLoad: true))"
+                                      Style="width:100%" />
+                    }
 
                     @if (Payment.InvoiceReady && !string.IsNullOrWhiteSpace(Payment.InvoiceUrl))
                     {
@@ -54,7 +66,7 @@
                                       Style="width:100%" />
                     }
 
-                    @if (!Payment.InvoiceReady && Polling)
+                    @if (!Payment.InvoiceReady && _polling)
                     {
                         <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
                             Invoice is being generated...
@@ -62,7 +74,7 @@
                         <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Small" />
                     }
 
-                    @if (!Payment.InvoiceReady && !Polling)
+                    @if (!Payment.InvoiceReady && !_polling)
                     {
                         <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
                             Invoice is still being generated — check your email shortly.

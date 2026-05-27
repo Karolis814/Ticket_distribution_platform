@@ -22,6 +22,21 @@ namespace TicketPlatform.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("PermissionUserPermissionGroup", b =>
+                {
+                    b.Property<Guid>("PermissionsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserPermissionGroupsId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PermissionsId", "UserPermissionGroupsId");
+
+                    b.HasIndex("UserPermissionGroupsId");
+
+                    b.ToTable("UserPermissionGroupPermissions", (string)null);
+                });
+
             modelBuilder.Entity("TicketPlatform.Core.Entities.Customer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -35,6 +50,9 @@ namespace TicketPlatform.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<bool>("EmailRemindersEnabled")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -53,6 +71,10 @@ namespace TicketPlatform.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasFilter("\"UserId\" IS NOT NULL");
 
                     b.HasIndex("UserId");
 
@@ -85,10 +107,8 @@ namespace TicketPlatform.Infrastructure.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<string>("ThumbnailUrl")
                         .HasMaxLength(2048)
@@ -109,6 +129,45 @@ namespace TicketPlatform.Infrastructure.Migrations
                     b.ToTable("Events", (string)null);
                 });
 
+            modelBuilder.Entity("TicketPlatform.Core.Entities.HostPaymentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ChargesEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("DetailsSubmitted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("HostId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("OnboardedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("PayoutsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("StripeAccountId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HostId")
+                        .IsUnique();
+
+                    b.ToTable("HostPaymentSettings", (string)null);
+                });
+
             modelBuilder.Entity("TicketPlatform.Core.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -126,10 +185,8 @@ namespace TicketPlatform.Infrastructure.Migrations
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<int>("TotalPriceCents")
                         .HasColumnType("integer");
@@ -250,6 +307,28 @@ namespace TicketPlatform.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_Payments_AmountCents", "\"AmountCents\" >= 0");
                         });
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.Permission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Permissions", (string)null);
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Ticket", b =>
@@ -373,13 +452,8 @@ namespace TicketPlatform.Infrastructure.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("LastName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                    b.Property<bool>("EmailRemindersEnabled")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -397,18 +471,6 @@ namespace TicketPlatform.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("StripeAccountId")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<DateTimeOffset?>("StripeOnboardedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("TaxCode")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
@@ -416,12 +478,61 @@ namespace TicketPlatform.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("UserPermissionGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
+                    b.HasIndex("UserPermissionGroupId");
+
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.UserPermissionGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserPermissionGroups", (string)null);
+                });
+
+            modelBuilder.Entity("PermissionUserPermissionGroup", b =>
+                {
+                    b.HasOne("TicketPlatform.Core.Entities.Permission", null)
+                        .WithMany()
+                        .HasForeignKey("PermissionsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TicketPlatform.Core.Entities.UserPermissionGroup", null)
+                        .WithMany()
+                        .HasForeignKey("UserPermissionGroupsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TicketPlatform.Core.Entities.Customer", b =>
@@ -440,6 +551,17 @@ namespace TicketPlatform.Infrastructure.Migrations
                         .WithMany("HostedEvents")
                         .HasForeignKey("HostId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Host");
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.HostPaymentSettings", b =>
+                {
+                    b.HasOne("TicketPlatform.Core.Entities.User", "Host")
+                        .WithOne()
+                        .HasForeignKey("TicketPlatform.Core.Entities.HostPaymentSettings", "HostId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Host");
@@ -516,6 +638,17 @@ namespace TicketPlatform.Infrastructure.Migrations
                     b.Navigation("Event");
                 });
 
+            modelBuilder.Entity("TicketPlatform.Core.Entities.User", b =>
+                {
+                    b.HasOne("TicketPlatform.Core.Entities.UserPermissionGroup", "UserPermissionGroup")
+                        .WithMany("Users")
+                        .HasForeignKey("UserPermissionGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UserPermissionGroup");
+                });
+
             modelBuilder.Entity("TicketPlatform.Core.Entities.Customer", b =>
                 {
                     b.Navigation("Orders");
@@ -546,6 +679,11 @@ namespace TicketPlatform.Infrastructure.Migrations
             modelBuilder.Entity("TicketPlatform.Core.Entities.User", b =>
                 {
                     b.Navigation("HostedEvents");
+                });
+
+            modelBuilder.Entity("TicketPlatform.Core.Entities.UserPermissionGroup", b =>
+                {
+                    b.Navigation("Users");
                 });
 #pragma warning restore 612, 618
         }

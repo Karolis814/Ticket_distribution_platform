@@ -33,9 +33,7 @@ public static class EventConfiguration
                 .HasMaxLength(2048);
 
             builder.Property(x => x.Status)
-                .IsRequired()
-                .HasConversion<string>()
-                .HasMaxLength(50);
+                .IsRequired();
 
             builder.Property(x => x.CreatedAt)
                 .IsRequired();

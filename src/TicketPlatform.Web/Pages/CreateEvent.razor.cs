@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Radzen;
 using TicketPlatform.Shared.Dtos;
@@ -14,60 +13,45 @@ public partial class CreateEventBase : ComponentBase
     protected CreateEventFormModel Model { get; set; } = new()
     {
         Status = EventStatus.Draft,
-        TicketReleases = [new TicketReleaseModel()]
+        TicketReleases = new List<TicketReleaseModel> { new() }
     };
 
     protected List<EventCategory> Categories { get; set; } =
         Enum.GetValues<EventCategory>().ToList();
 
-    protected List<EventStatus> EventStatuses { get; set; } =
-    [
+    protected List<EventStatus> EventStatuses { get; set; } = new()
+    {
         EventStatus.Draft,
         EventStatus.Published,
         EventStatus.Cancelled
-    ];
+    };
 
-    protected List<string> Currencies { get; set; } =
-    [
+    protected List<string> Currencies { get; set; } = new()
+    {
         "EUR",
         "USD",
         "GBP"
-    ];
+    };
 
-    [Inject] protected IEventsClient EventsClient { get; set; } = null!;
-    [Inject] protected IPlacesClient PlacesClient { get; set; } = null!;
-    [Inject] protected IUsersClient UsersClient { get; set; } = null!;
-    [Inject] protected IHostPaymentsClient HostPaymentsClient { get; set; } = null!;
-    [Inject] protected NotificationService NotificationService { get; set; } = null!;
-    [Inject] protected NavigationManager NavigationManager { get; set; } = null!;
-    [Inject] protected AuthenticationStateProvider AuthState { get; set; } = null!;
+    [Inject] protected IEventsClient EventsClient { get; set; } = default!;
+    [Inject] protected IPlacesClient PlacesClient { get; set; } = default!;
+    [Inject] protected IUsersClient UsersClient { get; set; } = default!;
+    [Inject] protected IHostPaymentsClient HostPaymentsClient { get; set; } = default!;
+    [Inject] protected NotificationService NotificationService { get; set; } = default!;
+    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
 
-    private Guid CurrentUserId { get; set; } = Guid.Empty;
+    protected Guid CurrentUserId { get; set; } = Guid.Empty;
     protected bool IsInitialized { get; set; } = false;
-    protected List<PlacePredictionDto> LocationSuggestions { get; set; } = [];
+    protected List<PlacePredictionDto> LocationSuggestions { get; set; } = new();
     protected bool IsSearchingLocations { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
-        var auth = await AuthState.GetAuthenticationStateAsync();
-        if (!auth.User.IsInRole("Host"))
-        {
-            NotificationService.Notify(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Info,
-                Summary = "Connect Stripe first",
-                Detail = "Complete Stripe onboarding in Settings to start hosting events.",
-                Duration = 7000
-            });
-            NavigationManager.NavigateTo("/user/settings");
-            return;
-        }
-
         await GetCurrentUserIdAsync();
 
         var stripeStatus = await HostPaymentsClient.GetStatusAsync(CurrentUserId);
 
-        if (stripeStatus is null || !stripeStatus.Ready)
+        if (!stripeStatus.Ready)
         {
             NotificationService.Notify(new NotificationMessage
             {
@@ -77,7 +61,7 @@ public partial class CreateEventBase : ComponentBase
                 Duration = 7000
             });
 
-            NavigationManager.NavigateTo("/user/settings");
+            NavigationManager.NavigateTo($"/owner/stripe/{CurrentUserId}");
             return;
         }
 
@@ -205,7 +189,7 @@ public partial class CreateEventBase : ComponentBase
             Model = new CreateEventFormModel
             {
                 Status = EventStatus.Draft,
-                TicketReleases = [new()]
+                TicketReleases = new List<TicketReleaseModel> { new() }
             };
 
             NavigationManager.NavigateTo("/events");
@@ -289,7 +273,7 @@ public partial class CreateEventBase : ComponentBase
         }
     }
 
-    private async Task OnLocationChange(string value)
+    protected async Task OnLocationChange(string value)
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length < 3)
         {
@@ -342,7 +326,7 @@ public partial class CreateEventBase : ComponentBase
         await OnLocationChange(args.Filter);
     }
 
-    protected async Task OnLocationSelected(object? value)
+    protected async Task OnLocationSelected(object value)
     {
         if (value is null)
             return;
@@ -433,7 +417,7 @@ public class CreateEventFormModel
 
     public string? ThumbnailFileName { get; set; } = string.Empty;
 
-    public List<TicketReleaseModel> TicketReleases { get; set; } = [];
+    public List<TicketReleaseModel> TicketReleases { get; set; } = new();
 }
 
 public class TicketReleaseModel

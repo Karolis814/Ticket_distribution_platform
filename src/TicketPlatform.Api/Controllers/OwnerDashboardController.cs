@@ -1,10 +1,9 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Stripe;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
+using TicketPlatform.Core.Services;
 using TicketPlatform.Shared.Dtos;
 using TicketPlatform.Shared.Enums;
 
@@ -12,15 +11,12 @@ namespace TicketPlatform.Api.Controllers;
 
 [ApiController]
 [Route("api/owner-dashboard")]
-[Authorize(Roles = "Host")]
 public class OwnerDashboardController(
     IRepository<Order> orderRepository,
     IRepository<Ticket> ticketRepository,
-    IRepository<User> userRepository,
-    IConfiguration configuration) : ControllerBase
+    IHostPaymentSettingsService hostPaymentSettingsService) : ControllerBase
 {
-    private decimal PlatformFeeRate =>
-        (configuration.GetValue<decimal?>("Stripe:PlatformFeePercent") ?? 5m) / 100m;
+    private const decimal PlatformFeeRate = 0.05m;
 
     [HttpGet("{hostId:guid}")]
     public async Task<ActionResult<OwnerDashboardDto>> GetDashboard(
@@ -107,17 +103,18 @@ public class OwnerDashboardController(
             .OrderBy(x => x.Date)
             .ToList();
 
-        var host = await userRepository.GetByIdAsync(hostId, ct);
+        var settings = await hostPaymentSettingsService.GetByHostIdAsync(hostId, ct);
 
         var availableBalance = new List<MoneyAmountDto>();
         var pendingBalance = new List<MoneyAmountDto>();
         var payouts = new List<StripePayoutDto>();
 
-        if (!string.IsNullOrWhiteSpace(host?.StripeAccountId))
+        if (settings is not null &&
+            !string.IsNullOrWhiteSpace(settings.StripeAccountId))
         {
             var requestOptions = new RequestOptions
             {
-                StripeAccount = host.StripeAccountId
+                StripeAccount = settings.StripeAccountId
             };
 
             var balanceService = new BalanceService();

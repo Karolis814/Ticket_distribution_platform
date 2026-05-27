@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Authorization;
 using TicketPlatform.Shared.Dtos;
 using TicketPlatform.Web.Services;
 
@@ -10,7 +9,7 @@ public class HomeBase : ComponentBase
     [Inject] protected NavigationManager Nav { get; set; } = null!;
     [Inject] protected IEventsClient EventsClient { get; set; } = null!;
 
-    protected IReadOnlyList<EventDto> TrendingEvents { get; private set; } = [];
+    protected IReadOnlyList<EventDto> PopularEvents { get; private set; } = [];
     protected IReadOnlyList<EventDto> LatestEvents { get; private set; } = [];
     protected bool IsLoading { get; private set; } = true;
 
@@ -38,7 +37,7 @@ public class HomeBase : ComponentBase
             var result = await EventsClient.GetPagedAsync(page: 1, pageSize: 100);
             var all = result?.Items ?? [];
 
-            TrendingEvents = all
+            PopularEvents = all
                 .OrderByDescending(e => e.TicketTypes.Sum(tt => tt.Sold))
                 .Take(5)
                 .ToList();

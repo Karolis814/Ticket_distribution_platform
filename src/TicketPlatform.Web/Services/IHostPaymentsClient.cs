@@ -4,5 +4,5 @@ namespace TicketPlatform.Web.Services;
 
 public interface IHostPaymentsClient
 {
-    Task<StripeConnectStatusDto?> GetStatusAsync(Guid hostId, CancellationToken ct = default);
+    Task<HostStripeStatusDto> GetStatusAsync(Guid hostId, CancellationToken ct = default);
 }

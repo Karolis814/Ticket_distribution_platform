@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
 

@@ -1,5 +1,3 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TicketPlatform.Core.Common;
@@ -43,43 +41,25 @@ public class PaymentsController(
         ));
     }
 
-    [Authorize]
-    [HttpGet("{orderId:guid}/tickets")]
-    public async Task<IActionResult> DownloadTicketsByOrder(
-        Guid orderId,
-        [FromQuery] string? sessionId,
+    [HttpGet("download-tickets")]
+    public async Task<IActionResult> DownloadTickets(
+        [FromQuery] string sessionId,
         CancellationToken ct)
     {
+        if (string.IsNullOrWhiteSpace(sessionId))
+            return BadRequest("Session id is required.");
+
         var payment = await paymentRepository.Query()
             .Include(p => p.Order)
-                .ThenInclude(o => o.Customer)
-            .FirstOrDefaultAsync(p => p.OrderId == orderId, ct);
+            .FirstOrDefaultAsync(p => p.StripeCheckoutSessionId == sessionId, ct);
 
         if (payment is null)
-            return NotFound();
-
-        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
-        if (Guid.TryParse(userIdStr, out var userId))
-        {
-            if (payment.Order.Customer.UserId != userId)
-                return NotFound();
-        }
-        else if (!string.IsNullOrWhiteSpace(sessionId))
-        {
-            if (payment.StripeCheckoutSessionId != sessionId)
-                return NotFound();
-        }
-        else
-        {
-            return Unauthorized();
-        }
+            return NotFound("Payment not found.");
 
         if (payment.Order.Status != OrderStatus.Completed)
             return BadRequest("Order is not completed.");
 
-        var pdf = await ticketPdfService.GeneratePdfAsync(orderId, ct);
+        var pdf = await ticketPdfService.GeneratePdfAsync(payment.OrderId, ct);
 
         return File(pdf, "application/pdf", "tickets.pdf");
     }

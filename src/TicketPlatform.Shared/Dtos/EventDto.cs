@@ -18,8 +18,7 @@ public record EventDto(
 
 public record HostDto(
     Guid Id,
-    string? FirstName,
-    string? LastName,
+    string? Username,
     string Email,
     string? Company
 );

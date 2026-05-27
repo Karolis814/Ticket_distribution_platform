@@ -1,8 +1,5 @@
-@page "/stripe/refresh/{HostId:guid}"
-
-@using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Host")]
-@inherits OwnerStripeRefreshBase
+@page "/owner/stripe/refresh/{HostId:guid}"
+@inject NavigationManager Nav
 
 <RadzenRow JustifyContent="JustifyContent.Center" Class="rz-mt-8">
     <RadzenColumn Size="12" SizeMd="7" SizeLg="5">
@@ -14,8 +11,12 @@
 
                 <RadzenButton Text="Reconnect Stripe"
                               ButtonStyle="ButtonStyle.Primary"
-                              Click="GoToSettings" />
+                              Click="@(() => Nav.NavigateTo($"/owner/stripe/{HostId}"))" />
             </RadzenStack>
         </RadzenCard>
     </RadzenColumn>
 </RadzenRow>
+
+@code {
+    [Parameter] public Guid HostId { get; set; }
+}

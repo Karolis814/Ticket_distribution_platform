@@ -4,9 +4,9 @@ namespace TicketPlatform.Web.Services;
 
 public interface IUserSettingsClient
 {
-    Task<UserSettingsDto?> GetAsync(CancellationToken ct = default);
-    Task UpdateProfileAsync(UpdateProfileRequest request, CancellationToken ct = default);
+    Task<UserSettingsDto?> GetAsync(Guid userId, CancellationToken ct = default);
+    Task ChangeEmailAsync(ChangeEmailRequest request, CancellationToken ct = default);
     Task ConfirmEmailAsync(ConfirmEmailChangeRequest request, CancellationToken ct = default);
     Task ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default);
-    Task DeleteAccountAsync(CancellationToken ct = default);
+    Task UpdateEmailRemindersAsync(UpdateEmailRemindersRequest request, CancellationToken ct = default);
 }

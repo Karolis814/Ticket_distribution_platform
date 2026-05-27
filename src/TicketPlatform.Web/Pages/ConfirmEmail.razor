@@ -1,0 +1,41 @@
+@page "/settings/confirm-email"
+@using TicketPlatform.Shared.Dtos
+@inject TicketPlatform.Web.Services.IUserSettingsClient SettingsClient
+@inject Microsoft.AspNetCore.Components.NavigationManager Nav
+
+<PageTitle>Confirm Email</PageTitle>
+
+<RadzenCard>
+    <RadzenStack Gap="1rem">
+        <RadzenText TextStyle="TextStyle.H5">Email confirmation</RadzenText>
+        <RadzenText Text="@Message" />
+    </RadzenStack>
+</RadzenCard>
+
+@code {
+    [SupplyParameterFromQuery] public Guid UserId { get; set; }
+    [SupplyParameterFromQuery] public string? Token { get; set; }
+
+    private string Message { get; set; } = "Confirming email...";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Token))
+        {
+            Message = "Invalid confirmation link.";
+            return;
+        }
+
+        try
+        {
+            await SettingsClient.ConfirmEmailAsync(
+                new ConfirmEmailChangeRequest(UserId, Token));
+
+            Message = "Email confirmed successfully.";
+        }
+        catch
+        {
+            Message = "Email confirmation failed.";
+        }
+    }
+}
