@@ -21,7 +21,10 @@ public record HostDto(
     string? FirstName,
     string? LastName,
     string Email,
-    string? Company
+    string? Company,
+    string? PhoneNumber,
+    string? Address,
+    string? TaxCode
 );
 
 public record CreateEventRequest(

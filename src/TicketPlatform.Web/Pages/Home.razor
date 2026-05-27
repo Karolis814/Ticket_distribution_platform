@@ -18,10 +18,6 @@
         }
         else if (TrendingEvents.Any())
         {
-            <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H2" Class="rz-mb-3">
-                Trending Events
-            </RadzenText>
-
             <RadzenCarousel Style="height:420px"
                             Auto="true"
                             Interval="5000"
@@ -36,9 +32,8 @@
                             <div class="rz-w-100 rz-overflow-hidden"
                                  style="position:relative;height:420px;cursor:pointer;"
                                  @onclick="@(() => Nav.NavigateTo($"/events/{ev.Id}"))">
-                                <RadzenImage Path="@(ev.ThumbnailUrl ?? "https://placehold.net/8.png")"
-                                             Class="rz-w-100 rz-h-100 rz-display-block"
-                                             Style="object-fit:cover;"/>
+                                <EventPoster Url="@ev.ThumbnailUrl" Alt="@ev.Title"
+                                             Style="height:100%;aspect-ratio:unset;"/>
                                 <div
                                     style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.1) 60%,transparent 100%);">
                                 </div>

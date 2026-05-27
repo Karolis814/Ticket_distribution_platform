@@ -2,129 +2,231 @@
 
 @inherits SingleEventBase
 
-<PageTitle>Event Details</PageTitle>
+<PageTitle>@(Event?.Title ?? "Event Details")</PageTitle>
 
-<RadzenStack Gap="1rem">
-    <RadzenButton Icon="arrow_back" Text="Back to Events" Click="@(() => NavigationManager.NavigateTo("/events"))" Style="margin-bottom: 1rem;" />
+<div style="max-width:900px;margin:0 auto;">
+
+    <div style="margin-bottom:1.25rem;">
+        <RadzenButton Icon="arrow_back" Text="Back to Events" Variant="Variant.Text"
+                      Click="@(() => NavigationManager.NavigateTo("/events"))"/>
+    </div>
 
     @if (IsLoading)
     {
-        <RadzenText>Loading event details...</RadzenText>
+        <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height:300px;">
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"
+                                       Size="ProgressBarCircularSize.Large"/>
+        </RadzenStack>
     }
     else if (Event is null)
     {
-        <RadzenText TextStyle="TextStyle.H5" Text="Event not found." />
+        <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true">Event not found.</RadzenAlert>
     }
     else
     {
-        var displayStatus = GetDisplayStatus(Event);
+        <!-- ═══ HERO ═══ -->
+        <div style="border-radius:12px;overflow:hidden;background:var(--rz-base-800);margin-bottom:1.75rem;box-shadow:0 4px 24px rgba(0,0,0,0.35);">
 
-        <RadzenStack Gap="1rem">
-            @if (!string.IsNullOrEmpty(Event.ThumbnailUrl))
-            {
-                <div style="width: 100%; border-radius: 8px; overflow: hidden;">
-                    <img src="@Event.ThumbnailUrl" alt="@Event.Title" style="width: 100%; height: auto; display: block; object-fit: cover;" />
-                </div>
-            }
-            else
-            {
-                <div style="width: 100%; aspect-ratio: 5 / 2; border-radius: 8px; background: linear-gradient(135deg, #3f51b5 0%, #1a237e 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; text-align: center;">
-                    <div style="font-size: 4rem; font-weight: 700; opacity: 0.9;">Event</div>
-                    <div style="font-size: 1.25rem; opacity: 0.75;">Image coming soon</div>
-                </div>
-            }
+            <!-- Poster – full 16:9, no overlay -->
+            <EventPoster Url="@Event.ThumbnailUrl" Alt="@Event.Title"/>
 
-            <RadzenText TextStyle="TextStyle.H3" Text="@Event.Title"/>
+            <!-- Info panel below poster -->
+            <div style="padding:1.75rem 2rem 2rem;">
 
-            <RadzenCard>
-                <RadzenStack Gap="1rem">
-                    <RadzenText TextStyle="TextStyle.Subtitle1">Event Information</RadzenText>
-
-                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.5rem">
-                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
-                            <RadzenText TextStyle="TextStyle.Body2" class="rz-color-tertiary">Category</RadzenText>
-                        </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="9">
-                            <RadzenBadge Text="@Event.Category.ToString()" IsPill="true" />
-                        </RadzenColumn>
-                    </RadzenRow>
-
-                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.5rem">
-                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
-                            <RadzenText TextStyle="TextStyle.Body2" class="rz-color-tertiary">Status</RadzenText>
-                        </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="9">
-                            <RadzenBadge Text="@GetStatusLabel(displayStatus)" IsPill="true" BadgeStyle="@GetStatusBadgeStyle(displayStatus)" />
-                        </RadzenColumn>
-                    </RadzenRow>
-
-                    <RadzenRow AlignItems="AlignItems.Center" RowGap="0.5rem">
-                         <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
-                             <RadzenText TextStyle="TextStyle.Body2" class="rz-color-tertiary">Location</RadzenText>
-                         </RadzenColumn>
-                         <RadzenColumn Size="12" SizeMD="9">
-                             <RadzenText TextStyle="TextStyle.Body1">@(Event.Location ?? "Not specified")</RadzenText>
-                         </RadzenColumn>
-                     </RadzenRow>
-
-                    <RadzenRow AlignItems="AlignItems.Start" RowGap="0.5rem">
-                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
-                            <RadzenText TextStyle="TextStyle.Body2" class="rz-color-tertiary">Description</RadzenText>
-                        </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="9">
-                            <RadzenText TextStyle="TextStyle.Body1" Text="@Event.Description" />
-                        </RadzenColumn>
-                    </RadzenRow>
-                </RadzenStack>
-            </RadzenCard>
-
-            @if (Event.Host is not null)
-            {
-                <RadzenCard>
-                    <RadzenStack Gap="0.75rem">
-                        <RadzenText TextStyle="TextStyle.Subtitle1">Organized by</RadzenText>
-
-                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.5rem">
-                            <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
-                                <RadzenText TextStyle="TextStyle.Body2" class="rz-color-tertiary">Organizer</RadzenText>
-                            </RadzenColumn>
-                            <RadzenColumn Size="12" SizeMD="9">
-                                <RadzenText TextStyle="TextStyle.Body1">@GetHostDisplayName(Event.Host)</RadzenText>
-                            </RadzenColumn>
-                        </RadzenRow>
-
-                        <RadzenRow AlignItems="AlignItems.Center" RowGap="0.5rem">
-                            <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-start rz-text-align-md-end">
-                                <RadzenText TextStyle="TextStyle.Body2" class="rz-color-tertiary">Contact</RadzenText>
-                            </RadzenColumn>
-                            <RadzenColumn Size="12" SizeMD="9">
-                                <RadzenLink Path="@($"mailto:{Event.Host.Email}")" Text="@Event.Host.Email" />
-                            </RadzenColumn>
-                        </RadzenRow>
-                    </RadzenStack>
-                </RadzenCard>
-            }
-
-            <RadzenCard>
-                <RadzenStack Gap="0.75rem" AlignItems="AlignItems.Center">
-                    @{
-                        var startingFrom = GetStartingFromText(Event);
-                    }
-                    @if (!string.IsNullOrEmpty(startingFrom))
+                <!-- Category badge -->
+                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.9rem;flex-wrap:wrap;">
+                    <RadzenBadge BadgeStyle="BadgeStyle.Info" IsPill="true" Text="@Event.Category.ToString()"/>
+                    @if (Event.Status == EventStatus.Cancelled)
                     {
-                        <RadzenText TextStyle="TextStyle.H5">@startingFrom</RadzenText>
+                        <RadzenBadge BadgeStyle="BadgeStyle.Danger" IsPill="true" Text="Cancelled"/>
                     }
+                    else if (IsSoldOut(Event))
+                    {
+                        <RadzenBadge BadgeStyle="BadgeStyle.Warning" IsPill="true" Text="Sold Out"/>
+                    }
+                </div>
+
+                <!-- Title -->
+                <h1 style="font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;margin:0 0 1.1rem;line-height:1.2;">@Event.Title</h1>
+
+                <!-- Date & location -->
+                <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.5rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;color:var(--rz-text-secondary-color);">
+                        <RadzenIcon Icon="calendar_month" Style="font-size:1.1rem;flex-shrink:0;"/>
+                        <span style="font-size:0.95rem;">@FormatDateRange(Event)</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Event.Location))
+                    {
+                        <div style="display:flex;align-items:center;gap:0.5rem;color:var(--rz-text-secondary-color);">
+                            <RadzenIcon Icon="location_on" Style="font-size:1.1rem;flex-shrink:0;"/>
+                            <span style="font-size:0.95rem;">@Event.Location</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Divider -->
+                <hr style="border:none;border-top:1px solid var(--rz-base-600);margin-bottom:1.5rem;"/>
+
+                <!-- Price + CTA -->
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+                    @{
+                        var minPrice = GetMinPriceText(Event);
+                    }
+                    <div>
+                        @if (minPrice is not null)
+                        {
+                            <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--rz-text-secondary-color);margin-bottom:0.15rem;">Tickets from</div>
+                            <div style="font-size:1.75rem;font-weight:700;line-height:1;">@minPrice</div>
+                        }
+                        else if (!Event.TicketTypes.Any())
+                        {
+                            <span style="color:var(--rz-text-secondary-color);">No tickets available</span>
+                        }
+                    </div>
 
                     @if (ShouldShowCheckout(Event))
                     {
-                        <RadzenButton Click="@(args => NavigationManager.NavigateTo($"/checkout/{Event.Id}"))"
-                                      Text="Checkout"
+                        <RadzenButton Click="@(() => NavigationManager.NavigateTo($"/checkout/{Event.Id}"))"
+                                      Text="Get Tickets"
                                       ButtonStyle="ButtonStyle.Success"
                                       Size="ButtonSize.Large"
-                                      Icon="shopping_cart" />
+                                      Icon="confirmation_number"
+                                      Style="min-width:160px;"/>
                     }
-                </RadzenStack>
+                    else if (Event.Status == EventStatus.Cancelled)
+                    {
+                        <RadzenButton Text="Cancelled" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Large" Disabled="true"/>
+                    }
+                    else if (IsSoldOut(Event))
+                    {
+                        <RadzenButton Text="Sold Out" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Large" Disabled="true"/>
+                    }
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ═══ ABOUT ═══ -->
+        <RadzenCard Style="margin-bottom:1.25rem;">
+            <RadzenStack Gap="0.75rem">
+                <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">About this event</h2>
+                <p style="margin:0;line-height:1.7;white-space:pre-wrap;">@Event.Description</p>
+            </RadzenStack>
+        </RadzenCard>
+
+        <!-- ═══ MAP ═══ -->
+        @if (!string.IsNullOrWhiteSpace(Event.Location))
+        {
+            <RadzenCard Style="margin-bottom:1.25rem;padding:0;overflow:hidden;">
+                <div style="padding:1rem 1.25rem 0.75rem;">
+                    <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">Location</h2>
+                </div>
+                <iframe
+                    src="@($"https://maps.google.com/maps?q={Uri.EscapeDataString(Event.Location)}&output=embed")"
+                    style="width:100%;height:280px;border:none;display:block;"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Event location map">
+                </iframe>
+                <div style="padding:0.6rem 1.25rem 1rem;">
+                    <RadzenIcon Icon="location_on" Style="font-size:0.9rem;vertical-align:middle;margin-right:0.3rem;"/>
+                    <span style="font-size:0.9rem;color:var(--rz-text-secondary-color);">@Event.Location</span>
+                </div>
             </RadzenCard>
-        </RadzenStack>
+        }
+
+        <!-- ═══ ORGANIZER + CONTACT ═══ -->
+        @if (Event.Host is not null)
+        {
+            <RadzenRow Gap="1.25rem" Style="margin-bottom:1.25rem;" AlignItems="AlignItems.Stretch">
+
+                <!-- Organizer -->
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenCard Style="height:100%;">
+                        <RadzenStack Gap="0.9rem">
+                            <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">Organizer</h2>
+
+                            @if (!string.IsNullOrWhiteSpace(Event.Host.Company))
+                            {
+                                <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                                    <RadzenIcon Icon="business" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                    <div>
+                                        <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Company</div>
+                                        <div style="font-size:0.95rem;">@Event.Host.Company</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(Event.Host.Address))
+                            {
+                                <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                                    <RadzenIcon Icon="home" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                    <div>
+                                        <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Address</div>
+                                        <div style="font-size:0.95rem;">@Event.Host.Address</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(Event.Host.TaxCode))
+                            {
+                                <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                                    <RadzenIcon Icon="receipt_long" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                    <div>
+                                        <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Tax code</div>
+                                        <div style="font-size:0.95rem;">@Event.Host.TaxCode</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (string.IsNullOrWhiteSpace(Event.Host.Company) &&
+                                 string.IsNullOrWhiteSpace(Event.Host.Address) &&
+                                 string.IsNullOrWhiteSpace(Event.Host.TaxCode))
+                            {
+                                <span style="color:var(--rz-text-secondary-color);font-size:0.9rem;">No organizer details provided.</span>
+                            }
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+
+                <!-- Contact person -->
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenCard Style="height:100%;">
+                        <RadzenStack Gap="0.9rem">
+                            <h2 style="font-size:1.05rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.06em;color:var(--rz-text-secondary-color);">Contact</h2>
+
+                            @{
+                                var fullName = $"{Event.Host.FirstName} {Event.Host.LastName}".Trim();
+                            }
+                            @if (!string.IsNullOrWhiteSpace(fullName))
+                            {
+                                <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                                    <RadzenIcon Icon="person" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                    <div>
+                                        <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Name</div>
+                                        <div style="font-size:0.95rem;">@fullName</div>
+                                    </div>
+                                </div>
+                            }
+                            <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                                <RadzenIcon Icon="email" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                <div>
+                                    <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Email</div>
+                                    <RadzenLink Path="@($"mailto:{Event.Host.Email}")" Text="@Event.Host.Email"/>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(Event.Host.PhoneNumber))
+                            {
+                                <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+                                    <RadzenIcon Icon="phone" Style="font-size:1rem;margin-top:0.15rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                    <div>
+                                        <div style="font-size:0.75rem;color:var(--rz-text-secondary-color);margin-bottom:0.1rem;">Phone</div>
+                                        <RadzenLink Path="@($"tel:{Event.Host.PhoneNumber}")" Text="@Event.Host.PhoneNumber"/>
+                                    </div>
+                                </div>
+                            }
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+
+            </RadzenRow>
+        }
     }
-</RadzenStack>
+</div>

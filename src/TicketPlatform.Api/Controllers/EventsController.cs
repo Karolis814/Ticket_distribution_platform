@@ -165,7 +165,10 @@ public class EventsController(IEventService eventService) : ControllerBase
             e.Host.FirstName,
             e.Host.LastName,
             e.Host.Email,
-            e.Host.Company
+            e.Host.Company,
+            e.Host.PhoneNumber,
+            e.Host.Address,
+            e.Host.TaxCode
         ),
         e.TicketTypes.Select(tt => new TicketTypeDto(
             tt.Id,

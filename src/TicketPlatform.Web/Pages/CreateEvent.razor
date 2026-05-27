@@ -124,7 +124,7 @@
                                                     Style="font-size:2.5rem;"/>
                                         <RadzenText TextStyle="TextStyle.Body2">Click to upload event poster
                                         </RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption">JPEG, PNG or WebP · max 10 MB
+                                        <RadzenText TextStyle="TextStyle.Caption">JPEG, PNG or WebP · max 10 MB · auto-cropped to 1280×720
                                         </RadzenText>
                                     </RadzenStack>
                                 }
@@ -132,7 +132,7 @@
                                 {
                                     <div style="position:relative;" class="rz-border-radius-4 rz-overflow-hidden">
                                         <RadzenImage Path="@Model.ThumbnailUrl"
-                                                     Style="width:100%;display:block;aspect-ratio:4/3;object-fit:cover;"/>
+                                                     Style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover;"/>
                                         <RadzenStack Orientation="Orientation.Horizontal"
                                                      AlignItems="AlignItems.Center"
                                                      JustifyContent="JustifyContent.Center"

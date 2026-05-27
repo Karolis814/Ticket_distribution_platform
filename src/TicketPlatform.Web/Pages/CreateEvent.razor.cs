@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.JSInterop;
 using Radzen;
 using TicketPlatform.Shared.Dtos;
 using TicketPlatform.Shared.Enums;
@@ -35,6 +36,7 @@ public partial class CreateEventBase : ComponentBase
     [Inject] protected IUsersClient UsersClient { get; set; } = null!;
     [Inject] protected IHostPaymentsClient HostPaymentsClient { get; set; } = null!;
     [Inject] protected IImagesClient ImagesClient { get; set; } = null!;
+    [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] protected NotificationService NotificationService { get; set; } = null!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = null!;
     [Inject] protected AuthenticationStateProvider AuthState { get; set; } = null!;
@@ -324,15 +326,24 @@ public partial class CreateEventBase : ComponentBase
         try
         {
             await using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-            var response = await ImagesClient.UploadEventThumbnailAsync(stream, file.Name, file.ContentType);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var originalBytes = ms.ToArray();
+
+            var croppedBytes = await JSRuntime.InvokeAsync<byte[]>(
+                "cropImageTo", originalBytes, file.ContentType, 1280, 720);
+
+            await using var croppedStream = new MemoryStream(croppedBytes);
+            var uploadName = Path.GetFileNameWithoutExtension(file.Name) + ".jpg";
+            var response = await ImagesClient.UploadEventThumbnailAsync(croppedStream, uploadName, "image/jpeg");
             Model.ThumbnailUrl = response.Url;
-            Model.ThumbnailFileName = file.Name;
+            Model.ThumbnailFileName = uploadName;
 
             NotificationService.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Success,
                 Summary = "Image uploaded",
-                Detail = $"'{file.Name}' uploaded successfully.",
+                Detail = $"'{file.Name}' uploaded and cropped to 1280×720.",
                 Duration = 3000
             });
         }

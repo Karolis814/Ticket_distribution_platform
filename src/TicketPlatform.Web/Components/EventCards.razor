@@ -31,9 +31,7 @@ else
                 <RadzenCard Class="rz-h-100 rz-display-flex rz-flex-column rz-overflow-hidden rz-p-0"
                             Style="cursor:pointer;"
                             @onclick="@(() => NavigateToDetails(ev.Id))">
-                    <RadzenImage Path="@(ev.ThumbnailUrl ?? "https://placehold.net/8.png")"
-                                 Class="rz-w-100"
-                                 Style="height:200px;object-fit:cover;"/>
+                    <EventPoster Url="@ev.ThumbnailUrl" Alt="@ev.Title"/>
 
                     <RadzenStack Gap="1rem" Class="rz-p-4" Style="flex-grow:1;">
                         <RadzenStack Orientation="Orientation.Horizontal"
