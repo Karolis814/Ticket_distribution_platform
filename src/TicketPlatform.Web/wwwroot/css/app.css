@@ -29,7 +29,7 @@
     content: "An error has occurred."
 }
 
-.progress-container {
+.loader-container {
     width: 100%;
     height: 100vh;
     background-color: rgb(25, 25, 26);
@@ -38,64 +38,26 @@
     justify-content: center;
 }
 
-.sk-cube-grid {
-    width: 60px;
-    height: 60px;
-    margin: 150px auto;
+.loader {
+    height: 30px;
+    aspect-ratio: 2;
+    display: grid;
+    background:
+        radial-gradient(farthest-side,#000 15%,#0000 18%)0 0/50% 100%,
+        radial-gradient(50% 100% at 50% 160%,#fff 95%,#0000) 0 0   /50% 50%,
+        radial-gradient(50% 100% at 50% -60%,#fff 95%,#0000) 0 100%/50% 50%;
+    background-repeat: repeat-x;
+    animation: l2 1.5s infinite linear;
 }
-
-.sk-cube-grid .sk-cube {
-    width: 33%;
-    height: 33%;
-    background-color: #FFF;
-    float: left;
-    -webkit-animation: sk-cubeGridScaleDelay 1.3s infinite ease-in-out;
-    animation: sk-cubeGridScaleDelay 1.3s infinite ease-in-out;
-}
-.sk-cube-grid .sk-cube1 {
-    -webkit-animation-delay: 0.2s;
-    animation-delay: 0.2s; }
-.sk-cube-grid .sk-cube2 {
-    -webkit-animation-delay: 0.3s;
-    animation-delay: 0.3s; }
-.sk-cube-grid .sk-cube3 {
-    -webkit-animation-delay: 0.4s;
-    animation-delay: 0.4s; }
-.sk-cube-grid .sk-cube4 {
-    -webkit-animation-delay: 0.1s;
-    animation-delay: 0.1s; }
-.sk-cube-grid .sk-cube5 {
-    -webkit-animation-delay: 0.2s;
-    animation-delay: 0.2s; }
-.sk-cube-grid .sk-cube6 {
-    -webkit-animation-delay: 0.3s;
-    animation-delay: 0.3s; }
-.sk-cube-grid .sk-cube7 {
-    -webkit-animation-delay: 0s;
-    animation-delay: 0s; }
-.sk-cube-grid .sk-cube8 {
-    -webkit-animation-delay: 0.1s;
-    animation-delay: 0.1s; }
-.sk-cube-grid .sk-cube9 {
-    -webkit-animation-delay: 0.2s;
-    animation-delay: 0.2s; }
-
-@-webkit-keyframes sk-cubeGridScaleDelay {
-    0%, 70%, 100% {
-        -webkit-transform: scale3D(1, 1, 1);
-        transform: scale3D(1, 1, 1);
-    } 35% {
-          -webkit-transform: scale3D(0, 0, 1);
-          transform: scale3D(0, 0, 1);
-      }
-}
-
-@keyframes sk-cubeGridScaleDelay {
-    0%, 70%, 100% {
-        -webkit-transform: scale3D(1, 1, 1);
-        transform: scale3D(1, 1, 1);
-    } 35% {
-          -webkit-transform: scale3D(0, 0, 1);
-          transform: scale3D(0, 0, 1);
-      }
+@keyframes l2 {
+    0%,
+    15% {background-position:0   0,0 0,0 100%}
+    20%,
+    40% {background-position:5px 0,0 0,0 100%}
+    45%,
+    55% {background-position:0   0,0 0,0 100%}
+    60%,
+    80%{background-position:-5px 0,0 0,0 100%}
+    85%,
+    100% {background-position:0   0,0 0,0 100%}
 }
