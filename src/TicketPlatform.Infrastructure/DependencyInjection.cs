@@ -41,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<IMailService, MailService>();
 
         services.AddScoped<ITicketValidationService, TicketValidationService>();
+        services.AddScoped<IOrderCompletionService, OrderCompletionService>();
 
         // Add Google Places API service
         services.Configure<GooglePlacesOptions>(configuration.GetSection("GooglePlaces"));

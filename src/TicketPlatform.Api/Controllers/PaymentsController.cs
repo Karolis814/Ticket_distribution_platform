@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TicketPlatform.Core.Common;
@@ -43,7 +42,27 @@ public class PaymentsController(
         ));
     }
 
-    [Authorize]
+    [HttpGet("free-success")]
+    public async Task<ActionResult<PaymentSuccessDto>> GetFreePaymentSuccess(
+        [FromQuery] Guid orderId,
+        CancellationToken ct)
+    {
+        var payment = await paymentRepository.Query()
+            .Include(p => p.Order)
+            .ThenInclude(o => o.Customer)
+            .FirstOrDefaultAsync(p => p.OrderId == orderId, ct);
+
+        if (payment is null || payment.Order.TotalPriceCents != 0)
+            return NotFound("Free order not found.");
+
+        return Ok(new PaymentSuccessDto(
+            payment.OrderId,
+            payment.Order.Customer.Email,
+            null,
+            null,
+            false));
+    }
+
     [HttpGet("{orderId:guid}/tickets")]
     public async Task<IActionResult> DownloadTicketsByOrder(
         Guid orderId,
@@ -66,10 +85,15 @@ public class PaymentsController(
             if (payment.Order.Customer.UserId != userId)
                 return NotFound();
         }
-        else if (!string.IsNullOrWhiteSpace(sessionId))
+        else if (!string.IsNullOrWhiteSpace(payment.StripeCheckoutSessionId) &&
+                 payment.StripeCheckoutSessionId == sessionId)
         {
-            if (payment.StripeCheckoutSessionId != sessionId)
-                return NotFound();
+            // verified via Stripe session
+        }
+        else if (string.IsNullOrWhiteSpace(payment.StripeCheckoutSessionId) &&
+                 payment.Order.TotalPriceCents == 0)
+        {
+            // free order — orderId in path is sufficient (GUID is unguessable)
         }
         else
         {

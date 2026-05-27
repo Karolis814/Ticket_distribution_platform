@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
@@ -16,8 +17,10 @@ public class TicketsController(
     IOrderService orderService,
     ITicketTypeService ticketTypeService,
     IStripeCheckoutService stripeCheckoutService,
+    IOrderCompletionService orderCompletionService,
     IRepository<Payment> paymentRepository,
-    IUserService userService) : ControllerBase
+    IUserService userService,
+    IConfiguration configuration) : ControllerBase
 {
     [HttpPost("checkout")]
     public async Task<ActionResult<CheckoutResponseDto>> Checkout(
@@ -138,6 +141,14 @@ public class TicketsController(
 
         if (loadedOrder is null)
             return Problem("Order was created but could not be loaded.");
+
+        if (totalCents == 0)
+        {
+            await orderCompletionService.CompleteAsync(loadedOrder, ct);
+
+            var successUrl = $"{configuration["ClientBaseUrl"]}/checkout/success?order_id={order.Id}";
+            return Ok(new CheckoutResponseDto(loadedOrder.Id, successUrl));
+        }
 
         var checkoutUrl = await stripeCheckoutService.CreateCheckoutSessionAsync(loadedOrder, ct);
 
