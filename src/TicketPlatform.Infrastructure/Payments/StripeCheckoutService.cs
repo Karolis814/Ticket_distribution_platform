@@ -1,13 +1,14 @@
 using Microsoft.Extensions.Configuration;
 using Stripe;
 using Stripe.Checkout;
+using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
 
 namespace TicketPlatform.Infrastructure.Payments;
 
 public class StripeCheckoutService(
-    IHostPaymentSettingsService hostPaymentSettingsService,
+    IRepository<User> userRepository,
     IConfiguration configuration) : IStripeCheckoutService
 {
     private decimal PlatformFeeRate =>
@@ -33,15 +34,15 @@ public class StripeCheckoutService(
 
         var hostId = hostIds[0];
 
-        var settings = await hostPaymentSettingsService.GetByHostIdAsync(hostId, ct);
+        var host = await userRepository.GetByIdAsync(hostId, ct);
 
-        if (settings is null ||
-            string.IsNullOrWhiteSpace(settings.StripeAccountId) ||
-            !settings.ChargesEnabled ||
-            !settings.PayoutsEnabled)
-        {
+        if (host is null || string.IsNullOrWhiteSpace(host.StripeAccountId))
             throw new InvalidOperationException("Event host has not completed Stripe onboarding.");
-        }
+
+        var account = await new AccountService().GetAsync(host.StripeAccountId, cancellationToken: ct);
+
+        if (!account.ChargesEnabled || !account.PayoutsEnabled)
+            throw new InvalidOperationException("Event host has not completed Stripe onboarding.");
 
         var platformFeeCents = (long)Math.Round(order.TotalPriceCents * PlatformFeeRate);
 
@@ -51,7 +52,7 @@ public class StripeCheckoutService(
             { "email", order.Customer.Email },
             { "fullName", $"{order.Customer.FirstName} {order.Customer.LastName}" },
             { "hostId", hostId.ToString() },
-            { "stripeAccountId", settings.StripeAccountId }
+            { "stripeAccountId", host.StripeAccountId }
         };
 
         var options = new SessionCreateOptions
@@ -89,10 +90,10 @@ public class StripeCheckoutService(
             PaymentIntentData = new SessionPaymentIntentDataOptions
             {
                 ApplicationFeeAmount = platformFeeCents,
-                OnBehalfOf = settings.StripeAccountId,
+                OnBehalfOf = host.StripeAccountId,
                 TransferData = new SessionPaymentIntentDataTransferDataOptions
                 {
-                    Destination = settings.StripeAccountId
+                    Destination = host.StripeAccountId
                 }
             },
 
@@ -107,7 +108,7 @@ public class StripeCheckoutService(
 
             Metadata = metadata,
 
-            SuccessUrl = $"{configuration["ClientBaseUrl"]}/payment-success?session_id={{CHECKOUT_SESSION_ID}}",
+            SuccessUrl = $"{configuration["ClientBaseUrl"]}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}",
             CancelUrl = $"{configuration["ClientBaseUrl"]}/events?payment=cancelled"
         };
 

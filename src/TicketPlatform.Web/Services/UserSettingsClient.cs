@@ -5,12 +5,12 @@ namespace TicketPlatform.Web.Services;
 
 public class UserSettingsClient(HttpClient http) : IUserSettingsClient
 {
-    public Task<UserSettingsDto?> GetAsync(Guid userId, CancellationToken ct = default)
-        => http.GetFromJsonAsync<UserSettingsDto>($"api/user-settings/{userId}", ct);
+    public Task<UserSettingsDto?> GetAsync(CancellationToken ct = default)
+        => http.GetFromJsonAsync<UserSettingsDto>("api/user-settings", ct);
 
-    public async Task ChangeEmailAsync(ChangeEmailRequest request, CancellationToken ct = default)
+    public async Task UpdateProfileAsync(UpdateProfileRequest request, CancellationToken ct = default)
     {
-        var response = await http.PostAsJsonAsync("api/user-settings/change-email", request, ct);
+        var response = await http.PutAsJsonAsync("api/user-settings/profile", request, ct);
         response.EnsureSuccessStatusCode();
     }
 
@@ -26,9 +26,9 @@ public class UserSettingsClient(HttpClient http) : IUserSettingsClient
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task UpdateEmailRemindersAsync(UpdateEmailRemindersRequest request, CancellationToken ct = default)
+    public async Task DeleteAccountAsync(CancellationToken ct = default)
     {
-        var response = await http.PostAsJsonAsync("api/user-settings/email-reminders", request, ct);
+        var response = await http.DeleteAsync("api/user-settings", ct);
         response.EnsureSuccessStatusCode();
     }
 }

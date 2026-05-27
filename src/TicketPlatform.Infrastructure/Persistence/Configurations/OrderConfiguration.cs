@@ -22,7 +22,9 @@ public static class OrderConfiguration
                 .HasMaxLength(3);
 
             builder.Property(x => x.Status)
-                .IsRequired();
+                .IsRequired()
+                .HasConversion<string>()
+                .HasMaxLength(50);
 
             builder.Property(x => x.CreatedAt)
                 .IsRequired();

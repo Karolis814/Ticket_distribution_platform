@@ -1,28 +1,40 @@
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using TicketPlatform.Shared.Dtos;
 
 namespace TicketPlatform.Web.Pages;
 
 public class PaymentSuccessBase : ComponentBase, IDisposable
 {
-    [Inject] protected HttpClient Http { get; set; } = default!;
-    [Inject] protected NavigationManager Nav { get; set; } = default!;
+    [Inject] protected HttpClient Http { get; set; } = null!;
+    [Inject] protected NavigationManager Nav { get; set; } = null!;
+    [Inject] protected IJSRuntime Js { get; set; } = null!;
 
     protected PaymentSuccessDto? Payment { get; set; }
     protected bool Loading { get; set; } = true;
     protected string? Error { get; set; }
-    protected string? _sessionId;
-    protected bool _polling;
+    private string? SessionId;
+    protected bool Polling;
     private CancellationTokenSource? _cts;
 
-    protected string DownloadTicketsUrl =>
-        $"{Http.BaseAddress}api/payments/download-tickets?sessionId={Uri.EscapeDataString(_sessionId ?? "")}";
+    protected async Task DownloadTicketsAsync()
+    {
+        var response = await Http.GetAsync(
+            $"api/payments/{Payment!.OrderId}/tickets?sessionId={Uri.EscapeDataString(SessionId ?? "")}");
+
+        if (!response.IsSuccessStatusCode)
+            return;
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        await using var module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/downloads.js");
+        await module.InvokeVoidAsync("triggerDownload", "tickets.pdf", "application/pdf", bytes);
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var uri = Nav.ToAbsoluteUri(Nav.Uri);
-        _sessionId = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("session_id");
+        SessionId = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("session_id");
 
         await LoadPayment();
 
@@ -37,14 +49,14 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
 
         try
         {
-            if (string.IsNullOrWhiteSpace(_sessionId))
+            if (string.IsNullOrWhiteSpace(SessionId))
             {
                 Error = "Missing Stripe session id.";
                 return;
             }
 
             var response = await Http.GetAsync(
-                $"api/payments/success?sessionId={Uri.EscapeDataString(_sessionId)}");
+                $"api/payments/success?sessionId={Uri.EscapeDataString(SessionId)}");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -67,7 +79,7 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
     private async Task PollInvoiceAsync()
     {
         _cts = new CancellationTokenSource();
-        _polling = true;
+        Polling = true;
 
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(3));
         var attempts = 0;
@@ -79,7 +91,7 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
                 attempts++;
 
                 var response = await Http.GetAsync(
-                    $"api/payments/success?sessionId={Uri.EscapeDataString(_sessionId ?? "")}",
+                    $"api/payments/success?sessionId={Uri.EscapeDataString(SessionId ?? "")}",
                     _cts.Token);
 
                 if (response.IsSuccessStatusCode)
@@ -101,7 +113,7 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
         catch (OperationCanceledException) { }
         finally
         {
-            _polling = false;
+            Polling = false;
             await InvokeAsync(StateHasChanged);
         }
     }

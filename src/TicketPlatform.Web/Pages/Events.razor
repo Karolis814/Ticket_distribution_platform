@@ -1,4 +1,5 @@
 @page "/events"
+
 @inherits EventsBase
 
 <PageTitle>Events</PageTitle>
@@ -66,29 +67,7 @@
             IsLoading="IsLoading">
 </EventCards>
 
-@if (IsLoading)
-{
-    <RadzenRow>
-        @for (var i = 0; i < 6; i++)
-        {
-            <RadzenColumn Size="12" SizeMd="6" SizeLg="4" Class="rz-mb-4">
-                <RadzenCard Style="height:480px"
-                            Class="rz-display-flex rz-align-items-center rz-justify-content-center">
-                    <RadzenProgressBarCircular ShowValue="false"
-                                               Mode="ProgressBarMode.Indeterminate"
-                                               Size="ProgressBarCircularSize.Small" />
-                </RadzenCard>
-            </RadzenColumn>
-        }
-    </RadzenRow>
-}
-else if (!Events.Any())
-{
-    <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
-        No events are currently available. Check back soon!
-    </RadzenAlert>
-}
-else if ((Result?.TotalCount ?? 0) > 0)
+@if (!IsLoading && (Result?.TotalCount ?? 0) > 0)
 {
     <RadzenPager Count="@(Result!.TotalCount)"
                  PageSize="@PageSize"
