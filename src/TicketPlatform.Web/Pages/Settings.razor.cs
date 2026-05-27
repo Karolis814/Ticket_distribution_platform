@@ -40,6 +40,8 @@ public class SettingsBase : ComponentBase, IDisposable
 
     protected override async Task OnInitializedAsync()
     {
+        AuthState.AuthenticationStateChanged += OnAuthStateChanged;
+
         var authState = await AuthState.GetAuthenticationStateAsync();
         var userIdStr = authState.User.FindFirst("sub")?.Value;
 
@@ -51,6 +53,11 @@ public class SettingsBase : ComponentBase, IDisposable
 
         LoadedUserId = userId;
         await LoadSettingsAsync();
+    }
+
+    private async void OnAuthStateChanged(Task<AuthenticationState> _)
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadSettingsAsync()
@@ -75,6 +82,8 @@ public class SettingsBase : ComponentBase, IDisposable
                     var authState = await AuthState.GetAuthenticationStateAsync();
                     if (!authState.User.IsInRole("Host"))
                         await AuthClient.RefreshAsync();
+
+                    StateHasChanged();
                 }
                 else if (!string.IsNullOrWhiteSpace(StripeStatus?.StripeAccountId))
                 {
@@ -214,6 +223,8 @@ public class SettingsBase : ComponentBase, IDisposable
 
                     if (status.Ready)
                     {
+                        await InvokeAsync(StateHasChanged);
+
                         var authState = await AuthState.GetAuthenticationStateAsync();
                         if (!authState.User.IsInRole("Host"))
                             await AuthClient.RefreshAsync();
@@ -239,6 +250,7 @@ public class SettingsBase : ComponentBase, IDisposable
 
     public void Dispose()
     {
+        AuthState.AuthenticationStateChanged -= OnAuthStateChanged;
         _cts?.Cancel();
         _cts?.Dispose();
     }
