@@ -18,7 +18,7 @@ public partial class SingleEventBase : ComponentBase
     [Inject] protected AuthenticationStateProvider AuthState { get; set; } = null!;
 
     protected EventDto? Event { get; private set; }
-    protected bool IsLoading { get; private set; }
+    protected bool IsLoading { get; private set; } = true;
     private Guid CurrentUserId { get; set; }
 
     protected override async Task OnInitializedAsync()

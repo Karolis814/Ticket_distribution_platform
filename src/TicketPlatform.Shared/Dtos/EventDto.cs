@@ -37,3 +37,13 @@ public record CreateEventRequest(
     EventStatus Status,
     IReadOnlyList<CreateTicketTypeRequest> TicketTypes
 );
+
+public record UpdateEventRequest(
+    EventCategory Category,
+    string Title,
+    string Description,
+    string? Location,
+    string? ThumbnailUrl,
+    EventStatus Status,
+    IReadOnlyList<UpdateTicketTypeRequest> TicketTypes
+);

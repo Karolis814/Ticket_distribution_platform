@@ -27,3 +27,16 @@ public record CreateTicketTypeRequest(
     int MaxUses,
     int Quantity
 );
+
+public record UpdateTicketTypeRequest(
+    Guid? Id,
+    string Title,
+    DateTimeOffset OccurenceStartDate,
+    DateTimeOffset OccurenceEndDate,
+    DateTimeOffset AdmissionStartDate,
+    DateTimeOffset AdmissionEndDate,
+    int PriceCents,
+    string Currency,
+    int MaxUses,
+    int Quantity
+);

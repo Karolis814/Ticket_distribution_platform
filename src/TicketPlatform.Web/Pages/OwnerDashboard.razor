@@ -14,7 +14,9 @@
 
             @if (Loading)
             {
-                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"/>
+                <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height:300px;">
+                    <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"/>
+                </RadzenStack>
             }
             else if (!string.IsNullOrWhiteSpace(Error))
             {

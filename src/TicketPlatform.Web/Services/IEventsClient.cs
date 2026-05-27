@@ -29,6 +29,11 @@ public interface IEventsClient
         CreateEventRequest request,
         CancellationToken ct = default);
 
+    Task<EventDto?> UpdateAsync(
+        Guid id,
+        UpdateEventRequest request,
+        CancellationToken ct = default);
+
     Task<IReadOnlyList<string>> GetLocationSuggestionsAsync(
         string input,
         CancellationToken ct = default);

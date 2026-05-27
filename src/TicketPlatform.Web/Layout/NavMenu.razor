@@ -2,14 +2,11 @@
 
 <RadzenMenu>
     <RadzenMenuItem Text="Explore Events" Icon="event" Path="/events"/>
-    <RadzenMenuItem Text="My Tickets" Icon="receipt_long" Path="/user/orders" Visible="@(!IsHost)"/>
-    <RadzenMenuItem Text="Create Event" Icon="calendar_add_on" Path="/host/create" />
+    <RadzenMenuItem Text="My Tickets" Icon="receipt_long" Path="/user/purchases" Visible="@(!IsHost)"/>
+    <RadzenMenuItem Text="Create Event" Icon="calendar_add_on" Path="/host/create"/>
 
-    <RadzenMenuItem Text="Host Tools" Icon="manage_accounts" Visible="@IsHost">
-        <ChildContent>
-            <RadzenMenuItem Text="My Events" Icon="event_list" Path="/host/events"/>
-            <RadzenMenuItem Text="Sales Overview" Icon="dashboard" Path="/host/sales-overview"/>
-            <RadzenMenuItem Text="Scanner" Icon="qr_code_scanner" Path="/host/scanner"/>
-        </ChildContent>
-    </RadzenMenuItem>
+    <RadzenMenuItem Text="My Events" Icon="event_list" Path="/host/events" Visible="@IsHost"/>
+    <RadzenMenuItem Text="Sales Overview" Icon="dashboard" Path="/host/sales-overview" Visible="@IsHost"/>
+    <RadzenMenuItem Text="Scanner" Icon="qr_code_scanner" Path="/host/scanner" Visible="@IsHost"/>
+
 </RadzenMenu>

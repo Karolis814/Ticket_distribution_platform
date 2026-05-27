@@ -1,4 +1,5 @@
 @page "/host/create"
+@page "/host/events/{EventId:guid}/edit"
 
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
@@ -9,7 +10,36 @@
     <DataAnnotationsValidator/>
     <RadzenStack Gap="1.5rem">
 
-        <PageHeader Title="Create Event" Subtitle="Fill in the details below to publish your event."/>
+        <PageHeader Title="@(IsEditMode ? "Edit Event" : "Create Event")"
+                    Subtitle="@(IsEditMode ? "Update your event details below." : "Fill in the details below to publish your event.")"/>
+
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" JustifyContent="JustifyContent.End">
+
+            @if (IsEditMode && Model.Status != EventStatus.Cancelled)
+            {
+                @if (IsCancelConfirming)
+                {
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+                        <RadzenButton Text="Yes, cancel" ButtonStyle="ButtonStyle.Danger" Icon="event_busy"
+                                      Click="@CancelEventAsync" Size="ButtonSize.Large"/>
+                        <RadzenButton Text="Keep" ButtonStyle="ButtonStyle.Light"
+                                      Click="@(() => IsCancelConfirming = false)" Size="ButtonSize.Large"/>
+                    </RadzenStack>
+                }
+                else
+                {
+                    <RadzenButton Text="Cancel Event" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Outlined"
+                                  Icon="event_busy" Click="@(() => IsCancelConfirming = true)" Size="ButtonSize.Large"/>
+                }
+            }
+            <RadzenButton ButtonType="ButtonType.Submit"
+                          Text="@(IsEditMode ? "Save Changes" : "Create Event")"
+                          ButtonStyle="ButtonStyle.Success"
+                          Size="ButtonSize.Large"
+                          Icon="check"
+                          Disabled="@(!IsFormValid)"/>
+
+        </RadzenStack>
 
         <!-- Basic Information + Event Poster -->
         <RadzenRow Gap="1.5rem" AlignItems="AlignItems.Stretch">
@@ -27,29 +57,15 @@
                             <ValidationMessage For="@(() => Model.Title)"/>
                         </RadzenStack>
 
-                        <RadzenRow Gap="1rem">
-                            <RadzenColumn Size="12" SizeMD="8">
-                                <RadzenStack Gap="0.25rem">
-                                    <RadzenLabel Text="Category" Component="Category"/>
-                                    <RadzenDropDown TValue="EventCategory?" Name="Category"
-                                                    @bind-Value="Model.Category"
-                                                    Data="@Categories"
-                                                    Placeholder="Select a category..."
-                                                    Style="display:block;width:100%;"/>
-                                    <ValidationMessage For="@(() => Model.Category)"/>
-                                </RadzenStack>
-                            </RadzenColumn>
-                            <RadzenColumn Size="12" SizeMD="4">
-                                <RadzenStack Gap="0.25rem">
-                                    <RadzenLabel Text="Status" Component="Status"/>
-                                    <RadzenDropDown TValue="EventStatus" Name="Status"
-                                                    @bind-Value="Model.Status"
-                                                    Data="@EventStatuses"
-                                                    Disabled="true"
-                                                    Style="display:block;width:100%;"/>
-                                </RadzenStack>
-                            </RadzenColumn>
-                        </RadzenRow>
+                        <RadzenStack Gap="0.25rem">
+                            <RadzenLabel Text="Category" Component="Category"/>
+                            <RadzenDropDown TValue="EventCategory?" Name="Category"
+                                            @bind-Value="Model.Category"
+                                            Data="@Categories"
+                                            Placeholder="Select a category..."
+                                            Style="display:block;width:100%;"/>
+                            <ValidationMessage For="@(() => Model.Category)"/>
+                        </RadzenStack>
 
                         <RadzenStack Gap="0.25rem">
                             <RadzenLabel Text="Location" Component="Location"/>
@@ -394,14 +410,5 @@
         </RadzenStack>
 
     </RadzenStack>
-
-    <div style="position:sticky;bottom:2rem;float:right;z-index:50;">
-        <RadzenButton ButtonType="ButtonType.Submit"
-                      Text="Create Event"
-                      ButtonStyle="ButtonStyle.Success"
-                      Size="ButtonSize.Large"
-                      Icon="check"
-                      Disabled="@(!IsFormValid)"/>
-    </div>
 
 </EditForm>

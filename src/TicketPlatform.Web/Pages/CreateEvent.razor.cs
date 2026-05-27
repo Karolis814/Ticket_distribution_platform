@@ -12,6 +12,9 @@ namespace TicketPlatform.Web.Pages;
 
 public partial class CreateEventBase : ComponentBase
 {
+    [Parameter] public Guid? EventId { get; set; }
+    protected bool IsEditMode => EventId.HasValue;
+
     protected CreateEventFormModel Model { get; set; } = new()
     {
         Status = EventStatus.Published,
@@ -21,8 +24,7 @@ public partial class CreateEventBase : ComponentBase
     protected List<EventCategory> Categories { get; set; } =
         Enum.GetValues<EventCategory>().ToList();
 
-    protected List<EventStatus> EventStatuses { get; set; } =
-        Enum.GetValues<EventStatus>().ToList();
+    protected bool IsCancelConfirming { get; set; }
 
     protected List<string> Currencies { get; set; } =
     [
@@ -44,6 +46,7 @@ public partial class CreateEventBase : ComponentBase
     private Guid CurrentUserId { get; set; } = Guid.Empty;
     protected bool IsInitialized { get; set; } = false;
     protected bool IsUploadingImage { get; set; } = false;
+    private bool _firstParametersSet = true;
 
     protected bool IsFormValid =>
         !string.IsNullOrWhiteSpace(Model.Title) &&
@@ -56,6 +59,36 @@ public partial class CreateEventBase : ComponentBase
             !string.IsNullOrWhiteSpace(r.Currency));
     protected List<PlacePredictionDto> LocationSuggestions { get; set; } = [];
     protected bool IsSearchingLocations { get; set; } = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_firstParametersSet)
+        {
+            _firstParametersSet = false;
+            return;
+        }
+
+        Model = new CreateEventFormModel
+        {
+            Status = EventStatus.Published,
+            TicketReleases = [new TicketReleaseModel()]
+        };
+        IsCancelConfirming = false;
+        IsInitialized = false;
+
+        if (IsEditMode)
+        {
+            var existing = await EventsClient.GetByIdAsync(EventId!.Value);
+            if (existing is null || existing.HostId != CurrentUserId)
+            {
+                NavigationManager.NavigateTo("/host/events");
+                return;
+            }
+            PopulateModel(existing);
+        }
+
+        IsInitialized = true;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -91,7 +124,61 @@ public partial class CreateEventBase : ComponentBase
             return;
         }
 
+        if (IsEditMode)
+        {
+            var existing = await EventsClient.GetByIdAsync(EventId!.Value);
+            if (existing is null || existing.HostId != CurrentUserId)
+            {
+                NavigationManager.NavigateTo("/host/events");
+                return;
+            }
+
+            PopulateModel(existing);
+        }
+
         IsInitialized = true;
+    }
+
+    private void PopulateModel(EventDto dto)
+    {
+        Model.Category = dto.Category;
+        Model.Title = dto.Title;
+        Model.Description = dto.Description;
+        Model.Location = dto.Location;
+        Model.ThumbnailUrl = dto.ThumbnailUrl;
+        Model.Status = dto.Status;
+
+        Model.TicketReleases = dto.TicketTypes.Select(tt => new TicketReleaseModel
+        {
+            Id = tt.Id,
+            Title = tt.Title,
+            OccurenceStartDate = tt.OccurenceStartDate,
+            OccurenceEndDate = tt.OccurenceEndDate,
+            AdmissionStartDate = tt.AdmissionStartDate,
+            AdmissionEndDate = tt.AdmissionEndDate,
+            Price = tt.PriceCents / 100m,
+            Currency = tt.Currency,
+            MaxUses = tt.MaxUses,
+            UseMaxUses = tt.MaxUses > 1,
+            UseCustomAdmissionTimes =
+                tt.AdmissionStartDate != tt.OccurenceStartDate ||
+                tt.AdmissionEndDate != tt.OccurenceEndDate,
+            Quantity = tt.Quantity
+        }).ToList();
+
+        if (Model.TicketReleases.Count > 0)
+        {
+            var first = Model.TicketReleases[0];
+            Model.UseIndividualDates = !Model.TicketReleases.All(r =>
+                r.OccurenceStartDate == first.OccurenceStartDate &&
+                r.OccurenceEndDate == first.OccurenceEndDate);
+
+            if (!Model.UseIndividualDates)
+            {
+                Model.OccurenceStartDate = first.OccurenceStartDate;
+                Model.OccurenceEndDate = first.OccurenceEndDate;
+            }
+        }
     }
 
     private async Task GetCurrentUserIdAsync()
@@ -211,51 +298,142 @@ public partial class CreateEventBase : ComponentBase
                 }
             }
 
-            var ticketTypes = Model.TicketReleases.Select(tt => new CreateTicketTypeRequest(
-                EventId: Guid.Empty,
-                Title: tt.Title,
-                OccurenceStartDate: tt.OccurenceStartDate,
-                OccurenceEndDate: tt.OccurenceEndDate,
-                AdmissionStartDate: tt.AdmissionStartDate,
-                AdmissionEndDate: tt.AdmissionEndDate,
-                PriceCents: (int)Math.Round(tt.Price * 100m, MidpointRounding.AwayFromZero),
-                Currency: tt.Currency,
-                MaxUses: tt.MaxUses,
-                Quantity: tt.Quantity
-            )).ToList();
-
-            var createRequest = new CreateEventRequest(
-                HostId: CurrentUserId,
-                Category: Model.Category!.Value,
-                Title: Model.Title,
-                Description: Model.Description,
-                Location: Model.Location,
-                ThumbnailUrl: Model.ThumbnailUrl,
-                Status: Model.Status,
-                TicketTypes: ticketTypes
-            );
-
-            var created = await EventsClient.CreateAsync(createRequest);
-
-            NotificationService.Notify(new NotificationMessage
+            if (IsEditMode)
             {
-                Severity = NotificationSeverity.Success,
-                Summary = "Event Created",
-                Detail = $"Event '{Model.Title}' has been successfully created!",
-                Duration = 5000
-            });
+                var ticketTypes = Model.TicketReleases.Select(tt => new UpdateTicketTypeRequest(
+                    Id: tt.Id,
+                    Title: tt.Title,
+                    OccurenceStartDate: tt.OccurenceStartDate,
+                    OccurenceEndDate: tt.OccurenceEndDate,
+                    AdmissionStartDate: tt.AdmissionStartDate,
+                    AdmissionEndDate: tt.AdmissionEndDate,
+                    PriceCents: (int)Math.Round(tt.Price * 100m, MidpointRounding.AwayFromZero),
+                    Currency: tt.Currency,
+                    MaxUses: tt.MaxUses,
+                    Quantity: tt.Quantity
+                )).ToList();
 
-            NavigationManager.NavigateTo($"/events/{created!.Id}");
+                var updateRequest = new UpdateEventRequest(
+                    Category: Model.Category!.Value,
+                    Title: Model.Title,
+                    Description: Model.Description,
+                    Location: Model.Location,
+                    ThumbnailUrl: Model.ThumbnailUrl,
+                    Status: Model.Status,
+                    TicketTypes: ticketTypes
+                );
+
+                await EventsClient.UpdateAsync(EventId!.Value, updateRequest);
+
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Event Updated",
+                    Detail = $"'{Model.Title}' has been updated.",
+                    Duration = 5000
+                });
+
+                NavigationManager.NavigateTo($"/events/{EventId!.Value}");
+            }
+            else
+            {
+                var ticketTypes = Model.TicketReleases.Select(tt => new CreateTicketTypeRequest(
+                    EventId: Guid.Empty,
+                    Title: tt.Title,
+                    OccurenceStartDate: tt.OccurenceStartDate,
+                    OccurenceEndDate: tt.OccurenceEndDate,
+                    AdmissionStartDate: tt.AdmissionStartDate,
+                    AdmissionEndDate: tt.AdmissionEndDate,
+                    PriceCents: (int)Math.Round(tt.Price * 100m, MidpointRounding.AwayFromZero),
+                    Currency: tt.Currency,
+                    MaxUses: tt.MaxUses,
+                    Quantity: tt.Quantity
+                )).ToList();
+
+                var createRequest = new CreateEventRequest(
+                    HostId: CurrentUserId,
+                    Category: Model.Category!.Value,
+                    Title: Model.Title,
+                    Description: Model.Description,
+                    Location: Model.Location,
+                    ThumbnailUrl: Model.ThumbnailUrl,
+                    Status: Model.Status,
+                    TicketTypes: ticketTypes
+                );
+
+                var created = await EventsClient.CreateAsync(createRequest);
+
+                NotificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Event Created",
+                    Detail = $"Event '{Model.Title}' has been successfully created!",
+                    Duration = 5000
+                });
+
+                NavigationManager.NavigateTo($"/events/{created!.Id}");
+            }
         }
         catch (Exception ex)
         {
             NotificationService.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Error,
-                Summary = "Failed to create event",
+                Summary = IsEditMode ? "Failed to update event" : "Failed to create event",
                 Detail = ex.Message,
                 Duration = 5000
             });
+        }
+    }
+
+    protected async Task CancelEventAsync()
+    {
+        try
+        {
+            var request = new UpdateEventRequest(
+                Category: Model.Category!.Value,
+                Title: Model.Title,
+                Description: Model.Description,
+                Location: Model.Location,
+                ThumbnailUrl: Model.ThumbnailUrl,
+                Status: EventStatus.Cancelled,
+                TicketTypes: Model.TicketReleases.Select(tt => new UpdateTicketTypeRequest(
+                    Id: tt.Id,
+                    Title: tt.Title,
+                    OccurenceStartDate: tt.OccurenceStartDate,
+                    OccurenceEndDate: tt.OccurenceEndDate,
+                    AdmissionStartDate: tt.AdmissionStartDate,
+                    AdmissionEndDate: tt.AdmissionEndDate,
+                    PriceCents: (int)Math.Round(tt.Price * 100m, MidpointRounding.AwayFromZero),
+                    Currency: tt.Currency,
+                    MaxUses: tt.MaxUses,
+                    Quantity: tt.Quantity
+                )).ToList()
+            );
+
+            await EventsClient.UpdateAsync(EventId!.Value, request);
+            Model.Status = EventStatus.Cancelled;
+
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Event cancelled",
+                Detail = $"'{Model.Title}' has been cancelled.",
+                Duration = 5000
+            });
+
+            NavigationManager.NavigateTo($"/events/{EventId!.Value}");
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Failed to cancel event",
+                Detail = ex.Message,
+                Duration = 5000
+            });
+            IsCancelConfirming = false;
         }
     }
 
@@ -520,6 +698,8 @@ public class CreateEventFormModel
 
 public class TicketReleaseModel
 {
+    public Guid? Id { get; set; }
+
     [Required]
     [StringLength(100, ErrorMessage = "Ticket type title cannot exceed 100 characters.")]
     public string Title { get; set; } = "Standard Ticket";

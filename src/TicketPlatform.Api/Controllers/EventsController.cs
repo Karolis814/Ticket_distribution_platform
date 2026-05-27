@@ -150,6 +150,27 @@ public class EventsController(IEventService eventService) : ControllerBase
             MapToEventDto(created));
     }
 
+    [Authorize(Roles = "Host")]
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<EventDto>> Update(
+        Guid id,
+        [FromBody] UpdateEventRequest request,
+        CancellationToken ct)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                        ?? User.FindFirstValue("sub");
+
+        if (!Guid.TryParse(userIdStr, out var userId))
+            return Unauthorized();
+
+        var existing = await eventService.GetByIdAsync(id, ct);
+        if (existing is null) return NotFound();
+        if (existing.HostId != userId) return Forbid();
+
+        var updated = await eventService.UpdateAsync(id, request, ct);
+        return updated is null ? NotFound() : Ok(MapToEventDto(updated));
+    }
+
     private static EventDto MapToEventDto(Event e) => new(
         e.Id,
         e.HostId,

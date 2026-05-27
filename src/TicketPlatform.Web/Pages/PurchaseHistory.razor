@@ -1,4 +1,4 @@
-@page "/user/orders"
+@page "/user/purchases"
 @using Microsoft.AspNetCore.Authorization
 
 @attribute [Authorize]
@@ -8,11 +8,13 @@
 
 <RadzenStack Gap="1.5rem">
 
-    <PageHeader Title="My Tickets" Subtitle="View and download your tickets and invoices." />
+    <PageHeader Title="My Tickets" Subtitle="View and download your tickets and invoices."/>
 
     @if (IsLoading)
     {
-        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"/>
+        <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height:300px;">
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"/>
+        </RadzenStack>
     }
     else if (Orders.Count == 0)
     {

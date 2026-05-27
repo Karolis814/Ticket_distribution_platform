@@ -92,8 +92,10 @@
 
                 @if (EventDetails is null && !EventLoadFailed)
                 {
-                    <RadzenProgressBarCircular ShowValue="false"
-                                               Mode="ProgressBarMode.Indeterminate" />
+                    <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height:200px;">
+                        <RadzenProgressBarCircular ShowValue="false"
+                                                   Mode="ProgressBarMode.Indeterminate" />
+                    </RadzenStack>
                 }
                 else if (EventLoadFailed)
                 {

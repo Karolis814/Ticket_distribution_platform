@@ -4,7 +4,7 @@
 
 <PageTitle>@(Event?.Title ?? "Event Details")</PageTitle>
 
-<div style="max-width:900px;margin:0 auto;">
+<div style="width:100%;max-width:900px;margin:0 auto;">
 
     <div style="margin-bottom:1.25rem;">
         <RadzenButton Icon="arrow_back" Text="Back to Events" Variant="Variant.Text"
@@ -86,7 +86,7 @@
 
                     @if (IsOwner(Event))
                     {
-                        <RadzenButton Text="Edit Event" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Large" Icon="edit" Style="min-width:160px;"/>
+                        <RadzenButton Click="@(() => NavigationManager.NavigateTo($"/host/events/{Event.Id}/edit"))" Text="Edit Event" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Large" Icon="edit" Style="min-width:160px;"/>
                     }
                     else if (ShouldShowCheckout(Event))
                     {

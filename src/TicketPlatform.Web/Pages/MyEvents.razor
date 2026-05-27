@@ -16,7 +16,9 @@
 
     @if (IsLoading)
     {
-        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height:300px;">
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </RadzenStack>
     }
     else if (Events.Count == 0)
     {
@@ -62,10 +64,14 @@
                     </Template>
                 </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn TItem="EventDto" Title="" Width="80px" Sortable="false">
+                <RadzenDataGridColumn TItem="EventDto" Title="" Width="110px" Sortable="false">
                     <Template Context="ev">
-                        <RadzenButton Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
-                                      Click="@(() => Nav.NavigateTo($"/events/{ev.Id}"))" />
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem">
+                            <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                                          Click="@(() => Nav.NavigateTo($"/host/events/{ev.Id}/edit"))" />
+                            <RadzenButton Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                                          Click="@(() => Nav.NavigateTo($"/events/{ev.Id}"))" />
+                        </RadzenStack>
                     </Template>
                 </RadzenDataGridColumn>
 

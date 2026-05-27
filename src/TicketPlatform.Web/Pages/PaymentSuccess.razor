@@ -11,10 +11,12 @@
 
                 @if (Loading)
                 {
-                    <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        Loading payment information...
-                    </RadzenText>
+                    <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Gap="1rem" Style="min-height:200px;">
+                        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            Loading payment information...
+                        </RadzenText>
+                    </RadzenStack>
                 }
                 else if (!string.IsNullOrWhiteSpace(Error))
                 {

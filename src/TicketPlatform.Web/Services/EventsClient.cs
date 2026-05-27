@@ -101,15 +101,19 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         CreateEventRequest request,
         CancellationToken ct = default)
     {
-        var response = await http.PostAsJsonAsync(
-            "api/events",
-            request,
-            ct);
-
+        var response = await http.PostAsJsonAsync("api/events", request, ct);
         response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<EventDto>(cancellationToken: ct);
+    }
 
-        return await response.Content.ReadFromJsonAsync<EventDto>(
-            cancellationToken: ct);
+    public async Task<EventDto?> UpdateAsync(
+        Guid id,
+        UpdateEventRequest request,
+        CancellationToken ct = default)
+    {
+        var response = await http.PutAsJsonAsync($"api/events/{id}", request, ct);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<EventDto>(cancellationToken: ct);
     }
 
     public async Task<IReadOnlyList<EventDto>> SearchAsync(
