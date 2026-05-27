@@ -15,6 +15,8 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
     protected bool Loading { get; set; } = true;
     protected string? Error { get; set; }
     private string? SessionId;
+    protected bool IsFreeOrder => FreeOrderId.HasValue;
+    private Guid? FreeOrderId;
     protected bool Polling;
     private CancellationTokenSource? _cts;
 
@@ -34,11 +36,16 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
     protected override async Task OnInitializedAsync()
     {
         var uri = Nav.ToAbsoluteUri(Nav.Uri);
-        SessionId = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("session_id");
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        SessionId = query.Get("session_id");
+
+        var orderIdRaw = query.Get("order_id");
+        if (Guid.TryParse(orderIdRaw, out var parsed))
+            FreeOrderId = parsed;
 
         await LoadPayment();
 
-        if (Payment is not null && !Payment.InvoiceReady)
+        if (Payment is not null && !Payment.InvoiceReady && !FreeOrderId.HasValue)
             _ = PollInvoiceAsync();
     }
 
@@ -49,14 +56,23 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
 
         try
         {
-            if (string.IsNullOrWhiteSpace(SessionId))
+            HttpResponseMessage response;
+
+            if (FreeOrderId.HasValue)
             {
-                Error = "Missing Stripe session id.";
+                response = await Http.GetAsync(
+                    $"api/payments/free-success?orderId={FreeOrderId.Value}");
+            }
+            else if (!string.IsNullOrWhiteSpace(SessionId))
+            {
+                response = await Http.GetAsync(
+                    $"api/payments/success?sessionId={Uri.EscapeDataString(SessionId)}");
+            }
+            else
+            {
+                Error = "Missing payment reference.";
                 return;
             }
-
-            var response = await Http.GetAsync(
-                $"api/payments/success?sessionId={Uri.EscapeDataString(SessionId)}");
 
             if (!response.IsSuccessStatusCode)
             {

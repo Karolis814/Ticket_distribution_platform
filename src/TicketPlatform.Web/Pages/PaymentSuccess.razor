@@ -32,7 +32,7 @@
                 else if (Payment is not null)
                 {
                     <RadzenText TextStyle="TextStyle.H4" Style="font-weight:700">
-                        Payment successful
+                        @(IsFreeOrder ? "Registration successful" : "Payment successful")
                     </RadzenText>
 
                     <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true">
@@ -45,28 +45,31 @@
                                   Click="DownloadTicketsAsync"
                                   Style="width:100%" />
 
-                    @if (Payment.InvoiceReady && !string.IsNullOrWhiteSpace(Payment.InvoiceUrl))
+                    @if (!IsFreeOrder)
                     {
-                        <RadzenButton Text="View invoice"
-                                      Icon="receipt_long"
-                                      ButtonStyle="ButtonStyle.Light"
-                                      Click="@(() => Nav.NavigateTo(Payment.InvoiceUrl!, forceLoad: true))"
-                                      Style="width:100%" />
-                    }
+                        @if (Payment.InvoiceReady && !string.IsNullOrWhiteSpace(Payment.InvoiceUrl))
+                        {
+                            <RadzenButton Text="View invoice"
+                                          Icon="receipt_long"
+                                          ButtonStyle="ButtonStyle.Light"
+                                          Click="@(() => Nav.NavigateTo(Payment.InvoiceUrl!, forceLoad: true))"
+                                          Style="width:100%" />
+                        }
 
-                    @if (!Payment.InvoiceReady && Polling)
-                    {
-                        <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
-                            Invoice is being generated...
-                        </RadzenAlert>
-                        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Small" />
-                    }
+                        @if (!Payment.InvoiceReady && Polling)
+                        {
+                            <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
+                                Invoice is being generated...
+                            </RadzenAlert>
+                            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Small" />
+                        }
 
-                    @if (!Payment.InvoiceReady && !Polling)
-                    {
-                        <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
-                            Invoice is still being generated — check your email shortly.
-                        </RadzenAlert>
+                        @if (!Payment.InvoiceReady && !Polling)
+                        {
+                            <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
+                                Invoice is still being generated — check your email shortly.
+                            </RadzenAlert>
+                        }
                     }
                 }
 
