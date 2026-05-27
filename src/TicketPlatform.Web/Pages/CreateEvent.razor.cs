@@ -13,7 +13,7 @@ public partial class CreateEventBase : ComponentBase
 {
     protected CreateEventFormModel Model { get; set; } = new()
     {
-        Status = EventStatus.Draft,
+        Status = EventStatus.Published,
         TicketReleases = [new TicketReleaseModel()]
     };
 
@@ -21,11 +21,7 @@ public partial class CreateEventBase : ComponentBase
         Enum.GetValues<EventCategory>().ToList();
 
     protected List<EventStatus> EventStatuses { get; set; } =
-    [
-        EventStatus.Draft,
-        EventStatus.Published,
-        EventStatus.Cancelled
-    ];
+        Enum.GetValues<EventStatus>().ToList();
 
     protected List<string> Currencies { get; set; } =
     [
@@ -38,12 +34,24 @@ public partial class CreateEventBase : ComponentBase
     [Inject] protected IPlacesClient PlacesClient { get; set; } = null!;
     [Inject] protected IUsersClient UsersClient { get; set; } = null!;
     [Inject] protected IHostPaymentsClient HostPaymentsClient { get; set; } = null!;
+    [Inject] protected IImagesClient ImagesClient { get; set; } = null!;
     [Inject] protected NotificationService NotificationService { get; set; } = null!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = null!;
     [Inject] protected AuthenticationStateProvider AuthState { get; set; } = null!;
 
     private Guid CurrentUserId { get; set; } = Guid.Empty;
     protected bool IsInitialized { get; set; } = false;
+    protected bool IsUploadingImage { get; set; } = false;
+
+    protected bool IsFormValid =>
+        !string.IsNullOrWhiteSpace(Model.Title) &&
+        !string.IsNullOrWhiteSpace(Model.Description) &&
+        Model.Category.HasValue &&
+        !string.IsNullOrWhiteSpace(Model.Location) &&
+        Model.TicketReleases.Count > 0 &&
+        Model.TicketReleases.All(r =>
+            !string.IsNullOrWhiteSpace(r.Title) &&
+            !string.IsNullOrWhiteSpace(r.Currency));
     protected List<PlacePredictionDto> LocationSuggestions { get; set; } = [];
     protected bool IsSearchingLocations { get; set; } = false;
 
@@ -93,6 +101,39 @@ public partial class CreateEventBase : ComponentBase
     {
         try
         {
+            if (!Model.UseIndividualDates)
+            {
+                if (Model.OccurenceEndDate <= Model.OccurenceStartDate)
+                {
+                    NotificationService.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary = "Validation Failed",
+                        Detail = "Event end time must be after the start time.",
+                        Duration = 5000
+                    });
+                    return;
+                }
+
+                foreach (var release in Model.TicketReleases)
+                {
+                    release.OccurenceStartDate = Model.OccurenceStartDate;
+                    release.OccurenceEndDate   = Model.OccurenceEndDate;
+                }
+            }
+
+            foreach (var release in Model.TicketReleases)
+            {
+                if (!release.UseCustomAdmissionTimes)
+                {
+                    release.AdmissionStartDate = release.OccurenceStartDate;
+                    release.AdmissionEndDate   = release.OccurenceEndDate;
+                }
+
+                if (!release.UseMaxUses)
+                    release.MaxUses = 1;
+            }
+
             if (string.IsNullOrWhiteSpace(Model.Location))
             {
                 NotificationService.Notify(new NotificationMessage
@@ -183,7 +224,7 @@ public partial class CreateEventBase : ComponentBase
 
             var createRequest = new CreateEventRequest(
                 HostId: CurrentUserId,
-                Category: Model.Category,
+                Category: Model.Category!.Value,
                 Title: Model.Title,
                 Description: Model.Description,
                 Location: Model.Location,
@@ -192,7 +233,7 @@ public partial class CreateEventBase : ComponentBase
                 TicketTypes: ticketTypes
             );
 
-            await EventsClient.CreateAsync(createRequest);
+            var created = await EventsClient.CreateAsync(createRequest);
 
             NotificationService.Notify(new NotificationMessage
             {
@@ -202,13 +243,7 @@ public partial class CreateEventBase : ComponentBase
                 Duration = 5000
             });
 
-            Model = new CreateEventFormModel
-            {
-                Status = EventStatus.Draft,
-                TicketReleases = [new()]
-            };
-
-            NavigationManager.NavigateTo("/events");
+            NavigationManager.NavigateTo($"/events/{created!.Id}");
         }
         catch (Exception ex)
         {
@@ -235,9 +270,16 @@ public partial class CreateEventBase : ComponentBase
         return Task.CompletedTask;
     }
 
+    protected void SyncCurrency(string currency)
+    {
+        foreach (var release in Model.TicketReleases)
+            release.Currency = currency;
+    }
+
     protected void AddTicketRelease()
     {
-        Model.TicketReleases.Add(new TicketReleaseModel());
+        var currency = Model.TicketReleases.FirstOrDefault()?.Currency ?? "EUR";
+        Model.TicketReleases.Add(new TicketReleaseModel { Currency = currency });
     }
 
     protected void RemoveTicketRelease(int index)
@@ -258,34 +300,55 @@ public partial class CreateEventBase : ComponentBase
         }
     }
 
-    protected void OnFileChange(InputFileChangeEventArgs e)
+    protected async Task OnFileChange(InputFileChangeEventArgs e)
     {
+        var file = e.GetMultipleFiles(1).FirstOrDefault();
+        if (file is null) return;
+
+        var allowed = new[] { "image/jpeg", "image/png", "image/webp" };
+        if (!allowed.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "Unsupported file type",
+                Detail = "Please upload a JPEG, PNG, or WebP image.",
+                Duration = 5000
+            });
+            return;
+        }
+
+        IsUploadingImage = true;
+        StateHasChanged();
+
         try
         {
-            var file = e.GetMultipleFiles(1).FirstOrDefault();
+            await using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            var response = await ImagesClient.UploadEventThumbnailAsync(stream, file.Name, file.ContentType);
+            Model.ThumbnailUrl = response.Url;
+            Model.ThumbnailFileName = file.Name;
 
-            if (file != null)
+            NotificationService.Notify(new NotificationMessage
             {
-                Model.ThumbnailFileName = file.Name;
-
-                NotificationService.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Info,
-                    Summary = "File Selected",
-                    Detail = $"Image '{file.Name}' has been selected for the event.",
-                    Duration = 3000
-                });
-            }
+                Severity = NotificationSeverity.Success,
+                Summary = "Image uploaded",
+                Detail = $"'{file.Name}' uploaded successfully.",
+                Duration = 3000
+            });
         }
         catch (Exception ex)
         {
             NotificationService.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Error,
-                Summary = "File Upload Error",
+                Summary = "Upload failed",
                 Detail = ex.Message,
                 Duration = 5000
             });
+        }
+        finally
+        {
+            IsUploadingImage = false;
         }
     }
 
@@ -414,7 +477,7 @@ public partial class CreateEventBase : ComponentBase
 public class CreateEventFormModel
 {
     [Required]
-    public EventCategory Category { get; set; } = EventCategory.Other;
+    public EventCategory? Category { get; set; } = null;
 
     [Required]
     [StringLength(200, ErrorMessage = "Title cannot exceed 200 characters.")]
@@ -427,7 +490,15 @@ public class CreateEventFormModel
     [StringLength(300, ErrorMessage = "Location cannot exceed 300 characters.")]
     public string? Location { get; set; }
 
-    public EventStatus Status { get; set; } = EventStatus.Draft;
+    public EventStatus Status { get; set; } = EventStatus.Published;
+
+    public DateTimeOffset OccurenceStartDate { get; set; } =
+        DateTimeOffset.UtcNow.Date.AddDays(1).AddHours(12);
+
+    public DateTimeOffset OccurenceEndDate { get; set; } =
+        DateTimeOffset.UtcNow.Date.AddDays(1).AddHours(14);
+
+    public bool UseIndividualDates { get; set; } = false;
 
     public string? ThumbnailUrl { get; set; }
 
@@ -442,21 +513,25 @@ public class TicketReleaseModel
     [StringLength(100, ErrorMessage = "Ticket type title cannot exceed 100 characters.")]
     public string Title { get; set; } = "Standard Ticket";
 
+    public bool UseCustomAdmissionTimes { get; set; } = false;
+
+    public bool UseMaxUses { get; set; } = false;
+
     [Required]
     public DateTimeOffset OccurenceStartDate { get; set; } =
-        DateTimeOffset.UtcNow.AddDays(1);
+        DateTimeOffset.UtcNow.Date.AddDays(1).AddHours(12);
 
     [Required]
     public DateTimeOffset OccurenceEndDate { get; set; } =
-        DateTimeOffset.UtcNow.AddDays(2);
+        DateTimeOffset.UtcNow.Date.AddDays(1).AddHours(14);
 
     [Required]
     public DateTimeOffset AdmissionStartDate { get; set; } =
-        DateTimeOffset.UtcNow;
+        DateTimeOffset.UtcNow.Date.AddDays(1).AddHours(12);
 
     [Required]
     public DateTimeOffset AdmissionEndDate { get; set; } =
-        DateTimeOffset.UtcNow.AddDays(1);
+        DateTimeOffset.UtcNow.Date.AddDays(1).AddHours(14);
 
     [Required]
     [Range(0, double.MaxValue, ErrorMessage = "Price cannot be negative.")]
@@ -472,5 +547,5 @@ public class TicketReleaseModel
 
     [Required]
     [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
-    public int Quantity { get; set; } = 100;
+    public int Quantity { get; set; } = 1;
 }

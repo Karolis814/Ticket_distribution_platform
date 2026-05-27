@@ -10,7 +10,7 @@
     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
         <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1" Style="margin:0">My Events</RadzenText>
         <RadzenButton Text="Create Event" Icon="calendar_add_on" ButtonStyle="ButtonStyle.Primary"
-                      Click="@(() => Nav.NavigateTo("/events/create"))" />
+                      Click="@(() => Nav.NavigateTo("/host/create"))" />
     </RadzenStack>
 
     @if (IsLoading)
