@@ -221,8 +221,8 @@ public class CheckoutBase : ComponentBase
                 System.Globalization.CultureInfo.InvariantCulture);
 
     protected static DateTimeOffset StartDate(EventDto e) =>
-        e.TicketTypes.Min(tt => tt.OccurenceStartDate);
+        e.TicketTypes.Min(tt => tt.OccurenceStartDate).ToLocalTime();
 
     protected static DateTimeOffset EndDate(EventDto e) =>
-        e.TicketTypes.Max(tt => tt.OccurenceEndDate);
+        e.TicketTypes.Max(tt => tt.OccurenceEndDate).ToLocalTime();
 }

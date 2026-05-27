@@ -116,10 +116,10 @@ public class EventsController(IEventService eventService) : ControllerBase
             TicketTypes = request.TicketTypes.Select(tt => new TicketType
             {
                 Title = tt.Title,
-                OccurenceStartDate = tt.OccurenceStartDate,
-                OccurenceEndDate = tt.OccurenceEndDate,
-                AdmissionStartDate = tt.AdmissionStartDate,
-                AdmissionEndDate = tt.AdmissionEndDate,
+                OccurenceStartDate = tt.OccurenceStartDate.ToUniversalTime(),
+                OccurenceEndDate = tt.OccurenceEndDate.ToUniversalTime(),
+                AdmissionStartDate = tt.AdmissionStartDate.ToUniversalTime(),
+                AdmissionEndDate = tt.AdmissionEndDate.ToUniversalTime(),
                 PriceCents = tt.PriceCents,
                 Currency = tt.Currency,
                 MaxUses = tt.MaxUses,

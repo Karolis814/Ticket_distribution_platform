@@ -283,7 +283,7 @@
                                     <RadzenDataGridColumn TItem="StripePayoutDto"
                                                           Title="Created">
                                         <Template Context="payout">
-                                            @payout.Created.ToString("yyyy-MM-dd HH:mm")
+                                            @payout.Created.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
                                         </Template>
                                     </RadzenDataGridColumn>
                                 </Columns>

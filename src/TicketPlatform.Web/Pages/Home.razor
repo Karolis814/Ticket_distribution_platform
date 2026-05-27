@@ -35,7 +35,7 @@
                         <RadzenCarouselItem>
                             <div class="rz-w-100 rz-overflow-hidden"
                                  style="position:relative;height:420px;cursor:pointer;"
-                                 @onclick="@(() => Nav.NavigateTo($"/checkout/{ev.Id}"))">
+                                 @onclick="@(() => Nav.NavigateTo($"/events/{ev.Id}"))">
                                 <RadzenImage Path="@(ev.ThumbnailUrl ?? "https://placehold.net/8.png")"
                                              Class="rz-w-100 rz-h-100 rz-display-block"
                                              Style="object-fit:cover;"/>
@@ -81,11 +81,11 @@
                                                     @StartDate(ev).ToString("yyyy-MM-dd")
                                                     @if (StartDate(ev).Date == EndDate(ev).Date)
                                                     {
-                                                        <span>• @StartDate(ev).ToString("HH:mm") – @EndDate(ev).ToString("HH:mm")</span>
+                                                        <span>&nbsp;@StartDate(ev).ToString("HH:mm")&nbsp;–&nbsp;@EndDate(ev).ToString("HH:mm")</span>
                                                     }
                                                     else
                                                     {
-                                                        <span> – @EndDate(ev).ToString("yyyy-MM-dd")</span>
+                                                        <span>&nbsp–&nbsp;@EndDate(ev).ToString("yyyy-MM-dd")</span>
                                                     }
                                                 </RadzenText>
                                             </RadzenStack>
@@ -105,7 +105,7 @@
                                                   Icon="confirmation_number"
                                                   ButtonStyle="ButtonStyle.Primary"
                                                   Size="ButtonSize.Medium"
-                                                  Click="@(() => Nav.NavigateTo($"/checkout/{ev.Id}"))"
+                                                  Click="@(() => Nav.NavigateTo($"/events/{ev.Id}"))"
                                                   @onclick:stopPropagation="true"/>
                                 </div>
                             </div>

@@ -68,11 +68,11 @@ else
                                     @StartDate(ev).ToString("yyyy-MM-dd")
                                     @if (StartDate(ev).Date == EndDate(ev).Date)
                                     {
-                                        <span>• @StartDate(ev).ToString("HH:mm") – @EndDate(ev).ToString("HH:mm")</span>
+                                        <span>&nbsp;@StartDate(ev).ToString("HH:mm")&nbsp;–&nbsp;@EndDate(ev).ToString("HH:mm")</span>
                                     }
                                     else
                                     {
-                                        <span> – @EndDate(ev).ToString("yyyy-MM-dd")</span>
+                                        <span>&nbsp–&nbsp;@EndDate(ev).ToString("yyyy-MM-dd")</span>
                                     }
                                 </RadzenText>
                             </RadzenStack>

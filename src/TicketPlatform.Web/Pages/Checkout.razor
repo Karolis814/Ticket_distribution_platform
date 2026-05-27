@@ -61,16 +61,11 @@
 
                             @if (StartDate(EventDetails).Date == EndDate(EventDetails).Date)
                             {
-                                <span>
-                                    • @StartDate(EventDetails).ToString("HH:mm")
-                                    – @EndDate(EventDetails).ToString("HH:mm")
-                                </span>
+                                <span>&nbsp;@StartDate(EventDetails).ToString("HH:mm")&nbsp;–&nbsp;@EndDate(EventDetails).ToString("HH:mm")</span>
                             }
                             else
                             {
-                                <span>
-                                    – @EndDate(EventDetails).ToString("yyyy-MM-dd")
-                                </span>
+                                <span>&nbsp–&nbsp;@EndDate(EventDetails).ToString("yyyy-MM-dd")</span>
                             }
 
                         </RadzenText>
@@ -146,11 +141,11 @@
                                                         Style="font-size:1rem" />
 
                                             <span>
-                                                @tt.OccurenceStartDate.ToString("yyyy-MM-dd HH:mm")
+                                                @tt.OccurenceStartDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
                                                 –
-                                                @(tt.OccurenceStartDate.Date == tt.OccurenceEndDate.Date
-                                                    ? tt.OccurenceEndDate.ToString("HH:mm")
-                                                    : tt.OccurenceEndDate.ToString("yyyy-MM-dd HH:mm"))
+                                                @(tt.OccurenceStartDate.ToLocalTime().Date == tt.OccurenceEndDate.ToLocalTime().Date
+                                                    ? tt.OccurenceEndDate.ToLocalTime().ToString("HH:mm")
+                                                    : tt.OccurenceEndDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))
                                             </span>
 
                                         </RadzenText>

@@ -88,11 +88,11 @@
                                 <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem">
                                     <RadzenStack Gap="0.25rem">
                                         <RadzenText TextStyle="TextStyle.Overline">Doors Open</RadzenText>
-                                        <RadzenText>@Result.AdmissionStartDate?.ToString("yyyy-MM-dd HH:mm")</RadzenText>
+                                        <RadzenText>@Result.AdmissionStartDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
                                     </RadzenStack>
                                     <RadzenStack Gap="0.25rem">
                                         <RadzenText TextStyle="TextStyle.Overline">Last Entry</RadzenText>
-                                        <RadzenText>@Result.AdmissionEndDate?.ToString("yyyy-MM-dd HH:mm")</RadzenText>
+                                        <RadzenText>@Result.AdmissionEndDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
                                     </RadzenStack>
                                 </RadzenStack>
                             </RadzenFieldset>
@@ -101,11 +101,11 @@
                                 <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem">
                                     <RadzenStack Gap="0.25rem">
                                         <RadzenText TextStyle="TextStyle.Overline">Starts</RadzenText>
-                                        <RadzenText>@Result.OccurenceStartDate?.ToString("yyyy-MM-dd HH:mm")</RadzenText>
+                                        <RadzenText>@Result.OccurenceStartDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
                                     </RadzenStack>
                                     <RadzenStack Gap="0.25rem">
                                         <RadzenText TextStyle="TextStyle.Overline">Ends</RadzenText>
-                                        <RadzenText>@Result.OccurenceEndDate?.ToString("yyyy-MM-dd HH:mm")</RadzenText>
+                                        <RadzenText>@Result.OccurenceEndDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
                                     </RadzenStack>
                                 </RadzenStack>
                             </RadzenFieldset>

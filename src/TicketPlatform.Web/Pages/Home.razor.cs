@@ -15,10 +15,10 @@ public class HomeBase : ComponentBase
     protected bool IsLoading { get; private set; } = true;
 
     protected static DateTimeOffset StartDate(EventDto e) =>
-        e.TicketTypes.Min(tt => tt.OccurenceStartDate);
+        e.TicketTypes.Min(tt => tt.OccurenceStartDate).ToLocalTime();
 
     protected static DateTimeOffset EndDate(EventDto e) =>
-        e.TicketTypes.Max(tt => tt.OccurenceEndDate);
+        e.TicketTypes.Max(tt => tt.OccurenceEndDate).ToLocalTime();
 
     protected static string? GetMinPriceText(EventDto ev)
     {
