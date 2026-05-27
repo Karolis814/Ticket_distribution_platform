@@ -1,0 +1,75 @@
+@page "/host/my-events"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inherits MyEventsBase
+
+<PageTitle>My Events</PageTitle>
+
+<RadzenStack Gap="1.5rem">
+
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+        <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1" Style="margin:0">My Events</RadzenText>
+        <RadzenButton Text="Create Event" Icon="calendar_add_on" ButtonStyle="ButtonStyle.Primary"
+                      Click="@(() => Nav.NavigateTo("/events/create"))" />
+    </RadzenStack>
+
+    @if (IsLoading)
+    {
+        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+    }
+    else if (Events.Count == 0)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
+            You haven't created any events yet.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid Data="@Events" TItem="EventDto"
+                        AllowSorting="true"
+                        AllowColumnResize="true"
+                        GridLines="DataGridGridLines.Horizontal">
+            <Columns>
+
+                <RadzenDataGridColumn TItem="EventDto" Title="Title" SortProperty="Title">
+                    <Template Context="ev">
+                        <RadzenLink Path="@($"/events/{ev.Id}")" Text="@ev.Title" />
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="EventDto" Title="Status" Width="120px">
+                    <Template Context="ev">
+                        <RadzenBadge BadgeStyle="@StatusBadge(ev.Status)" Text="@ev.Status.ToString()" />
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="EventDto" Title="Category" Width="140px" SortProperty="Category">
+                    <Template Context="ev">
+                        @ev.Category.ToString()
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="EventDto" Title="Starts">
+                    <Template Context="ev">
+                        @StartDate(ev).ToString("yyyy-MM-dd HH:mm")
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="EventDto" Title="Sold / Capacity" Width="150px">
+                    <Template Context="ev">
+                        @TotalSold(ev) / @TotalCapacity(ev)
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="EventDto" Title="" Width="80px" Sortable="false">
+                    <Template Context="ev">
+                        <RadzenButton Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                                      Click="@(() => Nav.NavigateTo($"/events/{ev.Id}"))" />
+                    </Template>
+                </RadzenDataGridColumn>
+
+            </Columns>
+        </RadzenDataGrid>
+    }
+
+</RadzenStack>
