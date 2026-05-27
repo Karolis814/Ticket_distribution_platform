@@ -8,7 +8,7 @@ namespace TicketPlatform.Core.Services;
 
 public class TicketValidationService(ITicketService ticketService) : ITicketValidationService
 {
-    public async Task<TicketValidationResult> ValidateAsync(Guid ticketId, CancellationToken ct = default)
+    public async Task<TicketValidationResult> ValidateAsync(Guid ticketId, Guid userId, CancellationToken ct = default)
     {
         var ticket = await ticketService.GetByIdAsync(ticketId, ct);
 
@@ -17,6 +17,14 @@ public class TicketValidationService(ITicketService ticketService) : ITicketVali
                 ValidationStatus.NotFound,
                 null, null, null, null, null, null, null, null,
                 "Ticket not found.");
+        else if (ticket.TicketType.Event.HostId != userId)
+        {
+             return new TicketValidationResult(
+                ValidationStatus.NotFound,
+                null, null, null, null, null, null, null, null,
+                "Only host can validate tickets.");
+            
+        }
 
         var result = Evaluate(ticket);
         await ticketService.UpdateAsync(ticket, ct);

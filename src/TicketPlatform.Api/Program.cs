@@ -1,8 +1,12 @@
 using Serilog;
+using System.Text;
 using Stripe;
 using TicketPlatform.Api.Middleware;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using TicketPlatform.Core.Settings;
 using TicketPlatform.Infrastructure.Payments;
 using TicketPlatform.Infrastructure.Services;
 
@@ -62,6 +66,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors(blazorCors);
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

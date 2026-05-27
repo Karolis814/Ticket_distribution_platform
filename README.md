@@ -11,13 +11,16 @@ Jira: https://markk-psk.atlassian.net/jira/software/projects/MARKK/summary
 - ASP.NET Core Web API + EF Core
 - PostgreSQL 16
 - Blazor WebAssembly + Radzen
+- Stripe (payments, sandbox mode)
+- Azure Storage via Azurite (local emulator)
+- Mailpit (local SMTP)
 - xUnit (+ Testcontainers for integration tests)
 
 ## Project structure
 
 ```
 Ticket_distribution_platform/
-├── docker-compose.yml         postgres + pgadmin
+├── docker-compose.yml         postgres, pgadmin, mailpit, azurite, stripe-cli
 ├── global.json                pins SDK to .NET 9
 ├── TicketPlatform.sln
 ├── src/
@@ -35,47 +38,81 @@ Ticket_distribution_platform/
 
 ## Getting started
 
-You need .NET 9 SDK and Docker
+You need .NET 9 SDK and Docker.
 
-1. Start Postgres:
-   ```
-   docker compose up -d
-   ```
+### 1. Store your Stripe sandbox keys
 
-2. Apply the database migration:
-   ```
-   dotnet ef database update \
-     --project src/TicketPlatform.Infrastructure \
-     --startup-project src/TicketPlatform.Api
-   ```
+Get your test keys from the [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys).
+Store them with dotnet user-secrets so they never touch source control:
 
-   If you don't have EF:
-   ```
-   dotnet tool install -g dotnet-ef --version 9.0.*
-   ```
+```
+cd src/TicketPlatform.Api
+dotnet user-secrets set "Stripe:SecretKey" "sk_test_..."
+```
 
-   If you come across any DB conflicts:
-   ```
-   dotnet ef database drop \
-     --project src/TicketPlatform.Infrastructure \
-     --startup-project src/TicketPlatform.Api
-   ```
-   Then apply the migration again.
+The Stripe CLI container also needs the secret key. Create a `.env` file in the repo root (already in `.gitignore`):
 
+```
+STRIPE_API_KEY=sk_test_...
+```
 
-3. Run the API:
-   ```
-   dotnet run --project src/TicketPlatform.Api --launch-profile https
-   ```
+### 2. Start dev services
 
-4. Run the frontend (another terminal):
-   ```
-   dotnet run --project src/TicketPlatform.Web --launch-profile https
-   ```
+```
+docker compose up -d
+```
 
-   Open https://localhost:7174
+### 3. Get the webhook signing secret
 
-   If the browser blocks the dev cert, run `dotnet dev-certs https --trust` once.
+On the first run the Stripe CLI prints a `whsec_...` signing secret. Grab it from the logs:
+
+```
+docker compose logs stripe-cli
+```
+
+Store it the same way:
+
+```
+cd src/TicketPlatform.Api
+dotnet user-secrets set "Stripe:WebhookSecret" "whsec_..."
+```
+
+### 4. Apply the database migration
+
+```
+dotnet ef database update \
+  --project src/TicketPlatform.Infrastructure \
+  --startup-project src/TicketPlatform.Api
+```
+
+If you don't have EF:
+```
+dotnet tool install -g dotnet-ef --version 9.0.*
+```
+
+If you come across any DB conflicts:
+```
+dotnet ef database drop \
+  --project src/TicketPlatform.Infrastructure \
+  --startup-project src/TicketPlatform.Api
+```
+Then apply the migration again.
+
+### 5. Run the API
+
+```
+dotnet run --project src/TicketPlatform.Api --launch-profile https
+```
+
+### 6. Run the frontend (another terminal)
+
+```
+dotnet run --project src/TicketPlatform.Web --launch-profile https
+```
+
+Open https://localhost:7174
+
+If the browser blocks the dev cert, run `dotnet dev-certs https --trust` once.
 
 ## Tests
 
@@ -91,6 +128,7 @@ Integration tests need Docker running — they spin up a throwaway Postgres via 
 - API: https://localhost:7001
 - pgAdmin: http://localhost:5050 (login: `admin@ticket.dev` / `admin`)
 - Mailpit: http://localhost:8025
+- Azurite: blob `localhost:10000`, queue `localhost:10001`, table `localhost:10002`
 
 ## Frontend conventions (short version)
 

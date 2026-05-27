@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
@@ -79,6 +80,7 @@ public class EventsController(IEventService eventService) : ControllerBase
             : Ok(MapToEventDto(@event));
     }
 
+    [Authorize(Roles = "Host")]
     [HttpPost]
     public async Task<ActionResult<EventDto>> Create(
         [FromBody] CreateEventRequest request,
@@ -145,7 +147,8 @@ public class EventsController(IEventService eventService) : ControllerBase
         e.CreatedAt,
         new HostDto(
             e.Host.Id,
-            e.Host.Username,
+            e.Host.FirstName,
+            e.Host.LastName,
             e.Host.Email,
             e.Host.Company
         ),

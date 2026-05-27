@@ -1,7 +1,9 @@
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
 using TicketPlatform.Shared.Dtos;
+using TicketPlatform.Web.Services;
 
 namespace TicketPlatform.Web.Pages;
 
@@ -10,12 +12,15 @@ public class CheckoutBase : ComponentBase
     [Inject] protected HttpClient Http { get; set; } = null!;
     [Inject] protected NavigationManager Nav { get; set; } = null!;
     [Inject] protected NotificationService Notify { get; set; } = null!;
+    [Inject] protected AuthenticationStateProvider AuthStateProvider { get; set; } = null!;
+    [Inject] private IUserSettingsClient SettingsClient { get; set; } = null!;
 
     [Parameter] public Guid EventId { get; set; }
 
     protected string FirstName { get; set; } = string.Empty;
     protected string LastName { get; set; } = string.Empty;
     protected string Email { get; set; } = string.Empty;
+    protected bool IsAuthenticated { get; private set; }
 
     private Dictionary<Guid, int> Cart { get; } = new();
 
@@ -35,9 +40,23 @@ public class CheckoutBase : ComponentBase
 
     protected int Remaining(TicketTypeDto tt) => tt.Quantity - tt.Sold;
 
-    protected int GetQuantity(Guid id) => Cart.TryGetValue(id, out var q) ? q : 0;
+    protected int GetQuantity(Guid id) => Cart.GetValueOrDefault(id, 0);
 
     protected override async Task OnParametersSetAsync() => await LoadEventAsync();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (state.User.Identity?.IsAuthenticated == true)
+        {
+            IsAuthenticated = true;
+
+            var profile = await SettingsClient.GetAsync();
+            FirstName = profile?.FirstName ?? string.Empty;
+            LastName  = profile?.LastName  ?? string.Empty;
+            Email     = profile?.Email ?? string.Empty;
+        }
+    }
 
     private async Task LoadEventAsync()
     {
@@ -94,7 +113,6 @@ public class CheckoutBase : ComponentBase
                 Detail = "Please add at least one ticket before continuing.",
                 Duration = 4000
             });
-
             return;
         }
 
@@ -116,11 +134,10 @@ public class CheckoutBase : ComponentBase
                 Detail = "Please enter both your first and last name.",
                 Duration = 4000
             });
-
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(Email) || !Email.Contains('@'))
+        if (string.IsNullOrWhiteSpace(Email) || !Email.Contains('@') || !Email.Contains('.'))
         {
             Notify.Notify(new NotificationMessage
             {
@@ -129,7 +146,6 @@ public class CheckoutBase : ComponentBase
                 Detail = "Please enter a valid email address.",
                 Duration = 4000
             });
-
             return;
         }
 
@@ -154,7 +170,6 @@ public class CheckoutBase : ComponentBase
             if (!response.IsSuccessStatusCode)
             {
                 var detail = await response.Content.ReadAsStringAsync();
-
                 Notify.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
@@ -164,7 +179,6 @@ public class CheckoutBase : ComponentBase
                         : detail,
                     Duration = 6000
                 });
-
                 return;
             }
 
@@ -179,7 +193,6 @@ public class CheckoutBase : ComponentBase
                     Detail = "The server did not return a valid Stripe checkout URL.",
                     Duration = 6000
                 });
-
                 return;
             }
 
