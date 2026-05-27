@@ -1,43 +1,24 @@
-@inherits MainLayoutBase
-@using Microsoft.AspNetCore.Components.Authorization
+@inherits LayoutComponentBase
 
 <RadzenComponents/>
 
 <RadzenLayout>
     <RadzenHeader>
-        <RadzenStack Orientation="Orientation.Horizontal" 
-                     AlignItems="AlignItems.Center" 
-                     JustifyContent="JustifyContent.SpaceBetween" 
-                     Gap="0" 
-                     class="rz-h-100 rz-px-3">
-            
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
-                <RadzenSidebarToggle Click="@ToggleSidebar"/>
-                <RadzenLabel Text="Ticket Platform" class="rz-px-3"/>
-            </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                     JustifyContent="JustifyContent.SpaceBetween" Gap="0"
+                     class="rz-h-100 rz-px-4">
 
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                <AuthorizeView>
-                    <Authorized>
-                        <RadzenText TextStyle="TextStyle.Body2" class="rz-m-0">
-                            Logged in as: <b>@User</b>
-                        </RadzenText>
-                        <RadzenButton Text="Logout" Click="@HandleLogout" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" />
-                    </Authorized>
-                    <NotAuthorized>
-                        <RadzenButton Text="Login" Click="@NavigateToLogin" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                        <RadzenButton Text="Sign Up" Click="@NavigateToRegister" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Small" />
-                    </NotAuthorized>
-                </AuthorizeView>
-            </RadzenStack>
-            
+            <RadzenLink Path="/" style="font-weight:600;font-size:1.05rem;white-space:nowrap;text-decoration:none;color:inherit;margin-right:1.5rem;">
+                Ticket Platform
+            </RadzenLink>
+
+            <NavMenu/>
+
+            <ProfileMenu/>
+
         </RadzenStack>
     </RadzenHeader>
-    
-    <RadzenSidebar @bind-Expanded="@SidebarExpanded">
-        <NavMenu/>
-    </RadzenSidebar>
-    
+
     <RadzenBody>
         <RadzenStack class="rz-p-4">
             <div style="max-width:1320px;margin:0 auto;width:100%;">

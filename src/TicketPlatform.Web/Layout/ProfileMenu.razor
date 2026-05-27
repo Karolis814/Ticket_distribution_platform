@@ -1,0 +1,25 @@
+@inherits ProfileMenuBase
+
+@if (IsAuthenticated)
+{
+    <RadzenProfileMenu style="margin-left:1rem;">
+        <Template>
+            <RadzenText class="rz-m-0" style="white-space:nowrap;">@Email</RadzenText>
+        </Template>
+        <ChildContent>
+            @if (IsHost)
+            {
+                <RadzenMenuItem Text="My Tickets" Path="/user/orders" Icon="receipt_long"/>
+            }
+            <RadzenMenuItem Text="Settings" Path="/user/settings" Icon="settings"/>
+            <RadzenMenuItem Text="Logout" Icon="logout" Path="/auth/logout"/>
+        </ChildContent>
+    </RadzenProfileMenu>
+}
+else
+{
+    <RadzenMenu style="margin-left:1rem;">
+        <RadzenMenuItem Text="Log In" Icon="login" Path="/auth/login"/>
+        <RadzenMenuItem Text="Sign Up" Icon="person_add" Path="/auth/register"/>
+    </RadzenMenu>
+}

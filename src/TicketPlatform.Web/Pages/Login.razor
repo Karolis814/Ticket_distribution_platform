@@ -7,49 +7,60 @@
 
 <RadzenCard Style="max-width:420px;margin:2rem auto;">
 
-    <RadzenStack Gap="1.5rem">
+    <EditForm Model="@Model" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator/>
 
-        <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1" Style="margin:0">
-            Sign in
-        </RadzenText>
+        <RadzenStack Gap="1.5rem">
 
-        @if (ErrorMessage is not null)
-        {
-            <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" AllowClose="false">
-                @ErrorMessage
-            </RadzenAlert>
-        }
+            <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1" Style="margin:0">
+                Sign in
+            </RadzenText>
 
-        <RadzenStack Gap="1rem">
+            @if (ErrorMessage is not null)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" AllowClose="false">
+                    @ErrorMessage
+                </RadzenAlert>
+            }
 
-            <RadzenFormField Text="Email address" Variant="Variant.Outlined" Style="width:100%">
-                <RadzenTextBox @bind-Value="Model.Email"
-                               Placeholder="you@example.com"
-                               InputType="InputType.Email"
-                               Style="width:100%" />
-            </RadzenFormField>
+            <RadzenStack Gap="1rem">
 
-            <RadzenFormField Text="Password" Variant="Variant.Outlined" Style="width:100%">
-                <RadzenPassword @bind-Value="Model.Password"
-                                Placeholder="••••••••"
-                                Style="width:100%" />
-            </RadzenFormField>
+                <RadzenStack Gap="0.25rem">
+                    <RadzenFormField Text="Email address" Variant="Variant.Outlined" Style="width:100%">
+                        <RadzenTextBox @bind-Value="Model.Email"
+                                       Placeholder="you@example.com"
+                                       InputType="InputType.Email"
+                                       Style="width:100%"/>
+                    </RadzenFormField>
+                    <ValidationMessage For="@(() => Model.Email)"/>
+                </RadzenStack>
+
+                <RadzenStack Gap="0.25rem">
+                    <RadzenFormField Text="Password" Variant="Variant.Outlined" Style="width:100%">
+                        <RadzenPassword @bind-Value="Model.Password"
+                                        Placeholder="••••••••"
+                                        Style="width:100%"/>
+                    </RadzenFormField>
+                    <ValidationMessage For="@(() => Model.Password)"/>
+                </RadzenStack>
+
+            </RadzenStack>
+
+            <RadzenButton Text="@(IsLoading ? "Signing in…" : "Sign in")"
+                          ButtonType="ButtonType.Submit"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Size="ButtonSize.Large"
+                          Icon="@(IsLoading ? "" : "login")"
+                          Disabled="@IsLoading"
+                          Style="width:100%"/>
+
+            <RadzenText TextStyle="TextStyle.Body2" Style="text-align:center;margin:0">
+                Don't have an account?
+                <RadzenLink Path="/auth/register" Text="Register"/>
+            </RadzenText>
 
         </RadzenStack>
 
-        <RadzenButton Text="@(IsLoading ? "Signing in…" : "Sign in")"
-                      ButtonStyle="ButtonStyle.Primary"
-                      Size="ButtonSize.Large"
-                      Icon="@(IsLoading ? "" : "login")"
-                      Disabled="@IsLoading"
-                      Click="HandleLogin"
-                      Style="width:100%" />
-
-        <RadzenText TextStyle="TextStyle.Body2" Style="text-align:center;margin:0">
-            Don't have an account?
-            <RadzenLink Path="/auth/register" Text="Register" />
-        </RadzenText>
-
-    </RadzenStack>
+    </EditForm>
 
 </RadzenCard>

@@ -40,15 +40,18 @@ Ticket_distribution_platform/
 
 You need .NET 9 SDK and Docker.
 
-### 1. Store your Stripe sandbox keys
+### 1. Store secrets
 
-Get your test keys from the [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys).
-Store them with dotnet user-secrets so they never touch source control:
+Store all keys with dotnet user-secrets so they never touch source control:
 
 ```
 cd src/TicketPlatform.Api
 dotnet user-secrets set "Stripe:SecretKey" "sk_test_..."
+dotnet user-secrets set "GooglePlaces:ApiKey" "AIza..."
 ```
+
+Get your Stripe test keys from the [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys).
+Get your Google Places API key from the [Google Cloud Console](https://console.cloud.google.com/) — enable the **Places API** on the key.
 
 The Stripe CLI container also needs the secret key. Create a `.env` file in the repo root (already in `.gitignore`):
 
