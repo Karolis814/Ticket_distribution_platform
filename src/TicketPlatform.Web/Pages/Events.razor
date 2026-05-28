@@ -6,73 +6,11 @@
 
 <RadzenStack Gap="1rem">
 
-    <PageHeader Title="Upcoming Events" Subtitle="Browse and grab your tickets below."/>
-
-    <RadzenCard Class="rz-p-4">
-        <RadzenStack Gap="1rem" JustifyContent="JustifyContent.Center">
-
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
-                         JustifyContent="JustifyContent.SpaceBetween">
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
-                    <RadzenIcon Icon="tune" Style="font-size:1rem;opacity:0.55;"/>
-                    <RadzenText TextStyle="TextStyle.Overline" Style="margin:0;opacity:0.55;">Filters</RadzenText>
-                </RadzenStack>
-                @if (!string.IsNullOrWhiteSpace(SearchText) || FromDate.HasValue ||
-                     !string.IsNullOrWhiteSpace(SelectedCategory) || !string.IsNullOrWhiteSpace(LocationText))
-                {
-                    <RadzenButton Text="Clear all" Icon="close" ButtonStyle="ButtonStyle.Light"
-                                  Size="ButtonSize.ExtraSmall" Variant="Variant.Text"
-                                  Click="@ClearFilterAsync"/>
-                }
-            </RadzenStack>
-
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End"
-                         Gap="0.75rem" Style="flex-wrap:wrap;">
-
-                <RadzenFormField Text="Filter by Title" Variant="Variant.Outlined" Style="flex:1;min-width:150px;">
-                    <RadzenAutoComplete Name="EventTitle" TValue="string"
-                                        Data="@TitleSuggestions"
-                                        @bind-Value="SearchText"
-                                        Placeholder="Search by title…"
-                                        MinLength="2"
-                                        LoadData="@LoadTitleSuggestions"
-                                        Style="width:100%;"/>
-                </RadzenFormField>
-
-                <RadzenFormField Text="Filter by Date" Variant="Variant.Outlined" Style="flex:1;min-width:150px;">
-                    <RadzenDatePicker Name="FromDate" @bind-Value="FromDate"
-                                      Placeholder="Any date"
-                                      DateFormat="yyyy-MM-dd"
-                                      Style="width:100%;"/>
-                </RadzenFormField>
-
-                <RadzenFormField Text="Filter by Category" Variant="Variant.Outlined" Style="flex:1;min-width:140px;">
-                    <RadzenDropDown Name="Category" TValue="string"
-                                    Data="@Categories"
-                                    @bind-Value="SelectedCategory"
-                                    Placeholder="All categories"
-                                    AllowClear="true"
-                                    Style="display:block;width:100%;"/>
-                </RadzenFormField>
-
-                <RadzenFormField Text="Filter by Location" Variant="Variant.Outlined" Style="flex:1;min-width:150px;">
-                    <RadzenAutoComplete Name="Location" TValue="string"
-                                        Data="@LocationSuggestions"
-                                        @bind-Value="LocationText"
-                                        Placeholder="Search by location…"
-                                        MinLength="2"
-                                        LoadData="@LoadLocationSuggestions"
-                                        Style="width:100%;"/>
-                </RadzenFormField>
-
-                <RadzenButton Text="Apply Filters" Icon="filter_list"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Click="@ApplyFilterAsync"/>
-
-            </RadzenStack>
-
-        </RadzenStack>
-    </RadzenCard>
+    <PageHeader Title="Upcoming Events" Subtitle="Browse and grab your tickets below.">
+        <Actions>
+            <RadzenButton Icon="tune" Text="Filters" ButtonStyle="@(HasActiveFilters ? ButtonStyle.Primary : ButtonStyle.Secondary)" Size="ButtonSize.Large" Click="@ToggleFilters" />
+        </Actions>
+    </PageHeader>
 
     <EventCards Events="Events" IsLoading="IsLoading"/>
 
@@ -88,3 +26,70 @@
     }
 
 </RadzenStack>
+
+@if (FiltersOpen)
+{
+    <div class="filter-overlay" @onclick="ToggleFilters"></div>
+}
+
+<div class="filter-offcanvas @(FiltersOpen ? "open" : "")">
+
+    <RadzenStack Gap="1.25rem" Style="height:100%;overflow-y:auto;">
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                     JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
+                <RadzenIcon Icon="tune" Style="font-size:1rem;opacity:0.6;"/>
+                <RadzenText TextStyle="TextStyle.H6" Style="margin:0;">Filters</RadzenText>
+            </RadzenStack>
+            <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Text"
+                          Size="ButtonSize.Small" Click="@ToggleFilters"/>
+        </RadzenStack>
+
+        <RadzenFormField Text="Title" Variant="Variant.Outlined" Style="width:100%;">
+            <RadzenAutoComplete Name="EventTitle" TValue="string"
+                                Data="@TitleSuggestions"
+                                @bind-Value="SearchText"
+                                Placeholder="Search by title…"
+                                MinLength="2"
+                                LoadData="@LoadTitleSuggestions"
+                                Style="width:100%;"/>
+        </RadzenFormField>
+
+        <RadzenFormField Text="From Date" Variant="Variant.Outlined" Style="width:100%;">
+            <RadzenDatePicker Name="FromDate" @bind-Value="FromDate"
+                              Placeholder="Any date"
+                              DateFormat="yyyy-MM-dd"
+                              Style="width:100%;"/>
+        </RadzenFormField>
+
+        <RadzenFormField Text="Category" Variant="Variant.Outlined" Style="width:100%;">
+            <RadzenDropDown Name="Category" TValue="string"
+                            Data="@Categories"
+                            @bind-Value="SelectedCategory"
+                            Placeholder="All categories"
+                            AllowClear="true"
+                            Style="display:block;width:100%;"/>
+        </RadzenFormField>
+
+        <RadzenFormField Text="Location" Variant="Variant.Outlined" Style="width:100%;">
+            <RadzenAutoComplete Name="Location" TValue="string"
+                                Data="@LocationSuggestions"
+                                @bind-Value="LocationText"
+                                Placeholder="Search by location…"
+                                MinLength="2"
+                                LoadData="@LoadLocationSuggestions"
+                                Style="width:100%;"/>
+        </RadzenFormField>
+
+        <RadzenStack Gap="0.5rem" Style="margin-top:auto;margin-bottom:3rem;">
+            <RadzenButton Text="Apply" Icon="filter_list" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" Style="width:100%;" Click="@ApplyFilterAsync"/>
+            @if (HasActiveFilters)
+            {
+                <RadzenButton Text="Clear all" Icon="close" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Large" Style="width:100%;" Click="@ClearFilterAsync"/>
+            }
+        </RadzenStack>
+
+    </RadzenStack>
+
+</div>

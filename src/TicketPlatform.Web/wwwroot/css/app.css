@@ -100,3 +100,38 @@
     transform: translateY(-3px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.18);
 }
+
+.filter-offcanvas {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 320px;
+    height: 100dvh;
+    padding: 1.5rem;
+    background: var(--rz-sidebar-background-color);
+    border-left: var(--rz-sidebar-border-inline-end);
+    box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+    z-index: 1100;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.filter-offcanvas.open {
+    transform: translateX(0);
+}
+
+.filter-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1099;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
