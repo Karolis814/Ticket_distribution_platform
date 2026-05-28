@@ -129,8 +129,7 @@
                                     <RadzenButton Text="Save profile"
                                                   Icon="save"
                                                   ButtonStyle="ButtonStyle.Primary"
-                                                  ButtonType="ButtonType.Submit"
-                                                  Size="ButtonSize.Large"/>
+                                                  ButtonType="ButtonType.Submit"/>
                                 </div>
 
                             </RadzenStack>
@@ -178,9 +177,7 @@
                                     <RadzenButton Text="Change password"
                                                   Icon="lock_reset"
                                                   ButtonStyle="ButtonStyle.Primary"
-                                                  ButtonType="ButtonType.Submit"
-                                                  Size="ButtonSize.Large"
-                                    />
+                                                  ButtonType="ButtonType.Submit"/>
                                 </div>
                             </RadzenStack>
                         </EditForm>
@@ -201,8 +198,12 @@
                             </RadzenStack>
 
                             <RadzenText TextStyle="TextStyle.Body2" Class="rz-text-secondary-color">
-                                Connect a Stripe account to start accepting payments for your events.
                                 This is only required if you plan to host events — buyers don't need to set this up.
+                            </RadzenText>
+
+                            <RadzenText TextStyle="TextStyle.Body2" Class="rz-text-secondary-color">Platform commission:
+                                <strong>@PlatformFeePercent%</strong> per paid ticket sale.<br />
+                                This is deducted from your payout — buyers are not charged extra.
                             </RadzenText>
 
                             @if (!string.IsNullOrWhiteSpace(StripeError))
@@ -212,16 +213,18 @@
 
                             @if (StripeStatus is null || string.IsNullOrWhiteSpace(StripeStatus.StripeAccountId))
                             {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" AllowClose="false">
-                                    Stripe is not connected. Connect Stripe before creating events.
+                                <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
+                                    Stripe is not connected. Connect a Stripe account to start accepting payments for your events.
+
                                 </RadzenAlert>
                                 <div>
                                     <RadzenButton Text="@(Connecting ? "Connecting…" : "Connect Stripe")"
-                                                  Icon="account_balance"
-                                                  ButtonStyle="ButtonStyle.Primary"
+                                                  Icon="attach_money"
+                                                  ButtonStyle="ButtonStyle.Success"
                                                   Size="ButtonSize.Large"
                                                   Disabled="@Connecting"
-                                                  Click="@ConnectStripeAsync"/>
+                                                  Click="@ConnectStripeAsync"
+                                                  Style="width:100%;"/>
                                 </div>
                             }
                             else if (!StripeStatus.Ready)
@@ -233,11 +236,12 @@
                                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
                                              Gap="1rem" Style="flex-wrap:wrap;">
                                     <RadzenButton Text="@(Connecting ? "Connecting…" : "Continue Stripe setup")"
-                                                  Icon="account_balance"
-                                                  ButtonStyle="ButtonStyle.Warning"
-                                                  Disabled="@Connecting"
+                                                  Icon="attach_money"
+                                                  ButtonStyle="ButtonStyle.Success"
                                                   Size="ButtonSize.Large"
-                                                  Click="@ConnectStripeAsync"/>
+                                                  Disabled="@Connecting"
+                                                  Click="@ConnectStripeAsync"
+                                                  Style="width:100%;"/>
                                     @if (PollingStripe)
                                     {
                                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
