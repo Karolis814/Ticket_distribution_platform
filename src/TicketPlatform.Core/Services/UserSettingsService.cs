@@ -10,7 +10,8 @@ namespace TicketPlatform.Core.Services;
 
 public class UserSettingsService(
     IRepository<User> userRepository,
-    IMailService mail) : IUserSettingsService
+    IMailService mail,
+    IPasswordService passwordService) : IUserSettingsService
 {
     public async Task<UserSettingsDto?> GetAsync(Guid userId, CancellationToken ct = default)
     {
@@ -136,11 +137,11 @@ public class UserSettingsService(
         if (user is null)
             throw new InvalidOperationException("User not found.");
 
-        if (!VerifyPassword(currentPassword, user.PasswordSalt, user.PasswordHash))
+        if (!passwordService.VerifyPassword(currentPassword, user.PasswordSalt, user.PasswordHash))
             throw new InvalidOperationException("Current password is incorrect.");
 
-        var salt = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
-        var hash = HashPassword(newPassword, salt);
+        var salt = passwordService.GenerateSalt();
+        var hash = passwordService.HashPassword(newPassword, salt);
 
         user.PasswordSalt = salt;
         user.PasswordHash = hash;
@@ -168,14 +169,4 @@ public class UserSettingsService(
         return Convert.ToBase64String(bytes);
     }
 
-    private static string HashPassword(string password, string salt)
-    {
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(password + salt));
-        return Convert.ToBase64String(bytes);
-    }
-
-    private static bool VerifyPassword(string password, string salt, string hash)
-    {
-        return HashPassword(password, salt) == hash;
-    }
 }

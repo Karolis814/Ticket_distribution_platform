@@ -21,7 +21,10 @@ public record HostDto(
     string? FirstName,
     string? LastName,
     string Email,
-    string? Company
+    string? Company,
+    string? PhoneNumber,
+    string? Address,
+    string? TaxCode
 );
 
 public record CreateEventRequest(
@@ -33,4 +36,14 @@ public record CreateEventRequest(
     string? ThumbnailUrl,
     EventStatus Status,
     IReadOnlyList<CreateTicketTypeRequest> TicketTypes
+);
+
+public record UpdateEventRequest(
+    EventCategory Category,
+    string Title,
+    string Description,
+    string? Location,
+    string? ThumbnailUrl,
+    EventStatus Status,
+    IReadOnlyList<UpdateTicketTypeRequest> TicketTypes
 );

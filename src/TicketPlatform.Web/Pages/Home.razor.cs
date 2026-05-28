@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
 using TicketPlatform.Shared.Dtos;
+using TicketPlatform.Shared.Enums;
 using TicketPlatform.Web.Services;
 
 namespace TicketPlatform.Web.Pages;
@@ -12,13 +13,21 @@ public class HomeBase : ComponentBase
 
     protected IReadOnlyList<EventDto> TrendingEvents { get; private set; } = [];
     protected IReadOnlyList<EventDto> LatestEvents { get; private set; } = [];
+    protected IReadOnlyList<EventDto> UpcomingEvents { get; private set; } = [];
     protected bool IsLoading { get; private set; } = true;
 
     protected static DateTimeOffset StartDate(EventDto e) =>
-        e.TicketTypes.Min(tt => tt.OccurenceStartDate);
+        e.TicketTypes.Min(tt => tt.OccurenceStartDate).ToLocalTime();
 
     protected static DateTimeOffset EndDate(EventDto e) =>
-        e.TicketTypes.Max(tt => tt.OccurenceEndDate);
+        e.TicketTypes.Max(tt => tt.OccurenceEndDate).ToLocalTime();
+
+    protected static int RemainingTickets(EventDto ev)
+    {
+        var total = ev.TicketTypes.Sum(t => t.Quantity);
+        var sold = ev.TicketTypes.Sum(t => t.Sold);
+        return Math.Max(0, total - sold);
+    }
 
     protected static string? GetMinPriceText(EventDto ev)
     {
@@ -35,18 +44,13 @@ public class HomeBase : ComponentBase
     {
         try
         {
-            var result = await EventsClient.GetPagedAsync(page: 1, pageSize: 100);
-            var all = result?.Items ?? [];
-
-            TrendingEvents = all
-                .OrderByDescending(e => e.TicketTypes.Sum(tt => tt.Sold))
-                .Take(5)
-                .ToList();
-
-            LatestEvents = all
-                .OrderByDescending(e => e.CreatedAt)
-                .Take(8)
-                .ToList();
+            var popularTask = EventsClient.GetPopularAsync(count: 5);
+            var latestTask = EventsClient.GetLatestAsync(count: 4);
+            var upcomingTask = EventsClient.GetPagedAsync(page: 1, pageSize: 4);
+            await Task.WhenAll(popularTask, latestTask, upcomingTask);
+            TrendingEvents = await popularTask;
+            LatestEvents = await latestTask;
+            UpcomingEvents = (await upcomingTask)?.Items ?? [];
         }
         finally
         {

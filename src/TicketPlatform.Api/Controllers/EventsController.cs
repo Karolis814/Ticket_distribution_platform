@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketPlatform.Core.Entities;
@@ -42,6 +43,30 @@ public class EventsController(IEventService eventService) : ControllerBase
             total));
     }
 
+    [HttpGet("popular")]
+    public async Task<ActionResult<IReadOnlyList<EventDto>>> GetPopular(
+        [FromQuery] int count = 5,
+        CancellationToken ct = default)
+    {
+        if (count is < 1 or > 20)
+            return BadRequest("count must be between 1 and 20.");
+
+        var events = await eventService.GetPopularAsync(count, ct);
+        return Ok(events.Select(MapToEventDto).ToList());
+    }
+
+    [HttpGet("latest")]
+    public async Task<ActionResult<IReadOnlyList<EventDto>>> GetLatest(
+        [FromQuery] int count = 8,
+        CancellationToken ct = default)
+    {
+        if (count is < 1 or > 20)
+            return BadRequest("count must be between 1 and 20.");
+
+        var events = await eventService.GetLatestAsync(count, ct);
+        return Ok(events.Select(MapToEventDto).ToList());
+    }
+
     [HttpGet("locations")]
     public async Task<ActionResult<PagedResult<string>>> GetLocationSuggestions(
         [FromQuery] string input,
@@ -66,6 +91,20 @@ public class EventsController(IEventService eventService) : ControllerBase
     public ActionResult<IReadOnlyList<string>> GetCategories()
     {
         return Ok(Enum.GetNames<EventCategory>());
+    }
+
+    [HttpGet("mine")]
+    [Authorize]
+    public async Task<ActionResult<IReadOnlyList<EventDto>>> GetMine(CancellationToken ct)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                        ?? User.FindFirstValue("sub");
+
+        if (!Guid.TryParse(userIdStr, out var userId))
+            return Unauthorized();
+
+        var events = await eventService.GetByHostAsync(userId, ct);
+        return Ok(events.Select(MapToEventDto).ToList());
     }
 
     [HttpGet("{id:guid}")]
@@ -116,10 +155,10 @@ public class EventsController(IEventService eventService) : ControllerBase
             TicketTypes = request.TicketTypes.Select(tt => new TicketType
             {
                 Title = tt.Title,
-                OccurenceStartDate = tt.OccurenceStartDate,
-                OccurenceEndDate = tt.OccurenceEndDate,
-                AdmissionStartDate = tt.AdmissionStartDate,
-                AdmissionEndDate = tt.AdmissionEndDate,
+                OccurenceStartDate = tt.OccurenceStartDate.ToUniversalTime(),
+                OccurenceEndDate = tt.OccurenceEndDate.ToUniversalTime(),
+                AdmissionStartDate = tt.AdmissionStartDate.ToUniversalTime(),
+                AdmissionEndDate = tt.AdmissionEndDate.ToUniversalTime(),
                 PriceCents = tt.PriceCents,
                 Currency = tt.Currency,
                 MaxUses = tt.MaxUses,
@@ -133,6 +172,27 @@ public class EventsController(IEventService eventService) : ControllerBase
             nameof(GetById),
             new { id = created!.Id },
             MapToEventDto(created));
+    }
+
+    [Authorize(Roles = "Host")]
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<EventDto>> Update(
+        Guid id,
+        [FromBody] UpdateEventRequest request,
+        CancellationToken ct)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                        ?? User.FindFirstValue("sub");
+
+        if (!Guid.TryParse(userIdStr, out var userId))
+            return Unauthorized();
+
+        var existing = await eventService.GetByIdAsync(id, ct);
+        if (existing is null) return NotFound();
+        if (existing.HostId != userId) return Forbid();
+
+        var updated = await eventService.UpdateAsync(id, request, ct);
+        return updated is null ? NotFound() : Ok(MapToEventDto(updated));
     }
 
     private static EventDto MapToEventDto(Event e) => new(
@@ -150,7 +210,10 @@ public class EventsController(IEventService eventService) : ControllerBase
             e.Host.FirstName,
             e.Host.LastName,
             e.Host.Email,
-            e.Host.Company
+            e.Host.Company,
+            e.Host.PhoneNumber,
+            e.Host.Address,
+            e.Host.TaxCode
         ),
         e.TicketTypes.Select(tt => new TicketTypeDto(
             tt.Id,

@@ -1,3 +1,4 @@
+using ImageMagick;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using TicketPlatform.Core.Services;
@@ -13,14 +14,7 @@ public class ImagesController(
     IOptions<BlobStorageOptions> opts) : ControllerBase
 {
     private static readonly string[] AllowedContentTypes =
-        ["image/jpeg", "image/png", "image/webp"];
-
-    private static readonly Dictionary<string, string> ExtensionByContentType = new()
-    {
-        ["image/jpeg"] = ".jpg",
-        ["image/png"] = ".png",
-        ["image/webp"] = ".webp"
-    };
+        ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
 
     private readonly BlobStorageOptions _opts = opts.Value;
 
@@ -38,17 +32,27 @@ public class ImagesController(
 
         var contentType = file.ContentType.ToLowerInvariant();
         if (!AllowedContentTypes.Contains(contentType))
-            return BadRequest($"Unsupported content type. Allowed: {string.Join(", ", AllowedContentTypes)}.");
+            return BadRequest($"Unsupported content type. Allowed: JPEG, PNG, WebP, HEIC.");
 
-        var extension = ExtensionByContentType[contentType];
-        var blobName = $"{Guid.NewGuid():N}{extension}";
+        var blobName = $"{Guid.NewGuid():N}.jpg";
 
-        await using var stream = file.OpenReadStream();
+        using var image = new MagickImage(file.OpenReadStream());
+        image.AutoOrient();
+        image.Resize(new MagickGeometry("1280x720^"));
+        image.Crop(1280, 720, Gravity.Center);
+        image.ResetPage();
+        image.Format = MagickFormat.Jpeg;
+        image.Quality = 92;
+
+        using var output = new MemoryStream();
+        await image.WriteAsync(output, ct);
+        output.Position = 0;
+
         var uri = await blobStorage.UploadAsync(
             _opts.ThumbnailsContainer,
             blobName,
-            stream,
-            contentType,
+            output,
+            "image/jpeg",
             ct);
 
         return Ok(new UploadImageResponse(uri.ToString()));

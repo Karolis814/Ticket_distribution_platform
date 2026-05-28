@@ -1,9 +1,6 @@
 # Ticket Distribution Platform
 
-Users can register, log in, browse and search events, filter by date / location / category,
-buy tickets, get them by email and view QR codes.
-
-Jira: https://markk-psk.atlassian.net/jira/software/projects/MARKK/summary
+Users can browse and search events, buy tickets, get them delivered to email along with periodic reminders and validate them at the door via QR code.
 
 ## Stack
 
@@ -40,15 +37,20 @@ Ticket_distribution_platform/
 
 You need .NET 9 SDK and Docker.
 
-### 1. Store your Stripe sandbox keys
+### 1. Store secrets
 
-Get your test keys from the [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys).
-Store them with dotnet user-secrets so they never touch source control:
+Store all keys with dotnet user-secrets so they never touch source control:
 
 ```
 cd src/TicketPlatform.Api
 dotnet user-secrets set "Stripe:SecretKey" "sk_test_..."
+dotnet user-secrets set "GooglePlaces:ApiKey" "AIza..."
 ```
+
+Get your Stripe test keys from the [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys).
+Get your Google Places API key from the [Google Cloud Console](https://console.cloud.google.com/) — enable the **Places API** on the key.
+
+**Platform fee** is configured in `appsettings.json` under `Stripe:PlatformFeePercent` (defaults to `5`). It is read at runtime by the checkout service and exposed via `GET /api/platform/fee` so the frontend can display it.
 
 The Stripe CLI container also needs the secret key. Create a `.env` file in the repo root (already in `.gitignore`):
 
@@ -129,13 +131,3 @@ Integration tests need Docker running — they spin up a throwaway Postgres via 
 - pgAdmin: http://localhost:5050 (login: `admin@ticket.dev` / `admin`)
 - Mailpit: http://localhost:8025
 - Azurite: blob `localhost:10000`, queue `localhost:10001`, table `localhost:10002`
-
-## Frontend conventions (short version)
-
-- Use Radzen components and built-in `.rz` classes. Avoid custom CSS.
-- Code-behind in `XxxBase.razor.cs` partials, not `@code{}` blocks.
-- Repeated layout goes into `@layout` components, no copy-paste.
-- Show errors with `RadzenNotification`, not `Console.WriteLine`.
-- Pass data with `[Parameter]`, raise events with `EventCallback`.
-- Navigate with `NavigationManager`, not `<a href>`.
-- Files PascalCase, variables/methods camelCase.

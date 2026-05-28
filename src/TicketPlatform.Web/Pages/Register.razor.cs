@@ -1,9 +1,8 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Radzen;
 using TicketPlatform.Web.Services;
 using TicketPlatform.Shared.Dtos;
-using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 
 namespace TicketPlatform.Web.Pages;
@@ -11,39 +10,21 @@ namespace TicketPlatform.Web.Pages;
 public class RegisterBase : ComponentBase
 {
     [Inject] protected NavigationManager Nav { get; set; } = null!;
-    [Inject] protected ILocalStorageService LocalStorage { get; set; } = null!;
     [Inject] protected AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
     [Inject] protected IAuthClient AuthClient { get; set; } = null!;
+    [Inject] protected IPlacesClient PlacesClient { get; set; } = null!;
 
-    protected UserSignUpDTO? Model;
-
-    [Required(ErrorMessage = "First name is required.")]
-    public string FirstName { get; set; } = "";
-
-    [Required(ErrorMessage = "Last name is required.")]
-    public string LastName { get; set; } = "";
-
-    [Required(ErrorMessage = "Email is required.")]
-    [EmailAddress(ErrorMessage = "Enter a valid email address.")]
-    public string Email { get; set; } = "";
-
-    [Required(ErrorMessage = "Password is required.")]
-    [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
-    public string Password { get; set; } = "";
-
-    public string ConfirmPassword { get; set; } = "";
-    public string Company { get; set; } = "";
-    public string Address { get; set; } = "";
-    public string TaxCode { get; set; } = "";
-    public string PhoneNumber { get; set; } = "";
-
+    protected readonly UserSignUpDTO Model = new();
+    protected string ConfirmPassword { get; set; } = "";
     protected EditContext EditContext = default!;
     protected string? ErrorMessage;
     protected bool IsLoading;
+    protected List<PlacePredictionDto> AddressSuggestions { get; set; } = [];
+    protected bool IsSearchingAddress { get; set; }
 
     protected override Task OnInitializedAsync()
     {
-        EditContext = new EditContext(this);
+        EditContext = new EditContext(Model);
         return Task.CompletedTask;
     }
 
@@ -54,7 +35,7 @@ public class RegisterBase : ComponentBase
         if (!EditContext.Validate())
             return;
 
-        if (Password != ConfirmPassword)
+        if (Model.Password != ConfirmPassword)
         {
             ErrorMessage = "Passwords do not match.";
             return;
@@ -62,19 +43,7 @@ public class RegisterBase : ComponentBase
 
         IsLoading = true;
 
-        var dto = new UserSignUpDTO(
-            FirstName,
-            LastName,
-            Email,
-            Password,
-            Company,
-            Address,
-            TaxCode,
-            PhoneNumber
-        );
-
-        var (success, error) = await AuthClient.RegisterAsync(dto);
-
+        var (success, error) = await AuthClient.RegisterAsync(Model);
 
         if (success)
             Nav.NavigateTo("/events");
@@ -83,4 +52,47 @@ public class RegisterBase : ComponentBase
 
         IsLoading = false;
     }
+
+    protected async Task OnLoadAddressData(LoadDataArgs args)
+    {
+        if (string.IsNullOrWhiteSpace(args.Filter) || args.Filter.Length < 3)
+        {
+            AddressSuggestions.Clear();
+            return;
+        }
+
+        IsSearchingAddress = true;
+        StateHasChanged();
+        try
+        {
+            AddressSuggestions = (await PlacesClient.SearchAsync(args.Filter)).ToList();
+        }
+        finally
+        {
+            IsSearchingAddress = false;
+        }
+    }
+
+    protected async Task OnAddressSelected(object? value)
+    {
+        if (value?.ToString() is not string selected) return;
+
+        var prediction = AddressSuggestions.FirstOrDefault(p =>
+            string.Equals(p.MainText, selected, StringComparison.Ordinal));
+
+        if (prediction is null) return;
+
+        try
+        {
+            var details = await PlacesClient.GetDetailsAsync(prediction.PlaceId);
+            Model.Address = details?.FormattedAddress ?? FallbackAddress(prediction);
+        }
+        catch
+        {
+            Model.Address = FallbackAddress(prediction);
+        }
+    }
+
+    private static string FallbackAddress(PlacePredictionDto p) =>
+        string.IsNullOrEmpty(p.SecondaryText) ? p.MainText : $"{p.MainText}, {p.SecondaryText}";
 }

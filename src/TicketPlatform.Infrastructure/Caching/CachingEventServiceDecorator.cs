@@ -2,6 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
+using TicketPlatform.Shared.Dtos;
 
 namespace TicketPlatform.Infrastructure.Caching;
 
@@ -45,6 +46,15 @@ public class CachingEventServiceDecorator(
     public Task<IReadOnlyList<string>> GetCategoriesAsync(CancellationToken ct = default)
         => inner.GetCategoriesAsync(ct);
 
+    public Task<IReadOnlyList<Event>> GetPopularAsync(int count, CancellationToken ct = default)
+        => inner.GetPopularAsync(count, ct);
+
+    public Task<IReadOnlyList<Event>> GetLatestAsync(int count, CancellationToken ct = default)
+        => inner.GetLatestAsync(count, ct);
+
+    public Task<IReadOnlyList<Event>> GetByHostAsync(Guid hostId, CancellationToken ct = default)
+        => inner.GetByHostAsync(hostId, ct);
+
     public Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default)
         => inner.GetByIdAsync(id, ct);
 
@@ -53,4 +63,7 @@ public class CachingEventServiceDecorator(
 
     public Task<Event> UpdateAsync(Event @event, CancellationToken ct = default)
         => inner.UpdateAsync(@event, ct);
+
+    public Task<Event?> UpdateAsync(Guid id, UpdateEventRequest request, CancellationToken ct = default)
+        => inner.UpdateAsync(id, request, ct);
 }

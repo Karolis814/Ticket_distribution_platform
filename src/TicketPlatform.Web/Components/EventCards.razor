@@ -3,10 +3,10 @@
 @if (IsLoading)
 {
     <RadzenRow>
-        @for (var i = 0; i < Size; i++)
+        @for (var i = 0; i < NumColsLg; i++)
         {
             <RadzenColumn Size="@ColSizeSm" SizeMd="@ColSizeMd" SizeLg="@ColSizeLg" Class="rz-mb-4">
-                <RadzenCard Style="height:400px;"
+                <RadzenCard Style="height:420px;"
                             Class="rz-display-flex rz-align-items-center rz-justify-content-center">
                     <RadzenProgressBarCircular ShowValue="false"
                                                Mode="ProgressBarMode.Indeterminate"
@@ -19,7 +19,7 @@
 else if (!Events.Any())
 {
     <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
-        No events are currently available. Check back soon!
+        @EmptyMessage
     </RadzenAlert>
 }
 else
@@ -27,92 +27,134 @@ else
     <RadzenRow>
         @foreach (var ev in Events)
         {
+            var sold = TotalSold(ev);
+            var capacity = TotalCapacity(ev);
+            var pct = capacity > 0 ? (double)sold / capacity * 100 : 0;
+
             <RadzenColumn Size="@ColSizeSm" SizeMd="@ColSizeMd" SizeLg="@ColSizeLg" Class="rz-mb-4">
-                <RadzenCard Class="rz-h-100 rz-display-flex rz-flex-column rz-overflow-hidden rz-p-0"
-                            Style="cursor:pointer;"
-                            @onclick="@(() => NavigateToDetails(ev.Id))">
-                    <RadzenImage Path="@(ev.ThumbnailUrl ?? "https://placehold.net/8.png")"
-                                 Class="rz-w-100"
-                                 Style="height:200px;object-fit:cover;"/>
+                <RadzenCard Class="rz-h-100 rz-display-flex rz-flex-column rz-overflow-hidden rz-p-0 event-card"
+                            Style="@(IsManagementView ? "" : "cursor:pointer;")"
+                            @onclick="@(() => OnCardClick(ev))">
 
-                    <RadzenStack Gap="1rem" Class="rz-p-4" Style="flex-grow:1;">
-                        <RadzenStack Orientation="Orientation.Horizontal"
-                                     JustifyContent="JustifyContent.SpaceBetween"
-                                     AlignItems="AlignItems.Center">
-                            <RadzenBadge BadgeStyle="BadgeStyle.Info" IsPill="true" Text="@ev.Category.ToString()" />
-                        </RadzenStack>
+                    <div style="position:relative;">
+                        <EventPoster Url="@ev.ThumbnailUrl" Alt="@ev.Title"/>
+                        @if (IsManagementView)
+                        {
+                            <div style="position:absolute;top:0.6rem;left:0.6rem;">
+                                @if (IsEnded(ev))
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="Ended"/>
+                                }
+                                else
+                                {
+                                    <RadzenBadge BadgeStyle="@StatusBadge(ev.Status)" Text="@ev.Status.ToString()"/>
+                                }
+                            </div>
+                        }
+                        <div style="position:absolute;top:0.6rem;right:0.6rem;">
+                            <RadzenBadge BadgeStyle="BadgeStyle.Info" IsPill="true" Text="@ev.Category.ToString()"/>
+                        </div>
+                    </div>
 
-                        <RadzenText TextStyle="TextStyle.H6"
-                                    TagName="TagName.H2">
+                    <RadzenStack Gap="0.75rem" Class="rz-p-4" Style="flex-grow:1;">
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H2" Style="margin:0;line-height:1.3;">
                             @ev.Title
                         </RadzenText>
 
                         <RadzenStack Gap="0.5rem">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                                         Gap="0.5rem">
+                                <RadzenIcon Icon="calendar_today" Style="font-size:0.9rem;flex-shrink:0;"/>
+                                <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;">
+                                    @if (IsManagementView)
+                                    {
+                                        @StartDate(ev).ToString("yyyy-MM-dd HH:mm")
+                                    }
+                                    else
+                                    {
+                                        @StartDate(ev).ToString("yyyy-MM-dd")
+                                        @if (StartDate(ev).Date == EndDate(ev).Date)
+                                        {
+                                            <span>&nbsp;@StartDate(ev).ToString("HH:mm")&nbsp;–&nbsp;@EndDate(ev).ToString("HH:mm")</span>
+                                        }
+                                        else
+                                        {
+                                            <span>&nbsp;–&nbsp;@EndDate(ev).ToString("yyyy-MM-dd")</span>
+                                        }
+                                    }
+                                </RadzenText>
+                            </RadzenStack>
+
                             @if (!string.IsNullOrWhiteSpace(ev.Location))
                             {
-                                <RadzenStack Orientation="Orientation.Horizontal"
-                                             AlignItems="AlignItems.Center"
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
                                              Gap="0.5rem">
-                                    <RadzenIcon Icon="location_on"/>
-                                    <RadzenText TextStyle="TextStyle.Body2">
+                                    <RadzenIcon Icon="location_on" Style="font-size:0.9rem;flex-shrink:0;"/>
+                                    <RadzenText TextStyle="TextStyle.Body2"
+                                                Style="margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                                         @ev.Location
                                     </RadzenText>
                                 </RadzenStack>
                             }
-
-                            <RadzenStack Orientation="Orientation.Horizontal"
-                                         AlignItems="AlignItems.Center"
-                                         Gap="0.5rem">
-                                <RadzenIcon Icon="calendar_today"/>
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @StartDate(ev).ToString("yyyy-MM-dd")
-                                    @if (StartDate(ev).Date == EndDate(ev).Date)
-                                    {
-                                        <span>• @StartDate(ev).ToString("HH:mm") – @EndDate(ev).ToString("HH:mm")</span>
-                                    }
-                                    else
-                                    {
-                                        <span> – @EndDate(ev).ToString("yyyy-MM-dd")</span>
-                                    }
-                                </RadzenText>
-                            </RadzenStack>
                         </RadzenStack>
                     </RadzenStack>
 
-                    <div class="rz-p-4">
-                        @if (ev.Status == EventStatus.Cancelled)
-                        {
-                            <RadzenButton Text="Canceled"
-                                          ButtonStyle="ButtonStyle.Base"
-                                          Class="rz-w-100"
-                                          Disabled="true"/>
-                        }
-                        else if (RemainingTickets(ev) <= 0)
-                        {
-                            <RadzenButton Text="Sold Out"
-                                          ButtonStyle="ButtonStyle.Secondary"
-                                          Class="rz-w-100"
-                                          Disabled="true"/>
-                        }
-                        else
-                        {
-                            @if (GetMinPriceText(ev) is { } minPrice)
-                            {
-                                <div class="rz-mb-3">
-                                    <RadzenText TextStyle="TextStyle.Overline" Class="rz-text-tertiary-color">Tickets
-                                        from
-                                    </RadzenText>
-                                    <RadzenText TextStyle="TextStyle.H5">@minPrice</RadzenText>
-                                </div>
-                            }
+                    @if (IsManagementView)
+                    {
+                        <div class="rz-p-4">
+                            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" Class="rz-mb-2">
+                                <RadzenText TextStyle="TextStyle.Overline">Sold</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Overline">@sold / @capacity</RadzenText>
+                            </RadzenStack>
+                            <RadzenProgressBar Value="@pct" ShowValue="false" Style="height:5px;border-radius:3px;" class="rz-mb-4"/>
 
-                            <RadzenButton Text="Get Tickets"
-                                          ButtonStyle="ButtonStyle.Primary"
-                                          Icon="confirmation_number"
-                                          Click="@(() => NavigateToDetails(ev.Id))"
-                                          Class="rz-w-100"/>
-                        }
-                    </div>
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" Style="border-top:1px solid var(--rz-border-disabled-color);">
+                                @if (ev.Status != EventStatus.Cancelled && !IsEnded(ev))
+                                {
+                                    <RadzenButton Text="Edit" Icon="edit" ButtonStyle="ButtonStyle.Primary"
+                                                  Size="ButtonSize.Small"
+                                                  Style="flex:1;"
+                                                  Click="@(() => NavigateToEdit(ev.Id))"/>
+                                }
+                                <RadzenButton Text="View" Icon="open_in_new" ButtonStyle="ButtonStyle.Secondary"
+                                              Size="ButtonSize.Small"
+                                              Style="flex:1;"
+                                              Click="@(() => NavigateToDetails(ev.Id))"/>
+                            </RadzenStack>
+                        </div>
+                    }
+                    else if (ShowTicketButton)
+                    {
+                        <div class="rz-p-4" style="border-top:1px solid var(--rz-border-disabled-color);">
+                            @if (ev.Status == EventStatus.Cancelled)
+                            {
+                                <RadzenButton Text="Canceled" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small"
+                                              Class="rz-w-100" Disabled="true"/>
+                            }
+                            else if (RemainingTickets(ev) <= 0)
+                            {
+                                <RadzenButton Text="Sold Out" ButtonStyle="ButtonStyle.Secondary"
+                                              Size="ButtonSize.Small" Class="rz-w-100" Disabled="true"/>
+                            }
+                            else
+                            {
+                                @if (GetMinPriceText(ev) is { } minPrice)
+                                {
+                                    <div class="rz-mb-3">
+                                        <RadzenText TextStyle="TextStyle.Overline" Class="rz-text-tertiary-color"
+                                                    Style="margin:0;">Tickets from
+                                        </RadzenText>
+                                        <RadzenText TextStyle="TextStyle.H5" Style="margin:0;">@minPrice</RadzenText>
+                                    </div>
+                                }
+
+                                <RadzenButton Text="Get Tickets" ButtonStyle="ButtonStyle.Primary"
+                                              Icon="confirmation_number" Size="ButtonSize.Small"
+                                              Click="@(() => NavigateToDetails(ev.Id))" Class="rz-w-100"/>
+                            }
+                        </div>
+                    }
+
                 </RadzenCard>
             </RadzenColumn>
         }

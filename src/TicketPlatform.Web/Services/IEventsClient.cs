@@ -15,7 +15,13 @@ public interface IEventsClient
         string? category = null,
         CancellationToken ct = default);
 
+    Task<IReadOnlyList<EventDto>> GetPopularAsync(int count = 5, CancellationToken ct = default);
+    Task<IReadOnlyList<EventDto>> GetLatestAsync(int count = 8, CancellationToken ct = default);
+
     Task<IReadOnlyList<EventDto>> GetAllAsync(
+        CancellationToken ct = default);
+
+    Task<IReadOnlyList<EventDto>> GetMyEventsAsync(
         CancellationToken ct = default);
 
     Task<EventDto?> GetByIdAsync(
@@ -24,6 +30,11 @@ public interface IEventsClient
 
     Task<EventDto?> CreateAsync(
         CreateEventRequest request,
+        CancellationToken ct = default);
+
+    Task<EventDto?> UpdateAsync(
+        Guid id,
+        UpdateEventRequest request,
         CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> GetLocationSuggestionsAsync(

@@ -1,4 +1,5 @@
 using TicketPlatform.Core.Entities;
+using TicketPlatform.Shared.Dtos;
 
 namespace TicketPlatform.Core.Services;
 
@@ -22,7 +23,11 @@ public interface IEventService
     Task<IReadOnlyList<string>> GetCategoriesAsync(
         CancellationToken ct = default);
 
+    Task<IReadOnlyList<Event>> GetPopularAsync(int count, CancellationToken ct = default);
+    Task<IReadOnlyList<Event>> GetLatestAsync(int count, CancellationToken ct = default);
+    Task<IReadOnlyList<Event>> GetByHostAsync(Guid hostId, CancellationToken ct = default);
     Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<Event> CreateAsync(Event @event, CancellationToken ct = default);
     Task<Event> UpdateAsync(Event @event, CancellationToken ct = default);
+    Task<Event?> UpdateAsync(Guid id, UpdateEventRequest request, CancellationToken ct = default);
 }

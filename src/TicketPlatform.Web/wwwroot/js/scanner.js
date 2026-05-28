@@ -1,10 +1,10 @@
 let stream = null;
 let animId = null;
 let paused = false;
-let dotNet = null;   // DotNetObjectReference<ScannerBase>
+let dotNet = null;
 let videoEl = null;
 const canvas = document.createElement("canvas");
-const ctx = canvas.getContext("2d", {willReadFrequently: true});
+const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
 export async function startScanner(videoElementId, dotNetRef) {
     dotNet = dotNetRef;
@@ -17,12 +17,12 @@ export async function startScanner(videoElementId, dotNetRef) {
 
     try {
         stream = await navigator.mediaDevices.getUserMedia({
-            video: {facingMode: "environment"}   // rear camera on mobile
+            video: { facingMode: "environment" }
         });
         videoEl.srcObject = stream;
         await videoEl.play();
         paused = false;
-        tick();
+        scheduleTick();
     } catch (err) {
         console.error("[scanner] getUserMedia failed:", err);
     }
@@ -30,10 +30,7 @@ export async function startScanner(videoElementId, dotNetRef) {
 
 export function stopScanner() {
     paused = true;
-    if (animId) {
-        cancelAnimationFrame(animId);
-        animId = null;
-    }
+    cancelTick();
     if (stream) {
         stream.getTracks().forEach(t => t.stop());
         stream = null;
@@ -42,20 +39,40 @@ export function stopScanner() {
         videoEl.srcObject = null;
         videoEl = null;
     }
+    dotNet = null;
 }
 
 export function pauseScanner() {
     paused = true;
+    cancelTick();
 }
 
 export function resumeScanner() {
+    if (!paused) return;
     paused = false;
-    tick();
+    scheduleTick();
+}
+
+function cancelTick() {
+    if (animId !== null) {
+        cancelAnimationFrame(animId);
+        animId = null;
+    }
+}
+
+function scheduleTick() {
+    if (!paused && videoEl) {
+        animId = requestAnimationFrame(tick);
+    }
 }
 
 function tick() {
-    if (paused || !videoEl || videoEl.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) {
-        animId = requestAnimationFrame(tick);
+    animId = null;
+
+    if (paused || !videoEl) return;
+
+    if (videoEl.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) {
+        scheduleTick();
         return;
     }
 
@@ -69,10 +86,15 @@ function tick() {
     });
 
     if (code) {
-        paused = true;   // stop decoding until .NET tells us to resume
-        dotNet.invokeMethodAsync("OnQrDecoded", code.data);
-        return;          // don't schedule next frame yet
+        paused = true;
+        dotNet.invokeMethodAsync("OnQrDecoded", code.data)
+            .catch(err => {
+                console.error("[scanner] OnQrDecoded failed:", err);
+                paused = false;
+                scheduleTick();
+            });
+        return;
     }
 
-    animId = requestAnimationFrame(tick);
+    scheduleTick();
 }

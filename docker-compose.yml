@@ -43,7 +43,7 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite:latest
     container_name: ticket_platform_azurite
     restart: unless-stopped
-    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data --loose"
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data --loose --skipApiVersionCheck"
     ports:
       - "10000:10000"   # Blob
       - "10001:10001"   # Queue
@@ -55,7 +55,7 @@ services:
     image: stripe/stripe-cli:latest
     container_name: ticket_platform_stripe
     restart: unless-stopped
-    command: "listen --forward-to http://host.docker.internal:5001/api/stripe-webhook"
+    command: "listen --forward-to https://host.docker.internal:7001/api/stripe-webhook --skip-verify"
     environment:
       STRIPE_API_KEY: ${STRIPE_API_KEY}
       STRIPE_DEVICE_NAME: ticket_platform_dev
