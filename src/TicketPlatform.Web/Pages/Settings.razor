@@ -5,159 +5,245 @@
 
 <PageTitle>Settings</PageTitle>
 
-<RadzenStack Gap="1.5rem" Style="max-width: 720px;">
-    <PageHeader Title="Settings" Subtitle="Manage your account, profile, and payment settings." />
+<RadzenStack Gap="1.5rem">
+
+    <PageHeader Title="Settings" Subtitle="Manage your account, profile, and payment settings."/>
 
     @if (IsLoading)
     {
-        <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height:300px;">
-            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
-        </RadzenStack>
+        <RadzenCard>
+            <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height:200px;">
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"/>
+            </RadzenStack>
+        </RadzenCard>
     }
     else if (UserSettings is not null)
     {
-        <RadzenCard>
-            <RadzenStack Gap="1rem">
-                <RadzenText TextStyle="TextStyle.H6">Stripe / Payments</RadzenText>
+        <RadzenRow Gap="1.5rem" Style="align-items:flex-start;">
 
-                @if (!string.IsNullOrWhiteSpace(StripeError))
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true">@StripeError</RadzenAlert>
-                }
+            <RadzenColumn Size="12" SizeLg="7">
+                <RadzenStack Gap="1.5rem">
 
-                @if (StripeStatus is null || string.IsNullOrWhiteSpace(StripeStatus.StripeAccountId))
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
-                        Stripe is not connected. Connect Stripe before creating events.
-                    </RadzenAlert>
+                    <RadzenCard>
+                        <EditForm EditContext="ProfileEditContext" OnValidSubmit="SaveProfileAsync">
+                            <DataAnnotationsValidator/>
+                            <RadzenStack Gap="1.5rem">
 
-                    <RadzenButton Text="@(Connecting ? "Connecting…" : "Connect Stripe")"
-                                  Icon="account_balance"
-                                  ButtonStyle="ButtonStyle.Warning"
-                                  Disabled="@Connecting"
-                                  Click="@ConnectStripeAsync" />
-                }
-                else if (!StripeStatus.Ready)
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
-                        Stripe account connected but onboarding is incomplete. Continue setup to start accepting payments.
-                    </RadzenAlert>
+                                <RadzenStack Gap="1rem">
+                                    <RadzenText TextStyle="TextStyle.Overline" Class="rz-m-0">Personal details</RadzenText>
 
-                    <RadzenButton Text="@(Connecting ? "Connecting…" : "Continue Stripe setup")"
-                                  Icon="account_balance"
-                                  ButtonStyle="ButtonStyle.Warning"
-                                  Disabled="@Connecting"
-                                  Click="@ConnectStripeAsync" />
+                                    <RadzenFormField Text="Email" Variant="Variant.Outlined" Style="width:100%">
+                                        <RadzenTextBox Value="@UserSettings.Email" Disabled="true" Style="width:100%"/>
+                                    </RadzenFormField>
 
-                    @if (PollingStripe)
-                    {
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Small" />
-                            <RadzenText TextStyle="TextStyle.Caption" Style="color: var(--rz-text-secondary-color)">
-                                Checking status in @StripeCountdown s…
+                                    <RadzenRow Gap="0.75rem">
+                                        <RadzenColumn Size="12" SizeSm="6">
+                                            <RadzenStack Gap="0.25rem">
+                                                <RadzenFormField Text="First name *" Variant="Variant.Outlined" Style="width:100%">
+                                                    <RadzenTextBox @bind-Value="ProfileModel.FirstName" Style="width:100%"/>
+                                                </RadzenFormField>
+                                                <ValidationMessage For="@(() => ProfileModel.FirstName)"/>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeSm="6">
+                                            <RadzenStack Gap="0.25rem">
+                                                <RadzenFormField Text="Last name *" Variant="Variant.Outlined" Style="width:100%">
+                                                    <RadzenTextBox @bind-Value="ProfileModel.LastName" Style="width:100%"/>
+                                                </RadzenFormField>
+                                                <ValidationMessage For="@(() => ProfileModel.LastName)"/>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                    <RadzenStack Gap="0.25rem">
+                                        <RadzenFormField Text="Phone number" Variant="Variant.Outlined" Style="width:100%">
+                                            <RadzenTextBox @bind-Value="ProfileModel.PhoneNumber" Style="width:100%"/>
+                                        </RadzenFormField>
+                                        <ValidationMessage For="@(() => ProfileModel.PhoneNumber)"/>
+                                    </RadzenStack>
+                                </RadzenStack>
+
+                                <hr style="border:none;border-top:1px solid var(--rz-base-600);margin:0;"/>
+
+                                <RadzenStack Gap="1rem">
+                                    <RadzenText TextStyle="TextStyle.Overline" Class="rz-m-0">
+                                        Business details
+                                        <RadzenText TagName="TagName.Span" TextStyle="TextStyle.Caption" Style="text-transform:none;opacity:.6"> — optional</RadzenText>
+                                    </RadzenText>
+
+                                    <RadzenFormField Text="Company" Variant="Variant.Outlined" Style="width:100%">
+                                        <RadzenTextBox @bind-Value="ProfileModel.Company" Placeholder="Acme Ltd." Style="width:100%"/>
+                                    </RadzenFormField>
+
+                                    <RadzenRow Gap="0.75rem">
+                                        <RadzenColumn Size="12" SizeSm="6">
+                                            <RadzenFormField Text="Address" Variant="Variant.Outlined" Style="width:100%">
+                                                <RadzenTextBox @bind-Value="ProfileModel.Address" Style="width:100%"/>
+                                            </RadzenFormField>
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeSm="6">
+                                            <RadzenFormField Text="Tax / Company ID" Variant="Variant.Outlined" Style="width:100%">
+                                                <RadzenTextBox @bind-Value="ProfileModel.TaxCode" Style="width:100%"/>
+                                            </RadzenFormField>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                </RadzenStack>
+
+                                <div>
+                                    <RadzenButton Text="Save profile"
+                                                  Icon="save"
+                                                  ButtonStyle="ButtonStyle.Primary"
+                                                  ButtonType="ButtonType.Submit"/>
+                                </div>
+
+                            </RadzenStack>
+                        </EditForm>
+                    </RadzenCard>
+
+                    <RadzenCard>
+                        <EditForm EditContext="PasswordEditContext" OnValidSubmit="ChangePasswordAsync">
+                            <DataAnnotationsValidator/>
+                            <RadzenStack Gap="1rem">
+                                <RadzenText TextStyle="TextStyle.Overline" Class="rz-m-0">Change password</RadzenText>
+
+                                <RadzenRow Gap="0.75rem">
+                                    <RadzenColumn Size="12" SizeSm="6">
+                                        <RadzenStack Gap="0.25rem">
+                                            <RadzenFormField Text="Current password" Variant="Variant.Outlined" Style="width:100%">
+                                                <RadzenPassword @bind-Value="PasswordModel.CurrentPassword" Style="width:100%"/>
+                                            </RadzenFormField>
+                                            <ValidationMessage For="@(() => PasswordModel.CurrentPassword)"/>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeSm="6">
+                                        <RadzenStack Gap="0.25rem">
+                                            <RadzenFormField Text="New password" Variant="Variant.Outlined" Style="width:100%">
+                                                <RadzenPassword @bind-Value="PasswordModel.NewPassword" Style="width:100%"/>
+                                            </RadzenFormField>
+                                            <ValidationMessage For="@(() => PasswordModel.NewPassword)"/>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                </RadzenRow>
+
+                                <div>
+                                    <RadzenButton Text="Change password"
+                                                  Icon="lock_reset"
+                                                  ButtonStyle="ButtonStyle.Primary"
+                                                  ButtonType="ButtonType.Submit"/>
+                                </div>
+                            </RadzenStack>
+                        </EditForm>
+                    </RadzenCard>
+
+                </RadzenStack>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12" SizeLg="5">
+                <RadzenStack Gap="1.5rem">
+
+                    <RadzenCard>
+                        <RadzenStack Gap="1rem">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <RadzenIcon Icon="account_balance" Style="font-size:1.25rem;"/>
+                                <RadzenText TextStyle="TextStyle.H6" Class="rz-m-0">Payments</RadzenText>
+                            </RadzenStack>
+
+                            <RadzenText TextStyle="TextStyle.Body2" Class="rz-text-secondary-color">
+                                Connect a Stripe account to start accepting payments for your events.
+                                This is only required if you plan to host events — buyers don't need to set this up.
                             </RadzenText>
+
+                            @if (!string.IsNullOrWhiteSpace(StripeError))
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true">@StripeError</RadzenAlert>
+                            }
+
+                            @if (StripeStatus is null || string.IsNullOrWhiteSpace(StripeStatus.StripeAccountId))
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" AllowClose="false">
+                                    Stripe is not connected. Connect Stripe before creating events.
+                                </RadzenAlert>
+                                <div>
+                                    <RadzenButton Text="@(Connecting ? "Connecting…" : "Connect Stripe")"
+                                                  Icon="account_balance"
+                                                  ButtonStyle="ButtonStyle.Primary"
+                                                  Disabled="@Connecting"
+                                                  Click="@ConnectStripeAsync"/>
+                                </div>
+                            }
+                            else if (!StripeStatus.Ready)
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" AllowClose="false">
+                                    Stripe account connected but onboarding is incomplete. Continue setup to start accepting payments.
+                                </RadzenAlert>
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Style="flex-wrap:wrap;">
+                                    <RadzenButton Text="@(Connecting ? "Connecting…" : "Continue Stripe setup")"
+                                                  Icon="account_balance"
+                                                  ButtonStyle="ButtonStyle.Warning"
+                                                  Disabled="@Connecting"
+                                                  Click="@ConnectStripeAsync"/>
+                                    @if (PollingStripe)
+                                    {
+                                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Small"/>
+                                            <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color">
+                                                Checking status in @StripeCountdown s…
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    }
+                                </RadzenStack>
+                            }
+                            else
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true" AllowClose="false">
+                                    Stripe is connected and ready.
+                                </RadzenAlert>
+                            }
                         </RadzenStack>
-                    }
-                }
-                else
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true">
-                        Stripe is connected and ready.
-                    </RadzenAlert>
-                }
-            </RadzenStack>
-        </RadzenCard>
+                    </RadzenCard>
 
-        <RadzenCard>
-            <RadzenStack Gap="1rem">
-                <RadzenText TextStyle="TextStyle.H6">Profile</RadzenText>
+                    <RadzenCard>
+                        <RadzenStack Gap="1rem">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <RadzenIcon Icon="warning" Style="font-size:1.25rem;color:var(--rz-danger);"/>
+                                <RadzenText TextStyle="TextStyle.H6" Class="rz-m-0" Style="color:var(--rz-danger);">Danger zone</RadzenText>
+                            </RadzenStack>
 
-                <RadzenFormField Text="Email" Variant="Variant.Outlined" Style="width:100%">
-                    <RadzenTextBox Value="@UserSettings.Email" Disabled="true" Style="width:100%" />
-                </RadzenFormField>
+                            @if (!ConfirmDelete)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2" Class="rz-text-secondary-color">
+                                    Permanently delete your account and all associated data.
+                                </RadzenText>
+                                <div>
+                                    <RadzenButton Text="Delete account"
+                                                  Icon="delete_forever"
+                                                  ButtonStyle="ButtonStyle.Danger"
+                                                  Variant="Variant.Outlined"
+                                                  Click="@(() => ConfirmDelete = true)"/>
+                                </div>
+                            }
+                            else
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" AllowClose="false">
+                                    This will permanently delete your account and all associated data. This cannot be undone.
+                                </RadzenAlert>
+                                <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" Style="flex-wrap:wrap;">
+                                    <RadzenButton Text="Yes, delete my account"
+                                                  Icon="delete_forever"
+                                                  ButtonStyle="ButtonStyle.Danger"
+                                                  Click="@DeleteAccountAsync"/>
+                                    <RadzenButton Text="Cancel"
+                                                  ButtonStyle="ButtonStyle.Light"
+                                                  Click="@(() => ConfirmDelete = false)"/>
+                                </RadzenStack>
+                            }
+                        </RadzenStack>
+                    </RadzenCard>
 
-                <RadzenRow Gap="0.75rem">
-                    <RadzenColumn Size="12" SizeSm="6">
-                        <RadzenFormField Text="First name" Variant="Variant.Outlined" Style="width:100%">
-                            <RadzenTextBox @bind-Value="FirstName" Style="width:100%" />
-                        </RadzenFormField>
-                    </RadzenColumn>
-                    <RadzenColumn Size="12" SizeSm="6">
-                        <RadzenFormField Text="Last name" Variant="Variant.Outlined" Style="width:100%">
-                            <RadzenTextBox @bind-Value="LastName" Style="width:100%" />
-                        </RadzenFormField>
-                    </RadzenColumn>
-                </RadzenRow>
+                </RadzenStack>
+            </RadzenColumn>
 
-                <RadzenFormField Text="Phone number" Variant="Variant.Outlined" Style="width:100%">
-                    <RadzenTextBox @bind-Value="PhoneNumber" Style="width:100%" />
-                </RadzenFormField>
-
-                <RadzenFormField Text="Company" Variant="Variant.Outlined" Style="width:100%">
-                    <RadzenTextBox @bind-Value="Company" Style="width:100%" />
-                </RadzenFormField>
-
-                <RadzenFormField Text="Address" Variant="Variant.Outlined" Style="width:100%">
-                    <RadzenTextBox @bind-Value="Address" Style="width:100%" />
-                </RadzenFormField>
-
-                <RadzenFormField Text="Tax / Company ID" Variant="Variant.Outlined" Style="width:100%">
-                    <RadzenTextBox @bind-Value="TaxCode" Style="width:100%" />
-                </RadzenFormField>
-
-                <RadzenButton Text="Save profile"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Click="@SaveProfileAsync" />
-            </RadzenStack>
-        </RadzenCard>
-
-        <RadzenCard>
-            <RadzenStack Gap="1rem">
-                <RadzenText TextStyle="TextStyle.H6">Password</RadzenText>
-
-                <RadzenPassword @bind-Value="CurrentPassword"
-                                Placeholder="Current password"
-                                Style="width:100%" />
-
-                <RadzenPassword @bind-Value="NewPassword"
-                                Placeholder="New password"
-                                Style="width:100%" />
-
-                <RadzenButton Text="Change password"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Click="@ChangePasswordAsync" />
-            </RadzenStack>
-        </RadzenCard>
-
-        <RadzenCard>
-            <RadzenStack Gap="1rem">
-                <RadzenText TextStyle="TextStyle.H6" Style="color: var(--rz-danger)">Danger zone</RadzenText>
-
-                @if (!ConfirmDelete)
-                {
-                    <RadzenButton Text="Delete account"
-                                  Icon="delete_forever"
-                                  ButtonStyle="ButtonStyle.Danger"
-                                  Variant="Variant.Outlined"
-                                  Click="@(() => ConfirmDelete = true)" />
-                }
-                else
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true">
-                        This will permanently delete your account and all associated data. This cannot be undone.
-                    </RadzenAlert>
-                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem">
-                        <RadzenButton Text="Yes, delete my account"
-                                      Icon="delete_forever"
-                                      ButtonStyle="ButtonStyle.Danger"
-                                      Click="@DeleteAccountAsync" />
-                        <RadzenButton Text="Cancel"
-                                      ButtonStyle="ButtonStyle.Light"
-                                      Click="@(() => ConfirmDelete = false)" />
-                    </RadzenStack>
-                }
-            </RadzenStack>
-        </RadzenCard>
+        </RadzenRow>
     }
-</RadzenStack>
 
+</RadzenStack>
