@@ -1,4 +1,5 @@
 using Azure.Storage.Blobs;
+using Castle.DynamicProxy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,15 +46,9 @@ public static class DependencyInjection
 
         services.AddInterceptedScoped<ITicketValidationService, TicketValidationService>(configuration);
 
-        // Add Google Places API service
+        // Strategy demo: pick the IPlacesService implementation via "Places:Provider" config.
         services.Configure<GooglePlacesOptions>(configuration.GetSection("GooglePlaces"));
-        services.AddScoped<IPlacesService>(sp =>
-            new GooglePlacesService(
-                new HttpClient(),
-                sp.GetRequiredService<IOptions<GooglePlacesOptions>>(),
-                sp.GetRequiredService<ILogger<GooglePlacesService>>()
-            )
-        );
+        RegisterPlacesService(services, configuration);
         services.Configure<BlobStorageOptions>(configuration.GetSection("BlobStorage"));
         services.AddSingleton(sp =>
         {
@@ -86,5 +81,38 @@ public static class DependencyInjection
         };
     });
         return services;
+    }
+
+    private static void RegisterPlacesService(IServiceCollection services, IConfiguration configuration)
+    {
+        var provider = configuration["Places:Provider"] ?? "Google";
+
+        if (provider.Equals("Mock", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddInterceptedScoped<IPlacesService, MockPlacesService>(configuration);
+            return;
+        }
+
+        services.AddHttpClient<GooglePlacesService>();
+
+        var interceptionOn = configuration.GetValue<bool>(
+            InterceptedServiceCollectionExtensions.InterceptionToggleKey);
+
+        if (interceptionOn)
+        {
+            services.AddTransient<IPlacesService>(sp =>
+            {
+                var target = sp.GetRequiredService<GooglePlacesService>();
+                var generator = sp.GetRequiredService<ProxyGenerator>();
+                var interceptor = sp.GetRequiredService<LoggingInterceptor>();
+                return generator.CreateInterfaceProxyWithTargetInterface<IPlacesService>(
+                    target,
+                    interceptor.ToInterceptor());
+            });
+        }
+        else
+        {
+            services.AddTransient<IPlacesService>(sp => sp.GetRequiredService<GooglePlacesService>());
+        }
     }
 }

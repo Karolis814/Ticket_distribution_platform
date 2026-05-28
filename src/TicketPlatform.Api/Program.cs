@@ -30,13 +30,6 @@ StripeConfiguration.ApiKey =
 builder.Services.AddInterceptedScoped<IStripeCheckoutService, StripeCheckoutService>(builder.Configuration);
 builder.Services.AddInterceptedScoped<IUserSettingsService, UserSettingsService>(builder.Configuration);
 
-builder.Services.Configure<GooglePlacesOptions>(
-    builder.Configuration.GetSection("GooglePlacesOptions"));
-
-builder.Services.AddHttpClient<
-    IPlacesService,
-    GooglePlacesService>();
-
 const string blazorCors = "BlazorClient";
 
 builder.Services.AddCors(options =>
