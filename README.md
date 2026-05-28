@@ -1,9 +1,6 @@
 # Ticket Distribution Platform
 
-Users can register, log in, browse and search events, filter by date / location / category,
-buy tickets, get them by email and view QR codes.
-
-Jira: https://markk-psk.atlassian.net/jira/software/projects/MARKK/summary
+Users can browse and search events, buy tickets, get them delivered to email along with periodic reminders and validate them at the door via QR code.
 
 ## Stack
 
