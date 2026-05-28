@@ -6,300 +6,338 @@
 
 <PageTitle>Sales Overview</PageTitle>
 
-<RadzenRow JustifyContent="JustifyContent.Center">
-    <RadzenColumn Size="12" SizeLg="10">
-        <RadzenStack Gap="1.5rem">
+<RadzenStack Gap="1.5rem">
 
-            <PageHeader Title="Sales Overview" Subtitle="Track revenue, ticket sales, and payouts." />
+    <PageHeader Title="Sales Overview" Subtitle="Track revenue, ticket sales, and payouts.">
+        <Actions>
+            <RadzenButton Text="My Events"
+                          Icon="event"
+                          ButtonStyle="ButtonStyle.Light"
+                          Size="ButtonSize.Medium"
+                          Click="@(() => Nav.NavigateTo("/host/events"))"/>
+        </Actions>
+    </PageHeader>
 
-            @if (Loading)
-            {
-                <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height:300px;">
-                    <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"/>
-                </RadzenStack>
-            }
-            else if (!string.IsNullOrWhiteSpace(Error))
-            {
-                <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true">
-                    @Error
-                </RadzenAlert>
-            }
-            else if (Dashboard is not null)
-            {
-                <RadzenRow Gap="1rem">
-                    <RadzenColumn Size="12" SizeMd="3">
-                        <RadzenCard>
-                            <RadzenText TextStyle="TextStyle.Overline">Sold tickets</RadzenText>
-                            <RadzenText TextStyle="TextStyle.H4" Style="font-weight:700">
-                                @Dashboard.SoldTickets
-                            </RadzenText>
-                        </RadzenCard>
-                    </RadzenColumn>
-
-                    <RadzenColumn Size="12" SizeMd="3">
-                        <RadzenCard>
-                            <RadzenText TextStyle="TextStyle.Overline">Gross revenue</RadzenText>
-                            @foreach (var amount in Dashboard.GrossRevenue)
-                            {
-                                <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700">
-                                    @FormatMoney(amount)
-                                </RadzenText>
-                            }
-                        </RadzenCard>
-                    </RadzenColumn>
-
-                    <RadzenColumn Size="12" SizeMd="3">
-                        <RadzenCard>
-                            <RadzenText TextStyle="TextStyle.Overline">Platform fees</RadzenText>
-                            @foreach (var amount in Dashboard.PlatformFees)
-                            {
-                                <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700">
-                                    @FormatMoney(amount)
-                                </RadzenText>
-                            }
-                        </RadzenCard>
-                    </RadzenColumn>
-
-                    <RadzenColumn Size="12" SizeMd="3">
-                        <RadzenCard>
-                            <RadzenText TextStyle="TextStyle.Overline">Net revenue</RadzenText>
-                            @foreach (var amount in Dashboard.NetRevenue)
-                            {
-                                <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700">
-                                    @FormatMoney(amount)
-                                </RadzenText>
-                            }
-                        </RadzenCard>
-                    </RadzenColumn>
-                </RadzenRow>
-
-                <RadzenRow Gap="1rem">
-                    <RadzenColumn Size="12" SizeMd="6">
-                        <RadzenCard>
-                            <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700">
-                                Available Stripe balance
-                            </RadzenText>
-
-                            @if (Dashboard.StripeAvailableBalance.Count == 0)
-                            {
-                                <RadzenText>No balance available</RadzenText>
-                            }
-                            else
-                            {
-                                @foreach (var amount in Dashboard.StripeAvailableBalance)
-                                {
-                                    <RadzenText TextStyle="TextStyle.H5">
-                                        @FormatMoney(amount)
-                                    </RadzenText>
-                                }
-                            }
-                        </RadzenCard>
-                    </RadzenColumn>
-
-                    <RadzenColumn Size="12" SizeMd="6">
-                        <RadzenCard>
-                            <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700">
-                                Pending Stripe balance
-                            </RadzenText>
-
-                            @if (Dashboard.StripePendingBalance.Count == 0)
-                            {
-                                <RadzenText>No pending balance</RadzenText>
-                            }
-                            else
-                            {
-                                @foreach (var amount in Dashboard.StripePendingBalance)
-                                {
-                                    <RadzenText TextStyle="TextStyle.H5">
-                                        @FormatMoney(amount)
-                                    </RadzenText>
-                                }
-                            }
-                        </RadzenCard>
-                    </RadzenColumn>
-                </RadzenRow>
-
-                <RadzenCard>
-                    <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700">
-                        Ticket analytics
-                    </RadzenText>
-
-                    <RadzenRow Gap="1rem" Class="rz-mt-3">
-                        <RadzenColumn Size="12" SizeMd="4">
-                            <RadzenCard Variant="Variant.Flat">
-                                <RadzenText TextStyle="TextStyle.Overline">Used tickets</RadzenText>
-                                <RadzenText TextStyle="TextStyle.H4" Style="font-weight:700">
-                                    @Dashboard.UsedTickets
-                                </RadzenText>
-                            </RadzenCard>
-                        </RadzenColumn>
-
-                        <RadzenColumn Size="12" SizeMd="4">
-                            <RadzenCard Variant="Variant.Flat">
-                                <RadzenText TextStyle="TextStyle.Overline">Valid tickets</RadzenText>
-                                <RadzenText TextStyle="TextStyle.H4" Style="font-weight:700">
-                                    @Dashboard.ValidTickets
-                                </RadzenText>
-                            </RadzenCard>
-                        </RadzenColumn>
-
-                        <RadzenColumn Size="12" SizeMd="4">
-                            <RadzenCard Variant="Variant.Flat">
-                                <RadzenText TextStyle="TextStyle.Overline">Invalid tickets</RadzenText>
-                                <RadzenText TextStyle="TextStyle.H4" Style="font-weight:700">
-                                    @Dashboard.InvalidTickets
-                                </RadzenText>
-                            </RadzenCard>
-                        </RadzenColumn>
-                    </RadzenRow>
+    @if (Loading)
+    {
+        <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height:300px;">
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"/>
+        </RadzenStack>
+    }
+    else if (!string.IsNullOrWhiteSpace(Error))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" AllowClose="false">
+            @Error
+        </RadzenAlert>
+    }
+    else if (Dashboard is not null)
+    {
+        <RadzenRow Gap="1rem">
+            <RadzenColumn Size="12" SizeMd="6" SizeLg="3">
+                <RadzenCard Class="rz-p-0 rz-overflow-hidden event-card" Style="border-top:3px solid var(--rz-primary);">
+                    <RadzenStack Gap="0" Class="rz-p-4">
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     JustifyContent="JustifyContent.SpaceBetween"
+                                     AlignItems="AlignItems.Center"
+                                     Class="rz-mb-3">
+                            <RadzenText TextStyle="TextStyle.Overline" Class="rz-text-tertiary-color" Style="margin:0;">Tickets Sold</RadzenText>
+                            <RadzenIcon Icon="confirmation_number" Style="font-size:1.4rem;color:var(--rz-primary);"/>
+                        </RadzenStack>
+                        <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;line-height:1.3;">@Dashboard.SoldTickets</RadzenText>
+                    </RadzenStack>
                 </RadzenCard>
+            </RadzenColumn>
 
-                <RadzenCard>
-                    <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700">
-                        Revenue by event
-                    </RadzenText>
-
-                    @if (Dashboard.RevenueByEvent.Count == 0)
-                    {
-                        <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" Class="rz-mt-3">
-                            No revenue yet.
-                        </RadzenAlert>
-                    }
-                    else
-                    {
-                        <RadzenDataGrid Data="@Dashboard.RevenueByEvent"
-                                        TItem="EventRevenueDto"
-                                        Class="rz-mt-3">
-                            <Columns>
-                                <RadzenDataGridColumn TItem="EventRevenueDto"
-                                                      Property="EventName"
-                                                      Title="Event"/>
-
-                                <RadzenDataGridColumn TItem="EventRevenueDto"
-                                                      Property="TicketsSold"
-                                                      Title="Tickets sold"/>
-
-                                <RadzenDataGridColumn TItem="EventRevenueDto"
-                                                      Title="Revenue">
-                                    <Template Context="eventRevenue">
-                                        @FormatMoney(new MoneyAmountDto(
-                                            eventRevenue.RevenueCents,
-                                            eventRevenue.Currency))
-                                    </Template>
-                                </RadzenDataGridColumn>
-                            </Columns>
-                        </RadzenDataGrid>
-                    }
-                </RadzenCard>
-
-                <RadzenCard>
-                    <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700">
-                        Daily sales
-                    </RadzenText>
-
-                    @if (Dashboard.DailySales.Count == 0)
-                    {
-                        <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" Class="rz-mt-3">
-                            No daily sales yet.
-                        </RadzenAlert>
-                    }
-                    else
-                    {
-                        <RadzenDataGrid Data="@Dashboard.DailySales"
-                                        TItem="DailySalesDto"
-                                        Class="rz-mt-3">
-                            <Columns>
-                                <RadzenDataGridColumn TItem="DailySalesDto"
-                                                      Property="Date"
-                                                      Title="Date"/>
-
-                                <RadzenDataGridColumn TItem="DailySalesDto"
-                                                      Property="TicketsSold"
-                                                      Title="Tickets sold"/>
-
-                                <RadzenDataGridColumn TItem="DailySalesDto"
-                                                      Title="Revenue">
-                                    <Template Context="sale">
-                                        @FormatMoney(new MoneyAmountDto(
-                                            sale.RevenueCents,
-                                            sale.Currency))
-                                    </Template>
-                                </RadzenDataGridColumn>
-                            </Columns>
-                        </RadzenDataGrid>
-                    }
-                </RadzenCard>
-
-                <RadzenCard>
-                    <RadzenStack Gap="1rem">
-                        <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700">
-                            Payout history
-                        </RadzenText>
-
-                        @if (Dashboard.Payouts.Count == 0)
+            <RadzenColumn Size="12" SizeMd="6" SizeLg="3">
+                <RadzenCard Class="rz-p-0 rz-overflow-hidden event-card" Style="border-top:3px solid var(--rz-success);">
+                    <RadzenStack Gap="0" Class="rz-p-4">
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     JustifyContent="JustifyContent.SpaceBetween"
+                                     AlignItems="AlignItems.Center"
+                                     Class="rz-mb-3">
+                            <RadzenText TextStyle="TextStyle.Overline" Class="rz-text-tertiary-color" Style="margin:0;">Gross Revenue</RadzenText>
+                            <RadzenIcon Icon="payments" Style="font-size:1.4rem;color:var(--rz-success);"/>
+                        </RadzenStack>
+                        @if (!Dashboard.GrossRevenue.Any())
                         {
-                            <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
-                                No payouts yet.
-                            </RadzenAlert>
+                            <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;">—</RadzenText>
                         }
-                        else
+                        @foreach (var amount in Dashboard.GrossRevenue)
                         {
-                            <RadzenDataGrid Data="@Dashboard.Payouts" TItem="StripePayoutDto">
-                                <Columns>
-                                    <RadzenDataGridColumn TItem="StripePayoutDto"
-                                                          Property="Id"
-                                                          Title="Payout ID"/>
-
-                                    <RadzenDataGridColumn TItem="StripePayoutDto"
-                                                          Title="Amount">
-                                        <Template Context="payout">
-                                            @FormatMoney(new MoneyAmountDto(
-                                                payout.AmountCents,
-                                                payout.Currency))
-                                        </Template>
-                                    </RadzenDataGridColumn>
-
-                                    <RadzenDataGridColumn TItem="StripePayoutDto"
-                                                          Title="Status">
-                                        <Template Context="payout">
-                                            @if (payout.Status == "paid")
-                                            {
-                                                <RadzenBadge Text="PAID"
-                                                             BadgeStyle="BadgeStyle.Success"/>
-                                            }
-                                            else if (payout.Status == "pending")
-                                            {
-                                                <RadzenBadge Text="PENDING"
-                                                             BadgeStyle="BadgeStyle.Warning"/>
-                                            }
-                                            else
-                                            {
-                                                <RadzenBadge Text="@payout.Status.ToUpper()"
-                                                             BadgeStyle="BadgeStyle.Danger"/>
-                                            }
-                                        </Template>
-                                    </RadzenDataGridColumn>
-
-                                    <RadzenDataGridColumn TItem="StripePayoutDto"
-                                                          Title="Created">
-                                        <Template Context="payout">
-                                            @payout.Created.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
-                                        </Template>
-                                    </RadzenDataGridColumn>
-                                </Columns>
-                            </RadzenDataGrid>
+                            <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;line-height:1.3;">@FormatMoney(amount)</RadzenText>
                         }
                     </RadzenStack>
                 </RadzenCard>
+            </RadzenColumn>
 
-                <RadzenButton Text="Back to settings"
-                              Icon="arrow_back"
-                              ButtonStyle="ButtonStyle.Light"
-                              Click="@(() => Nav.NavigateTo("/user/settings"))"
-                              Style="width:100%"/>
+            <RadzenColumn Size="12" SizeMd="6" SizeLg="3">
+                <RadzenCard Class="rz-p-0 rz-overflow-hidden event-card" Style="border-top:3px solid var(--rz-warning);">
+                    <RadzenStack Gap="0" Class="rz-p-4">
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     JustifyContent="JustifyContent.SpaceBetween"
+                                     AlignItems="AlignItems.Center"
+                                     Class="rz-mb-3">
+                            <RadzenText TextStyle="TextStyle.Overline" Class="rz-text-tertiary-color" Style="margin:0;">Platform Fees</RadzenText>
+                            <RadzenIcon Icon="receipt_long" Style="font-size:1.4rem;color:var(--rz-warning);"/>
+                        </RadzenStack>
+                        @if (!Dashboard.PlatformFees.Any())
+                        {
+                            <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;">—</RadzenText>
+                        }
+                        @foreach (var amount in Dashboard.PlatformFees)
+                        {
+                            <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;line-height:1.3;">@FormatMoney(amount)</RadzenText>
+                        }
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12" SizeMd="6" SizeLg="3">
+                <RadzenCard Class="rz-p-0 rz-overflow-hidden event-card" Style="border-top:3px solid var(--rz-info);">
+                    <RadzenStack Gap="0" Class="rz-p-4">
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     JustifyContent="JustifyContent.SpaceBetween"
+                                     AlignItems="AlignItems.Center"
+                                     Class="rz-mb-3">
+                            <RadzenText TextStyle="TextStyle.Overline" Class="rz-text-tertiary-color" Style="margin:0;">Net Revenue</RadzenText>
+                            <RadzenIcon Icon="account_balance_wallet" Style="font-size:1.4rem;color:var(--rz-info);"/>
+                        </RadzenStack>
+                        @if (!Dashboard.NetRevenue.Any())
+                        {
+                            <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;">—</RadzenText>
+                        }
+                        @foreach (var amount in Dashboard.NetRevenue)
+                        {
+                            <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;line-height:1.3;">@FormatMoney(amount)</RadzenText>
+                        }
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+
+        <RadzenRow Gap="1rem">
+            <RadzenColumn Size="12" SizeMd="6">
+                <RadzenCard Class="rz-h-100 rz-p-0 rz-overflow-hidden">
+                    <RadzenStack Orientation="Orientation.Horizontal"
+                                 JustifyContent="JustifyContent.SpaceBetween"
+                                 AlignItems="AlignItems.Center"
+                                 Class="rz-p-4"
+                                 Style="border-bottom:1px solid var(--rz-border-disabled-color);">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.6rem">
+                            <RadzenIcon Icon="account_balance" Style="color:var(--rz-primary);"/>
+                            <RadzenText TextStyle="TextStyle.H6" Style="margin:0;font-weight:700;">Stripe Balance</RadzenText>
+                        </RadzenStack>
+                        <RadzenBadge BadgeStyle="BadgeStyle.Success" IsPill="true" Text="Live"/>
+                    </RadzenStack>
+
+                    <RadzenRow Gap="0" Class="rz-p-4">
+                        <RadzenColumn Size="6">
+                            <RadzenStack Gap="0.3rem">
+                                <RadzenText TextStyle="TextStyle.Overline" Class="rz-text-tertiary-color" Style="margin:0;">Available</RadzenText>
+                                @if (!Dashboard.StripeAvailableBalance.Any())
+                                {
+                                    <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;color:var(--rz-success);">—</RadzenText>
+                                }
+                                @foreach (var amount in Dashboard.StripeAvailableBalance)
+                                {
+                                    <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;color:var(--rz-success);">@FormatMoney(amount)</RadzenText>
+                                }
+                            </RadzenStack>
+                        </RadzenColumn>
+                        <RadzenColumn Size="6">
+                            <RadzenStack Gap="0.3rem">
+                                <RadzenText TextStyle="TextStyle.Overline" Class="rz-text-tertiary-color" Style="margin:0;">Pending</RadzenText>
+                                @if (!Dashboard.StripePendingBalance.Any())
+                                {
+                                    <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;color:var(--rz-warning);">—</RadzenText>
+                                }
+                                @foreach (var amount in Dashboard.StripePendingBalance)
+                                {
+                                    <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;color:var(--rz-warning);">@FormatMoney(amount)</RadzenText>
+                                }
+                            </RadzenStack>
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenCard>
+            </RadzenColumn>
+
+            <RadzenColumn Size="12" SizeMd="6">
+                <RadzenCard Class="rz-h-100 rz-p-0 rz-overflow-hidden">
+                    <RadzenStack Orientation="Orientation.Horizontal"
+                                 AlignItems="AlignItems.Center"
+                                 Gap="0.6rem"
+                                 Class="rz-p-4"
+                                 Style="border-bottom:1px solid var(--rz-border-disabled-color);">
+                        <RadzenIcon Icon="qr_code_2" Style="color:var(--rz-primary);"/>
+                        <RadzenText TextStyle="TextStyle.H6" Style="margin:0;font-weight:700;">Ticket Analytics</RadzenText>
+                    </RadzenStack>
+
+                    @{
+                        var totalTickets = Dashboard.UsedTickets + Dashboard.ValidTickets + Dashboard.InvalidTickets;
+                        var usedPct   = totalTickets > 0 ? (double)Dashboard.UsedTickets   / totalTickets * 100 : 0;
+                        var validPct  = totalTickets > 0 ? (double)Dashboard.ValidTickets  / totalTickets * 100 : 0;
+                        var invalidPct = totalTickets > 0 ? (double)Dashboard.InvalidTickets / totalTickets * 100 : 0;
+                    }
+
+                    <RadzenStack Gap="1rem" Class="rz-p-4">
+                        <RadzenStack Gap="0.4rem">
+                            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;">Used</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;font-weight:700;">@Dashboard.UsedTickets</RadzenText>
+                            </RadzenStack>
+                            <RadzenProgressBar Value="@usedPct" ShowValue="false"
+                                               ProgressBarStyle="ProgressBarStyle.Info"
+                                               Style="height:6px;border-radius:3px;"/>
+                        </RadzenStack>
+
+                        <RadzenStack Gap="0.4rem">
+                            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;">Valid (unused)</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;font-weight:700;">@Dashboard.ValidTickets</RadzenText>
+                            </RadzenStack>
+                            <RadzenProgressBar Value="@validPct" ShowValue="false"
+                                               ProgressBarStyle="ProgressBarStyle.Success"
+                                               Style="height:6px;border-radius:3px;"/>
+                        </RadzenStack>
+
+                        <RadzenStack Gap="0.4rem">
+                            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;">Invalid</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;font-weight:700;">@Dashboard.InvalidTickets</RadzenText>
+                            </RadzenStack>
+                            <RadzenProgressBar Value="@invalidPct" ShowValue="false"
+                                               ProgressBarStyle="ProgressBarStyle.Danger"
+                                               Style="height:6px;border-radius:3px;"/>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+
+        <RadzenCard Class="rz-p-0 rz-overflow-hidden">
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         AlignItems="AlignItems.Center"
+                         Gap="0.6rem"
+                         Class="rz-p-4"
+                         Style="border-bottom:1px solid var(--rz-border-disabled-color);">
+                <RadzenIcon Icon="bar_chart" Style="color:var(--rz-primary);"/>
+                <RadzenText TextStyle="TextStyle.H6" Style="margin:0;font-weight:700;">Revenue by Event</RadzenText>
+            </RadzenStack>
+
+            @if (Dashboard.RevenueByEvent.Count == 0)
+            {
+                <div class="rz-p-4">
+                    <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
+                        No revenue data yet.
+                    </RadzenAlert>
+                </div>
             }
+            else
+            {
+                <RadzenDataGrid Data="@Dashboard.RevenueByEvent" TItem="EventRevenueDto" AllowSorting="true">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="EventRevenueDto" Property="EventName" Title="Event"/>
+                        <RadzenDataGridColumn TItem="EventRevenueDto" Property="TicketsSold" Title="Tickets Sold" Width="150px"/>
+                        <RadzenDataGridColumn TItem="EventRevenueDto" Title="Revenue" Width="180px">
+                            <Template Context="r">
+                                @FormatMoney(new MoneyAmountDto(r.RevenueCents, r.Currency))
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
+        </RadzenCard>
 
-        </RadzenStack>
-    </RadzenColumn>
-</RadzenRow>
+        <RadzenCard Class="rz-p-0 rz-overflow-hidden">
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         AlignItems="AlignItems.Center"
+                         Gap="0.6rem"
+                         Class="rz-p-4"
+                         Style="border-bottom:1px solid var(--rz-border-disabled-color);">
+                <RadzenIcon Icon="trending_up" Style="color:var(--rz-primary);"/>
+                <RadzenText TextStyle="TextStyle.H6" Style="margin:0;font-weight:700;">Daily Sales</RadzenText>
+            </RadzenStack>
 
+            @if (Dashboard.DailySales.Count == 0)
+            {
+                <div class="rz-p-4">
+                    <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
+                        No daily sales yet.
+                    </RadzenAlert>
+                </div>
+            }
+            else
+            {
+                <RadzenDataGrid Data="@Dashboard.DailySales" TItem="DailySalesDto" AllowSorting="true">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="DailySalesDto" Property="Date" Title="Date" Width="160px">
+                            <Template Context="s">@s.Date.ToString("yyyy-MM-dd")</Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="DailySalesDto" Property="TicketsSold" Title="Tickets Sold" Width="150px"/>
+                        <RadzenDataGridColumn TItem="DailySalesDto" Title="Revenue" Width="180px">
+                            <Template Context="s">
+                                @FormatMoney(new MoneyAmountDto(s.RevenueCents, s.Currency))
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
+        </RadzenCard>
+
+        <RadzenCard Class="rz-p-0 rz-overflow-hidden">
+            <RadzenStack Orientation="Orientation.Horizontal"
+                         AlignItems="AlignItems.Center"
+                         Gap="0.6rem"
+                         Class="rz-p-4"
+                         Style="border-bottom:1px solid var(--rz-border-disabled-color);">
+                <RadzenIcon Icon="outbound" Style="color:var(--rz-primary);"/>
+                <RadzenText TextStyle="TextStyle.H6" Style="margin:0;font-weight:700;">Payout History</RadzenText>
+            </RadzenStack>
+
+            @if (Dashboard.Payouts.Count == 0)
+            {
+                <div class="rz-p-4">
+                    <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
+                        No payouts yet.
+                    </RadzenAlert>
+                </div>
+            }
+            else
+            {
+                <RadzenDataGrid Data="@Dashboard.Payouts" TItem="StripePayoutDto" AllowSorting="true">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="StripePayoutDto" Property="Id" Title="Payout ID"/>
+                        <RadzenDataGridColumn TItem="StripePayoutDto" Title="Amount" Width="180px">
+                            <Template Context="p">
+                                @FormatMoney(new MoneyAmountDto(p.AmountCents, p.Currency))
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="StripePayoutDto" Title="Status" Width="120px">
+                            <Template Context="p">
+                                @if (p.Status == "paid")
+                                {
+                                    <RadzenBadge Text="PAID" BadgeStyle="BadgeStyle.Success" IsPill="true"/>
+                                }
+                                else if (p.Status == "pending")
+                                {
+                                    <RadzenBadge Text="PENDING" BadgeStyle="BadgeStyle.Warning" IsPill="true"/>
+                                }
+                                else
+                                {
+                                    <RadzenBadge Text="@p.Status.ToUpper()" BadgeStyle="BadgeStyle.Danger" IsPill="true"/>
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="StripePayoutDto" Title="Date" Width="180px">
+                            <Template Context="p">
+                                @p.Created.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
+        </RadzenCard>
+
+    }
+
+</RadzenStack>
