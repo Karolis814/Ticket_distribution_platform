@@ -21,6 +21,26 @@ public static class EmailTemplates
             new EmailAttachment("tickets.pdf", "application/pdf", pdf)
         ]);
 
+    public static EmailMessage EventReminder(
+        string toEmail,
+        string toName,
+        string eventTitle,
+        DateTimeOffset admissionStart,
+        IReadOnlyList<(string Title, int Quantity)> items)
+    {
+        var lines = string.Join("\n", items.Select(i => $" - {i.Title} x{i.Quantity}"));
+        return new EmailMessage(
+            To: toEmail,
+            ToName: toName,
+            Subject: $"Reminder: {eventTitle} is tomorrow",
+            BodyText:
+                $"Hello {toName},\n\n" +
+                $"This is a reminder that \"{eventTitle}\" starts at " +
+                $"{admissionStart.UtcDateTime:yyyy-MM-dd HH:mm} UTC.\n\n" +
+                $"Your tickets:\n{lines}\n\n" +
+                "See you there!");
+    }
+
     public static EmailMessage ConfirmEmailChange(
         string toEmail,
         string toName,
