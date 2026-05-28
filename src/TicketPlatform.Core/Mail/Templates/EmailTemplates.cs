@@ -53,4 +53,39 @@ public static class EmailTemplates
             "Please confirm your new email address by opening this link:\n\n" +
             $"{confirmationUrl}\n\n" +
             "If you did not request this change, ignore this email.");
+
+    
+    public static EmailMessage PasswordResetEmail(string toEmail, string toName, string resetUrl){
+
+        return new EmailMessage(
+            To: toEmail,
+            ToName: toName,
+            Subject: "Reset your password",
+            BodyText:
+                $"Hello {toName},\n\n" +
+                "We received a request to reset your password.\n\n" +
+                "You can reset it using the link below:\n\n" +
+                $"{resetUrl}\n\n" +
+                "If you did not request this, you can safely ignore this email.")
+        
+        public static EmailMessage ConfirmEmail(
+            string toEmail,
+            string toName,
+            string confirmationUrl) {
+
+              return  new EmailMessage(
+            To: toEmail,
+            ToName: toName,
+            Subject: "Confirm your email address",
+            BodyText:
+                $"Hello {toName},\n\n" +
+                "Please confirm your email address by clicking the link below:\n\n" +
+                $"{confirmationUrl}\n\n" +
+                "If you did not create an account, you can ignore this email.");
+            } 
+        
+            
+
+
+    }
 }
