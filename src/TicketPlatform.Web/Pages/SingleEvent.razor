@@ -61,7 +61,7 @@
                         <div style="display:flex;align-items:center;gap:0.5rem;color:var(--rz-text-secondary-color);">
                             <RadzenIcon Icon="location_on" Style="font-size:1.1rem;flex-shrink:0;"/>
                             <span style="font-size:0.95rem;">@Event.Location</span>
-                            <RadzenLink Path="https://www.google.com/maps/place/@Uri.EscapeDataString(Event.Location)" target="_blank" Text="Open in Maps" rel="noopener noreferrer" />
+                            <RadzenLink Path="@("https://www.google.com/maps/search/?api=1&query=" + Uri.EscapeDataString(Event.Location))" target="_blank" Text="Open in Maps" rel="noopener noreferrer" />
                         </div>
                     }
                 </div>

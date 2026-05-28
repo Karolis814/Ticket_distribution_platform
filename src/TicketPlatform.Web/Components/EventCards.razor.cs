@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components;
+using Radzen;
 using TicketPlatform.Shared.Dtos;
+using TicketPlatform.Shared.Enums;
 
 namespace TicketPlatform.Web.Components;
 
@@ -7,47 +9,46 @@ public partial class EventCardsBase : ComponentBase
 {
     [Parameter] public IReadOnlyList<EventDto> Events { get; set; } = [];
 
-    [Parameter] public int Size { get; set; } = 4;
     [Parameter] public int NumColsSm { get; set; } = 1;
     [Parameter] public int NumColsMd { get; set; } = 2;
     [Parameter] public int NumColsLg { get; set; } = 4;
+
     protected int ColSizeSm => 12 / NumColsSm;
     protected int ColSizeMd => 12 / NumColsMd;
     protected int ColSizeLg => 12 / NumColsLg;
 
     [Parameter] public bool IsLoading { get; set; } = true;
+    [Parameter] public bool ShowTicketButton { get; set; } = true;
+    [Parameter] public bool IsManagementView { get; set; } = false;
+    [Parameter] public string EmptyMessage { get; set; } = "No events are currently available. Check back soon!";
 
     [Inject] private NavigationManager Nav { get; set; } = null!;
 
+    protected void NavigateToDetails(Guid eventId) => Nav.NavigateTo($"/events/{eventId}");
+    protected void NavigateToEdit(Guid eventId) => Nav.NavigateTo($"/host/events/{eventId}/edit");
 
-    protected void NavigateToDetails(Guid eventId)
+    protected void OnCardClick(EventDto ev)
     {
-        Nav.NavigateTo($"/events/{eventId}");
+        if (!IsManagementView)
+            NavigateToDetails(ev.Id);
     }
 
-    protected static string GetDescriptionExcerpt(string description)
-    {
-        if (string.IsNullOrWhiteSpace(description))
-            return string.Empty;
+    protected static int RemainingTickets(EventDto ev) =>
+        Math.Max(0, ev.TicketTypes.Sum(t => t.Quantity) - ev.TicketTypes.Sum(t => t.Sold));
 
-        return description.Length > 100
-            ? $"{description[..97]}..."
-            : description;
-    }
-
-    protected static int RemainingTickets(EventDto ev)
-    {
-        var total = ev.TicketTypes.Sum(t => t.Quantity);
-        var sold = ev.TicketTypes.Sum(t => t.Sold);
-
-        return Math.Max(0, total - sold);
-    }
+    protected static int TotalSold(EventDto ev) => ev.TicketTypes.Sum(t => t.Sold);
+    protected static int TotalCapacity(EventDto ev) => ev.TicketTypes.Sum(t => t.Quantity);
 
     protected static DateTimeOffset StartDate(EventDto e) =>
         e.TicketTypes.Min(tt => tt.OccurenceStartDate).ToLocalTime();
 
     protected static DateTimeOffset EndDate(EventDto e) =>
         e.TicketTypes.Max(tt => tt.OccurenceEndDate).ToLocalTime();
+
+    protected static bool IsEnded(EventDto ev) =>
+        ev.Status == EventStatus.Published &&
+        ev.TicketTypes.Any() &&
+        EndDate(ev) < DateTimeOffset.Now;
 
     protected static string? GetMinPriceText(EventDto ev)
     {
@@ -56,12 +57,15 @@ public partial class EventCardsBase : ComponentBase
         return FormatPrice(min.PriceCents, min.Currency);
     }
 
-    protected static string FormatPrice(
-        int cents,
-        string currency = "USD") =>
+    private static string FormatPrice(int cents, string currency = "USD") =>
         cents == 0
             ? "Free"
-            : (cents / 100m).ToString(
-                $"0.00 {currency.ToUpper()}",
-                System.Globalization.CultureInfo.InvariantCulture);
+            : (cents / 100m).ToString($"0.00 {currency.ToUpper()}", System.Globalization.CultureInfo.InvariantCulture);
+
+    protected static BadgeStyle StatusBadge(EventStatus status) => status switch
+    {
+        EventStatus.Published => BadgeStyle.Success,
+        EventStatus.Cancelled => BadgeStyle.Danger,
+        _                     => BadgeStyle.Light
+    };
 }

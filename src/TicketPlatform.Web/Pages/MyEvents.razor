@@ -5,83 +5,77 @@
 
 <PageTitle>My Events</PageTitle>
 
-<RadzenStack Gap="1.5rem">
+<RadzenStack Gap="2rem">
 
     <PageHeader Title="My Events" Subtitle="Manage and track your created events.">
         <Actions>
             <RadzenButton Text="Create Event" Icon="calendar_add_on" ButtonStyle="ButtonStyle.Primary"
-                          Click="@(() => Nav.NavigateTo("/host/create"))" />
+                          Size="ButtonSize.Large"
+                          Click="@(() => Nav.NavigateTo("/host/create"))"/>
         </Actions>
     </PageHeader>
 
-    @if (IsLoading)
+    @if (!IsLoading && Events.Count > 0)
     {
-        <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height:300px;">
-            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
-        </RadzenStack>
-    }
-    else if (Events.Count == 0)
-    {
-        <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
-            You haven't created any events yet.
-        </RadzenAlert>
-    }
-    else
-    {
-        <div style="overflow-x:auto;">
-        <RadzenDataGrid Data="@Events" TItem="EventDto"
-                        AllowSorting="true"
-                        AllowColumnResize="true"
-                        GridLines="DataGridGridLines.Horizontal">
-            <Columns>
-
-                <RadzenDataGridColumn TItem="EventDto" Title="Title" SortProperty="Title" Width="220px">
-                    <Template Context="ev">
-                        <RadzenLink Path="@($"/events/{ev.Id}")" Text="@ev.Title" />
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn TItem="EventDto" Title="Status" Width="120px">
-                    <Template Context="ev">
-                        <RadzenBadge BadgeStyle="@StatusBadge(ev.Status)" Text="@ev.Status.ToString()" />
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn TItem="EventDto" Title="Category" Width="140px" SortProperty="Category">
-                    <Template Context="ev">
-                        @ev.Category.ToString()
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn TItem="EventDto" Title="Starts" Width="160px">
-                    <Template Context="ev">
-                        @StartDate(ev).ToString("yyyy-MM-dd HH:mm")
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn TItem="EventDto" Title="Sold / Capacity" Width="150px">
-                    <Template Context="ev">
-                        @TotalSold(ev) / @TotalCapacity(ev)
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn TItem="EventDto" Title="" Width="90px" Sortable="false">
-                    <Template Context="ev">
-                        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.25rem">
-                            @if (ev.Status != EventStatus.Cancelled)
-                            {
-                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
-                                              Click="@(() => Nav.NavigateTo($"/host/events/{ev.Id}/edit"))" />
-                            }
-                            <RadzenButton Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
-                                          Click="@(() => Nav.NavigateTo($"/events/{ev.Id}"))" />
+        <RadzenRow>
+            <RadzenColumn Class="rz-col-12 rz-col-md-5">
+                <RadzenCard Class="rz-p-4">
+                    <RadzenStack Orientation="Orientation.Horizontal"
+                                 JustifyContent="JustifyContent.SpaceBetween"
+                                 AlignItems="AlignItems.Center"
+                                 Class="rz-mb-4">
+                        <RadzenText TextStyle="TextStyle.H6" Style="margin:0;">Quick Stats</RadzenText>
+                        <RadzenButton Text="Sales Overview" Icon="bar_chart"
+                                      ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small"
+                                      Click="@(() => Nav.NavigateTo("/host/sales-overview"))"/>
+                    </RadzenStack>
+                    <RadzenStack Gap="0">
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     JustifyContent="JustifyContent.SpaceBetween"
+                                     AlignItems="AlignItems.Center"
+                                     Class="rz-py-3"
+                                     Style="border-bottom:1px solid var(--rz-border-disabled-color);">
+                            <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;opacity:0.7;">Total Events
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1"
+                                        Style="margin:0;font-weight:600;">@Events.Count</RadzenText>
                         </RadzenStack>
-                    </Template>
-                </RadzenDataGridColumn>
-
-            </Columns>
-        </RadzenDataGrid>
-        </div>
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     JustifyContent="JustifyContent.SpaceBetween"
+                                     AlignItems="AlignItems.Center"
+                                     Class="rz-py-3"
+                                     Style="border-bottom:1px solid var(--rz-border-disabled-color);">
+                            <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;opacity:0.7;">Published</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1"
+                                        Style="margin:0;font-weight:600;">@Events.Count(e => e.Status == EventStatus.Published)</RadzenText>
+                        </RadzenStack>
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     JustifyContent="JustifyContent.SpaceBetween"
+                                     AlignItems="AlignItems.Center"
+                                     Class="rz-py-3"
+                                     Style="border-bottom:1px solid var(--rz-border-disabled-color);">
+                            <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;opacity:0.7;">Tickets Sold
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1"
+                                        Style="margin:0;font-weight:600;">@Events.Sum(e => e.TicketTypes.Sum(t => t.Sold))</RadzenText>
+                        </RadzenStack>
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     JustifyContent="JustifyContent.SpaceBetween"
+                                     AlignItems="AlignItems.Center"
+                                     Class="rz-py-3">
+                            <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;opacity:0.7;">Total Capacity
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body1"
+                                        Style="margin:0;font-weight:600;">@Events.Sum(e => e.TicketTypes.Sum(t => t.Quantity))</RadzenText>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
     }
+    <EventCards Events="Events"
+                IsLoading="IsLoading"
+                IsManagementView="true"
+                EmptyMessage="You haven't created any events yet."/>
 
 </RadzenStack>

@@ -39,12 +39,12 @@
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
-    padding: 2.5rem 4.5rem;
+    padding: 2.5rem 2.5rem 2.5rem 4.5rem;
     min-width: 0;
 }
 
 .carousel-slide-poster {
-    flex: 0 0 55%;
+    flex: 0 0 66.667%;
     overflow: hidden;
 }
 
@@ -90,4 +90,13 @@
     80%{background-position:-5px 0,0 0,0 100%}
     85%,
     100% {background-position:0   0,0 0,0 100%}
+}
+
+.event-card {
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.event-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
 }

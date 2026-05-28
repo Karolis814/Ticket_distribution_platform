@@ -60,7 +60,8 @@
                                         </RadzenText>
                                         <RadzenStack Orientation="Orientation.Vertical"
                                                      Gap="0.4rem"
-                                                     Class="rz-mb-4">
+                                                     Class="rz-mb-4"
+                                                     Style="width:100%;">
                                             @if (ev.TicketTypes.Any())
                                             {
                                                 <RadzenStack Orientation="Orientation.Horizontal"
@@ -85,8 +86,8 @@
                                                 <RadzenStack Orientation="Orientation.Horizontal"
                                                              AlignItems="AlignItems.Center"
                                                              Gap="0.3rem">
-                                                    <RadzenIcon Icon="location_on"/>
-                                                    <RadzenText TextStyle="TextStyle.Body2">@ev.Location</RadzenText>
+                                                    <RadzenIcon Icon="location_on" Style="flex-shrink:0;"/>
+                                                    <RadzenText TextStyle="TextStyle.Body2" Style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@ev.Location</RadzenText>
                                                 </RadzenStack>
                                             }
                                         </RadzenStack>
@@ -155,12 +156,7 @@
                           Click="@(() => Nav.NavigateTo("/events"))"/>
         </RadzenStack>
 
-        <EventCards Events="LatestEvents"
-                    Size="4"
-                    NumColsSm="1"
-                    NumColsMd="2"
-                    NumColsLg="4"
-                    IsLoading="IsLoading"/>
+        <EventCards Events="LatestEvents" IsLoading="IsLoading"/>
     </RadzenColumn>
 </RadzenRow>
 
@@ -181,12 +177,7 @@
                           Click="@(() => Nav.NavigateTo("/events"))"/>
         </RadzenStack>
 
-        <EventCards Events="UpcomingEvents"
-                    Size="4"
-                    NumColsSm="1"
-                    NumColsMd="2"
-                    NumColsLg="4"
-                    IsLoading="IsLoading"/>
+        <EventCards Events="UpcomingEvents" IsLoading="IsLoading"/>
     </RadzenColumn>
 </RadzenRow>
 

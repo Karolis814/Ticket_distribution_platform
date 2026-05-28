@@ -53,10 +53,7 @@
 
     </RadzenStack>
 
-    <EventCards Events="Events"
-                Size="@PageSize"
-                IsLoading="IsLoading">
-    </EventCards>
+    <EventCards Events="Events" IsLoading="IsLoading" />
 
     @if (!IsLoading && (Result?.TotalCount ?? 0) > 0)
     {
