@@ -1,0 +1,26 @@
+@inherits ProfileMenuBase
+
+<hr style="margin:0;border:none;border-top:1px solid var(--rz-sidebar-border-color, var(--rz-base-600));"/>
+
+@if (IsAuthenticated)
+{
+    <div style="padding:0.75rem 1rem 0.5rem;">
+        <RadzenText TextStyle="TextStyle.Overline" style="opacity:0.6;display:block;">Signed in as</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body2" style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@Email</RadzenText>
+    </div>
+    <RadzenPanelMenu>
+        @if (IsHost)
+        {
+            <RadzenPanelMenuItem Text="Purchase History" Icon="receipt_long" Path="/user/purchases"/>
+        }
+        <RadzenPanelMenuItem Text="Settings" Icon="settings" Path="/user/settings"/>
+        <RadzenPanelMenuItem Text="Log Out" Icon="logout" Path="/auth/logout"/>
+    </RadzenPanelMenu>
+}
+else
+{
+    <RadzenPanelMenu>
+        <RadzenPanelMenuItem Text="Log In" Icon="login" Path="/auth/login"/>
+        <RadzenPanelMenuItem Text="Create Account" Icon="person_add" Path="/auth/register"/>
+    </RadzenPanelMenu>
+}

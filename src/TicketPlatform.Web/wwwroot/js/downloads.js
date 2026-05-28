@@ -1,5 +1,5 @@
 export function triggerDownload(filename, contentType, bytes) {
-    const blob = new Blob([new Uint8Array(bytes)], { type: contentType });
+    const blob = new Blob([bytes], { type: contentType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

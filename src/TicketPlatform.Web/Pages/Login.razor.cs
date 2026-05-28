@@ -34,7 +34,7 @@ public partial class LoginBase : ComponentBase
             {
                 var auth = await AuthState.GetAuthenticationStateAsync();
                 var destination = auth.User.IsInRole("Host")
-                    ? "/host/sales-overview"
+                    ? "/host/events"
                     : "/";
                 Nav.NavigateTo(destination);
             }

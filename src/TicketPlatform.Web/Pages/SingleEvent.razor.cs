@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
 using TicketPlatform.Shared.Dtos;
 using TicketPlatform.Shared.Enums;
@@ -14,12 +15,19 @@ public partial class SingleEventBase : ComponentBase
     [Inject] protected IEventsClient EventsClient { get; set; } = null!;
     [Inject] protected NotificationService NotificationService { get; set; } = null!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = null!;
+    [Inject] protected AuthenticationStateProvider AuthState { get; set; } = null!;
 
     protected EventDto? Event { get; private set; }
-    protected bool IsLoading { get; private set; }
+    protected bool IsLoading { get; private set; } = true;
+    private Guid CurrentUserId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        var state = await AuthState.GetAuthenticationStateAsync();
+        var sub = state.User.FindFirst("sub")?.Value;
+        Guid.TryParse(sub, out var id);
+        CurrentUserId = id;
+
         await LoadEventAsync();
     }
 
@@ -56,76 +64,57 @@ public partial class SingleEventBase : ComponentBase
         }
     }
 
-    private string FormatPrice(int priceCents, string currency)
+    protected static string FormatPrice(int priceCents, string currency)
     {
+        if (priceCents == 0) return "Free";
         var price = priceCents / 100m;
-        return $"{price:0.00} {currency}";
+        return $"{price:0.00} {currency.ToUpper()}";
     }
 
-    protected string? GetStartingFromText(EventDto evt)
+    protected static string? GetMinPriceText(EventDto evt)
     {
-        var ticketTypes = evt.TicketTypes;
-        if (ticketTypes is null || ticketTypes.Count == 0)
-        {
-            return null;
-        }
-
-        var cheapest = ticketTypes.OrderBy(t => t.PriceCents).First();
-        return $"Starting from {FormatPrice(cheapest.PriceCents, cheapest.Currency)}";
+        if (evt.TicketTypes is null || evt.TicketTypes.Count == 0) return null;
+        var cheapest = evt.TicketTypes.OrderBy(t => t.PriceCents).First();
+        return FormatPrice(cheapest.PriceCents, cheapest.Currency);
     }
 
-    protected EventDisplayStatus GetDisplayStatus(EventDto evt)
+    protected static string FormatDateRange(EventDto evt)
     {
-        if (evt.Status == EventStatus.Cancelled)
-        {
-            return EventDisplayStatus.Cancelled;
-        }
+        if (evt.TicketTypes is null || evt.TicketTypes.Count == 0)
+            return "Date TBD";
 
-        if (evt.TicketTypes is { Count: > 0 } &&
-            evt.TicketTypes.All(t => t.Sold >= t.Quantity))
-        {
-            return EventDisplayStatus.SoldOut;
-        }
+        var start = evt.TicketTypes.Min(tt => tt.OccurenceStartDate).ToLocalTime();
+        var end = evt.TicketTypes.Max(tt => tt.OccurenceEndDate).ToLocalTime();
 
-        return EventDisplayStatus.EventAdded;
+        if (start.Date == end.Date)
+            return $"{start:dddd, d MMMM yyyy} · {start:HH:mm} – {end:HH:mm}";
+
+        return $"{start:d MMM yyyy} – {end:d MMM yyyy}";
     }
 
-    protected string GetStatusLabel(EventDisplayStatus status) => status switch
+    protected static int GetRemainingTickets(EventDto evt)
     {
-        EventDisplayStatus.SoldOut => "Sold out",
-        EventDisplayStatus.Cancelled => "Cancelled",
-        EventDisplayStatus.EventAdded => "Event added",
-        _ => status.ToString()
-    };
-
-    protected BadgeStyle GetStatusBadgeStyle(EventDisplayStatus status) => status switch
-    {
-        EventDisplayStatus.SoldOut => BadgeStyle.Warning,
-        EventDisplayStatus.Cancelled => BadgeStyle.Danger,
-        EventDisplayStatus.EventAdded => BadgeStyle.Success,
-        _ => BadgeStyle.Light
-    };
-
-    protected bool ShouldShowCheckout(EventDto evt)
-    {
-        var status = GetDisplayStatus(evt);
-        return status == EventDisplayStatus.EventAdded;
+        var total = evt.TicketTypes.Sum(t => t.Quantity);
+        var sold = evt.TicketTypes.Sum(t => t.Sold);
+        return Math.Max(0, total - sold);
     }
 
-    protected string GetHostDisplayName(HostDto host)
+    protected static bool IsSoldOut(EventDto evt) =>
+        evt.TicketTypes.Count > 0 && evt.TicketTypes.All(t => t.Sold >= t.Quantity);
+
+    protected bool IsOwner(EventDto evt) =>
+        CurrentUserId != Guid.Empty && CurrentUserId == evt.HostId;
+
+    protected bool ShouldShowCheckout(EventDto evt) =>
+        !IsOwner(evt) && evt.Status != EventStatus.Cancelled && !IsSoldOut(evt);
+
+    protected static string GetHostDisplayName(HostDto host)
     {
-        if (!string.IsNullOrWhiteSpace(host.Company))
-            return host.Company!;
+        if (!string.IsNullOrWhiteSpace(host.Company)) return host.Company!;
         var fullName = $"{host.FirstName} {host.LastName}".Trim();
-        if (!string.IsNullOrWhiteSpace(fullName))
-            return fullName;
-        return host.Email;
+        return string.IsNullOrWhiteSpace(fullName) ? host.Email : fullName;
     }
 
-    protected enum EventDisplayStatus
-    {
-        EventAdded,
-        SoldOut,
-        Cancelled
-    }
+    protected static int GetTicketRemaining(TicketTypeDto tt) =>
+        Math.Max(0, tt.Quantity - tt.Sold);
 }

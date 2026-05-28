@@ -71,11 +71,15 @@ public class TicketPdfService(IOrderService orderService) : ITicketPdfService
                             }
                         });
 
-                        col.Item().PaddingTop(3).Text(
-                                isMultiDay
-                                    ? $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} on {ticket.TicketType.AdmissionStartDate:yyyy-MM-dd}"
-                                    : $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm}")
-                            .FontSize(9).FontColor(Colors.Grey.Medium).AlignCenter();
+                        var admissionMatchesOccurence =
+                            ticket.TicketType.AdmissionStartDate == ticket.TicketType.OccurenceStartDate;
+
+                        if (!admissionMatchesOccurence)
+                            col.Item().PaddingTop(3).Text(
+                                    isMultiDay
+                                        ? $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} on {ticket.TicketType.AdmissionStartDate:yyyy-MM-dd}"
+                                        : $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm}")
+                                .FontSize(9).FontColor(Colors.Grey.Medium).AlignCenter();
 
                         if (!string.IsNullOrEmpty(@event.Location))
                             col.Item().PaddingTop(4).Text(@event.Location)
@@ -101,32 +105,47 @@ public class TicketPdfService(IOrderService orderService) : ITicketPdfService
                         col.Item().PaddingTop(40)
                             .LineHorizontal(0.5f).LineColor(Colors.Grey.Lighten2);
 
-                        col.Item().PaddingTop(8).Column(hostCol =>
+                        col.Item().PaddingTop(8).Row(row =>
                         {
-                            hostCol.Spacing(2);
+                            // Organizer
+                            row.RelativeItem().Column(c =>
+                            {
+                                c.Spacing(3);
+                                c.Item().Text("Organizer").FontSize(9).Bold().FontColor(Colors.Grey.Darken2);
 
-                            hostCol.Item().Text("Host").FontSize(10).Bold();
+                                if (!string.IsNullOrWhiteSpace(host.Company))
+                                    c.Item().Text(host.Company).FontSize(8).Bold().FontColor(Colors.Grey.Darken1);
 
-                            if (!string.IsNullOrWhiteSpace(host.Company))
-                                hostCol.Item().Text(host.Company)
-                                    .FontSize(8).Bold().FontColor(Colors.Grey.Darken1);
+                                if (!string.IsNullOrWhiteSpace(host.Address))
+                                    c.Item().Text(host.Address).FontSize(8).FontColor(Colors.Grey.Medium);
 
-                            if (!string.IsNullOrWhiteSpace(host.Address))
-                                hostCol.Item().Text(host.Address)
-                                    .FontSize(8).FontColor(Colors.Grey.Medium);
+                                if (!string.IsNullOrWhiteSpace(host.TaxCode))
+                                    c.Item().Text($"Tax / Company ID: {host.TaxCode}").FontSize(8).FontColor(Colors.Grey.Medium);
 
-                            var contactParts = new List<string>();
-                            if (!string.IsNullOrWhiteSpace(host.Email))
-                                contactParts.Add(host.Email);
-                            if (!string.IsNullOrWhiteSpace(host.PhoneNumber))
-                                contactParts.Add(host.PhoneNumber);
-                            if (contactParts.Count > 0)
-                                hostCol.Item().Text(string.Join("  ·  ", contactParts))
-                                    .FontSize(8).FontColor(Colors.Grey.Medium);
+                                if (string.IsNullOrWhiteSpace(host.Company) &&
+                                    string.IsNullOrWhiteSpace(host.Address) &&
+                                    string.IsNullOrWhiteSpace(host.TaxCode))
+                                    c.Item().Text("No organizer details provided.").FontSize(8).FontColor(Colors.Grey.Lighten1);
+                            });
 
-                            if (!string.IsNullOrWhiteSpace(host.TaxCode))
-                                hostCol.Item().Text($"Tax code: {host.TaxCode}")
-                                    .FontSize(7).FontColor(Colors.Grey.Lighten1);
+                            row.ConstantItem(1).Background(Colors.Grey.Lighten3);
+
+                            // Contact
+                            row.RelativeItem().PaddingLeft(10).Column(c =>
+                            {
+                                c.Spacing(3);
+                                c.Item().Text("Contact").FontSize(9).Bold().FontColor(Colors.Grey.Darken2);
+
+                                var fullName = $"{host.FirstName} {host.LastName}".Trim();
+                                if (!string.IsNullOrWhiteSpace(fullName))
+                                    c.Item().Text(fullName).FontSize(8).Bold().FontColor(Colors.Grey.Darken1);
+
+                                if (!string.IsNullOrWhiteSpace(host.Email))
+                                    c.Item().Text(host.Email).FontSize(8).FontColor(Colors.Grey.Medium);
+
+                                if (!string.IsNullOrWhiteSpace(host.PhoneNumber))
+                                    c.Item().Text(host.PhoneNumber).FontSize(8).FontColor(Colors.Grey.Medium);
+                            });
                         });
                     });
                 });

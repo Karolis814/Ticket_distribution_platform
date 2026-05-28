@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.Configure<SmtpOptions>(configuration.GetSection("Smtp"));
         services.AddInterceptedScoped<IMailService, MailService>(configuration);
 
+        services.AddInterceptedScoped<IOrderCompletionService, OrderCompletionService>(configuration);
         services.AddInterceptedScoped<ITicketValidationService, TicketValidationService>(configuration);
 
         // Strategy demo: pick the IPlacesService implementation via "Places:Provider" config.
@@ -70,7 +71,6 @@ public static class DependencyInjection
         services.Configure<JWTSettings>(configuration.GetSection("JwtSettings"));
         services.AddInterceptedScoped<IJWTService, JWTService>(configuration);
 
-        
         var jwtSettings = configuration.GetSection("JwtSettings").Get<JWTSettings>()
             ?? throw new InvalidOperationException("JwtSettings section is missing from configuration.");
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -86,7 +86,7 @@ public static class DependencyInjection
             ValidAudience            = jwtSettings.Audience,
             IssuerSigningKey         = new SymmetricSecurityKey(
                                            Encoding.UTF8.GetBytes(jwtSettings.Secret)),
-            ClockSkew                = TimeSpan.Zero  
+            ClockSkew                = TimeSpan.Zero
         };
     });
 

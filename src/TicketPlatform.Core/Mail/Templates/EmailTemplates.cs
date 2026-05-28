@@ -25,7 +25,7 @@ public static class EmailTemplates
         string toEmail,
         string toName,
         string eventTitle,
-        DateTimeOffset admissionStart,
+        DateTimeOffset occurenceStart,
         IReadOnlyList<(string Title, int Quantity)> items)
     {
         var lines = string.Join("\n", items.Select(i => $" - {i.Title} x{i.Quantity}"));
@@ -36,7 +36,7 @@ public static class EmailTemplates
             BodyText:
                 $"Hello {toName},\n\n" +
                 $"This is a reminder that \"{eventTitle}\" starts at " +
-                $"{admissionStart.UtcDateTime:yyyy-MM-dd HH:mm} UTC.\n\n" +
+                $"{occurenceStart.UtcDateTime:yyyy-MM-dd HH:mm} UTC.\n\n" +
                 $"Your tickets:\n{lines}\n\n" +
                 "See you there!");
     }

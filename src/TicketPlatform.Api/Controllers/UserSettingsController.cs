@@ -68,12 +68,19 @@ public class UserSettingsController(
         [FromBody] ChangePasswordRequest request,
         CancellationToken ct)
     {
-        await service.ChangePasswordAsync(
-            CurrentUserId,
-            request.CurrentPassword,
-            request.NewPassword,
-            ct);
+        try
+        {
+            await service.ChangePasswordAsync(
+                CurrentUserId,
+                request.CurrentPassword,
+                request.NewPassword,
+                ct);
 
-        return Ok();
+            return Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }

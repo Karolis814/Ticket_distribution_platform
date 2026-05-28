@@ -1,0 +1,25 @@
+@page "/host/events"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inherits MyEventsBase
+
+<PageTitle>My Events</PageTitle>
+
+<RadzenStack Gap="1rem">
+
+    <PageHeader Title="My Events" Subtitle="Manage and track your created events.">
+        <Actions>
+            <RadzenButton Text="Create Event" Icon="calendar_add_on" ButtonStyle="ButtonStyle.Primary"
+                          Click="@(() => Nav.NavigateTo("/host/create"))"/>
+            <RadzenButton Text="Sales Overview" Icon="analytics"
+                          ButtonStyle="ButtonStyle.Secondary"
+                          Click="@(() => Nav.NavigateTo("/host/sales-overview"))"/>
+        </Actions>
+    </PageHeader>
+
+    <EventCards Events="Events"
+                IsLoading="IsLoading"
+                IsManagementView="true"
+                EmptyMessage="You haven't created any events yet."/>
+
+</RadzenStack>

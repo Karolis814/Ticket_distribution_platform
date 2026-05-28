@@ -9,6 +9,8 @@ public class AuthTokenHandler(ILocalStorageService localStorage, IConfiguration 
 {
     private const string TokenKey = "authToken";
     private int RefreshThresholdMinutes => configuration.GetValue("RefreshThresholdMinutes", 2);
+    private string ApiBaseUrl => configuration["ApiBaseUrl"]
+        ?? throw new InvalidOperationException("ApiBaseUrl is not configured.");
 
     private static readonly SemaphoreSlim RefreshLock = new(1, 1);
 
@@ -45,7 +47,7 @@ public class AuthTokenHandler(ILocalStorageService localStorage, IConfiguration 
 
         try
         {
-            var req = new HttpRequestMessage(HttpMethod.Post, "api/auth/refresh");
+            var req = new HttpRequestMessage(HttpMethod.Post, new Uri(new Uri(ApiBaseUrl), "api/auth/refresh"));
             req.Headers.Authorization = new("Bearer", token);
 
             var response = await base.SendAsync(req, ct);

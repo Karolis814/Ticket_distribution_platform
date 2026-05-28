@@ -47,6 +47,34 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         }
     }
 
+    public async Task<IReadOnlyList<EventDto>> GetPopularAsync(int count = 5, CancellationToken ct = default)
+    {
+        try
+        {
+            return await http.GetFromJsonAsync<IReadOnlyList<EventDto>>(
+                $"api/events/popular?count={count}", ct) ?? [];
+        }
+        catch (Exception ex)
+        {
+            Notify(ex, "Failed to load popular events");
+            return [];
+        }
+    }
+
+    public async Task<IReadOnlyList<EventDto>> GetLatestAsync(int count = 8, CancellationToken ct = default)
+    {
+        try
+        {
+            return await http.GetFromJsonAsync<IReadOnlyList<EventDto>>(
+                $"api/events/latest?count={count}", ct) ?? [];
+        }
+        catch (Exception ex)
+        {
+            Notify(ex, "Failed to load latest events");
+            return [];
+        }
+    }
+
     public async Task<IReadOnlyList<EventDto>> GetAllAsync(
         CancellationToken ct = default)
     {
@@ -61,6 +89,21 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         catch (Exception ex)
         {
             Notify(ex, "Failed to load events");
+            return [];
+        }
+    }
+
+    public async Task<IReadOnlyList<EventDto>> GetMyEventsAsync(
+        CancellationToken ct = default)
+    {
+        try
+        {
+            return await http.GetFromJsonAsync<IReadOnlyList<EventDto>>(
+                "api/events/mine", ct) ?? [];
+        }
+        catch (Exception ex)
+        {
+            Notify(ex, "Failed to load your events");
             return [];
         }
     }
@@ -86,15 +129,19 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         CreateEventRequest request,
         CancellationToken ct = default)
     {
-        var response = await http.PostAsJsonAsync(
-            "api/events",
-            request,
-            ct);
-
+        var response = await http.PostAsJsonAsync("api/events", request, ct);
         response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<EventDto>(cancellationToken: ct);
+    }
 
-        return await response.Content.ReadFromJsonAsync<EventDto>(
-            cancellationToken: ct);
+    public async Task<EventDto?> UpdateAsync(
+        Guid id,
+        UpdateEventRequest request,
+        CancellationToken ct = default)
+    {
+        var response = await http.PutAsJsonAsync($"api/events/{id}", request, ct);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<EventDto>(cancellationToken: ct);
     }
 
     public async Task<IReadOnlyList<EventDto>> SearchAsync(
