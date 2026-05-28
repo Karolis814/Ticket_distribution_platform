@@ -18,6 +18,10 @@ public class SettingsBase : ComponentBase, IDisposable
     [Inject] private NotificationService Notify { get; set; } = null!;
     [Inject] protected NavigationManager Nav { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthState { get; set; } = null!;
+    [Inject] protected IPlacesClient PlacesClient { get; set; } = null!;
+
+    protected List<PlacePredictionDto> AddressSuggestions { get; set; } = [];
+    protected bool IsSearchingAddress { get; set; }
 
     private Guid LoadedUserId { get; set; }
     private CancellationTokenSource? _cts;
@@ -257,6 +261,49 @@ public class SettingsBase : ComponentBase, IDisposable
         _cts?.Cancel();
         _cts?.Dispose();
     }
+
+    protected async Task OnLoadAddressData(LoadDataArgs args)
+    {
+        if (string.IsNullOrWhiteSpace(args.Filter) || args.Filter.Length < 3)
+        {
+            AddressSuggestions.Clear();
+            return;
+        }
+
+        IsSearchingAddress = true;
+        StateHasChanged();
+        try
+        {
+            AddressSuggestions = (await PlacesClient.SearchAsync(args.Filter)).ToList();
+        }
+        finally
+        {
+            IsSearchingAddress = false;
+        }
+    }
+
+    protected async Task OnAddressSelected(object? value)
+    {
+        if (value?.ToString() is not string selected) return;
+
+        var prediction = AddressSuggestions.FirstOrDefault(p =>
+            string.Equals(p.MainText, selected, StringComparison.Ordinal));
+
+        if (prediction is null) return;
+
+        try
+        {
+            var details = await PlacesClient.GetDetailsAsync(prediction.PlaceId);
+            ProfileModel.Address = details?.FormattedAddress ?? FallbackAddress(prediction);
+        }
+        catch
+        {
+            ProfileModel.Address = FallbackAddress(prediction);
+        }
+    }
+
+    private static string FallbackAddress(PlacePredictionDto p) =>
+        string.IsNullOrEmpty(p.SecondaryText) ? p.MainText : $"{p.MainText}, {p.SecondaryText}";
 
     protected sealed record StripeConnectLinkResponse(string Url);
 

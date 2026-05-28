@@ -77,9 +77,30 @@
 
                                     <RadzenRow Gap="0.75rem">
                                         <RadzenColumn Size="12" SizeSm="6">
-                                            <RadzenFormField Text="Address" Variant="Variant.Outlined" Style="width:100%">
-                                                <RadzenTextBox @bind-Value="ProfileModel.Address" Style="width:100%"/>
-                                            </RadzenFormField>
+                                            <RadzenStack Gap="0.25rem">
+                                                <RadzenLabel Text="Address" Component="SettingsAddress"/>
+                                                <RadzenAutoComplete Name="SettingsAddress"
+                                                                    @bind-Value="ProfileModel.Address"
+                                                                    LoadData="@OnLoadAddressData"
+                                                                    Change="@OnAddressSelected"
+                                                                    Data="@AddressSuggestions"
+                                                                    TextProperty="MainText"
+                                                                    ValueProperty="MainText"
+                                                                    Placeholder="Start typing an address…"
+                                                                    IsLoading="@IsSearchingAddress"
+                                                                    Style="display:block;width:100%;"
+                                                                    Multiple="false">
+                                                    <Template Context="prediction">
+                                                        <RadzenStack Orientation="Orientation.Vertical" Gap="0">
+                                                            <RadzenText TextStyle="TextStyle.Body2">@(prediction?.MainText ?? "")</RadzenText>
+                                                            @if (!string.IsNullOrEmpty(prediction?.SecondaryText))
+                                                            {
+                                                                <RadzenText TextStyle="TextStyle.Caption">@prediction?.SecondaryText</RadzenText>
+                                                            }
+                                                        </RadzenStack>
+                                                    </Template>
+                                                </RadzenAutoComplete>
+                                            </RadzenStack>
                                         </RadzenColumn>
                                         <RadzenColumn Size="12" SizeSm="6">
                                             <RadzenFormField Text="Tax / Company ID" Variant="Variant.Outlined" Style="width:100%">
