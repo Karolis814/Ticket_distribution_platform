@@ -193,8 +193,7 @@
                                     </div>
                                     <RadzenStack Gap="0.2rem" AlignItems="AlignItems.Center">
                                         <RadzenText TextStyle="TextStyle.Body2" Style="color:var(--rz-primary);font-weight:600;">Click to upload</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption">JPEG, PNG or WebP · max 10 MB</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Caption">Auto-cropped to 1280×720</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Caption">Max 10 MB · Recommended size: 1280×720</RadzenText>
                                     </RadzenStack>
                                 </RadzenStack>
                             }
@@ -215,7 +214,7 @@
                             }
                         </label>
                         <InputFile id="posterUpload" style="display:none" OnChange="@OnFileChange"
-                                   accept="image/jpeg,image/png,image/webp"/>
+                                   accept="image/jpeg,image/png,image/webp,image/heic,image/heif"/>
 
                     </RadzenStack>
                 </RadzenCard>

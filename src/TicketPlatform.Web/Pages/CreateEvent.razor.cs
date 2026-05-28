@@ -39,8 +39,7 @@ public partial class CreateEventBase : ComponentBase
     [Inject] protected IUsersClient UsersClient { get; set; } = null!;
     [Inject] protected IHostPaymentsClient HostPaymentsClient { get; set; } = null!;
     [Inject] protected IImagesClient ImagesClient { get; set; } = null!;
-    [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
-    [Inject] protected NotificationService NotificationService { get; set; } = null!;
+[Inject] protected NotificationService NotificationService { get; set; } = null!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = null!;
     [Inject] protected AuthenticationStateProvider AuthState { get; set; } = null!;
 
@@ -487,14 +486,14 @@ public partial class CreateEventBase : ComponentBase
         var file = e.GetMultipleFiles(1).FirstOrDefault();
         if (file is null) return;
 
-        var allowed = new[] { "image/jpeg", "image/png", "image/webp" };
+        var allowed = new[] { "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif" };
         if (!allowed.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
         {
             NotificationService.Notify(new NotificationMessage
             {
                 Severity = NotificationSeverity.Warning,
                 Summary = "Unsupported file type",
-                Detail = "Please upload a JPEG, PNG, or WebP image.",
+                Detail = "Please upload a JPEG, PNG, WebP, or HEIC image.",
                 Duration = 5000
             });
             return;
@@ -506,16 +505,8 @@ public partial class CreateEventBase : ComponentBase
         try
         {
             await using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            var originalBytes = ms.ToArray();
-
-            var croppedBytes = await JSRuntime.InvokeAsync<byte[]>(
-                "cropImageTo", originalBytes, file.ContentType, 1280, 720);
-
-            await using var croppedStream = new MemoryStream(croppedBytes);
             var uploadName = Path.GetFileNameWithoutExtension(file.Name) + ".jpg";
-            var response = await ImagesClient.UploadEventThumbnailAsync(croppedStream, uploadName, "image/jpeg");
+            var response = await ImagesClient.UploadEventThumbnailAsync(stream, uploadName, file.ContentType);
             Model.ThumbnailUrl = response.Url;
             Model.ThumbnailFileName = uploadName;
 
@@ -523,7 +514,7 @@ public partial class CreateEventBase : ComponentBase
             {
                 Severity = NotificationSeverity.Success,
                 Summary = "Image uploaded",
-                Detail = $"'{file.Name}' uploaded and cropped to 1280×720.",
+                Detail = $"{file.Name}",
                 Duration = 3000
             });
         }
