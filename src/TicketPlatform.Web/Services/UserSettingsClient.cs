@@ -23,7 +23,13 @@ public class UserSettingsClient(HttpClient http) : IUserSettingsClient
     public async Task ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default)
     {
         var response = await http.PostAsJsonAsync("api/user-settings/change-password", request, ct);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var detail = await response.Content.ReadAsStringAsync(ct);
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(detail)
+                ? $"Password change failed ({(int)response.StatusCode})."
+                : detail);
+        }
     }
 
     public async Task DeleteAccountAsync(CancellationToken ct = default)

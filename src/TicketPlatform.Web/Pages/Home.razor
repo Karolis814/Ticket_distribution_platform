@@ -7,10 +7,6 @@
 
 <RadzenRow Class="rz-mb-6">
     <RadzenColumn Size="12">
-        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-mb-4">
-            Trending Events
-        </RadzenText>
-
         @if (IsLoading)
         {
             <RadzenCard Style="min-height:320px"
@@ -20,13 +16,7 @@
                                            Size="ProgressBarCircularSize.Medium"/>
             </RadzenCard>
         }
-        else if (!TrendingEvents.Any())
-        {
-            <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
-                No events yet — check back soon!
-            </RadzenAlert>
-        }
-        else
+        else if (TrendingEvents.Any())
         {
             <RadzenCarousel Auto="true"
                             Interval="5000"
@@ -87,7 +77,8 @@
                                                              AlignItems="AlignItems.Center"
                                                              Gap="0.3rem">
                                                     <RadzenIcon Icon="location_on" Style="flex-shrink:0;"/>
-                                                    <RadzenText TextStyle="TextStyle.Body2" Style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@ev.Location</RadzenText>
+                                                    <RadzenText TextStyle="TextStyle.Body2"
+                                                                Style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@ev.Location</RadzenText>
                                                 </RadzenStack>
                                             }
                                         </RadzenStack>

@@ -173,6 +173,7 @@ public class SettingsBase : ComponentBase, IDisposable
                 PasswordModel.NewPassword));
             PasswordModel.CurrentPassword = "";
             PasswordModel.NewPassword = "";
+            PasswordModel.ConfirmPassword = "";
             PasswordEditContext = new EditContext(PasswordModel);
             Notify.Notify(NotificationSeverity.Success, "Password changed", "Your password has been updated.");
         }
@@ -339,5 +340,9 @@ public class SettingsBase : ComponentBase, IDisposable
         [Required(ErrorMessage = "New password is required.")]
         [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
         public string NewPassword { get; set; } = "";
+
+        [Required(ErrorMessage = "Please confirm your new password.")]
+        [Compare(nameof(NewPassword), ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; } = "";
     }
 }
