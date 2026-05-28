@@ -46,7 +46,7 @@
                                         <RadzenText TextStyle="TextStyle.Body2"
                                                     Class="rz-mb-3"
                                                     Style="opacity:0.75;">
-                                            @(ev.Description.Length > 150 ? ev.Description[..147] + "..." : ev.Description)
+                                            @(ev.Description.Length > 100 ? ev.Description[..97] + "..." : ev.Description)
                                         </RadzenText>
                                         <RadzenStack Orientation="Orientation.Vertical"
                                                      Gap="0.4rem"
@@ -133,7 +133,6 @@
 <RadzenRow Class="rz-mb-6">
     <RadzenColumn Size="12">
         <RadzenStack Orientation="Orientation.Horizontal"
-                     JustifyContent="JustifyContent.SpaceBetween"
                      AlignItems="AlignItems.Center"
                      Class="rz-mb-3">
             <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H2">
@@ -154,7 +153,6 @@
 <RadzenRow Class="rz-mb-6">
     <RadzenColumn Size="12">
         <RadzenStack Orientation="Orientation.Horizontal"
-                     JustifyContent="JustifyContent.SpaceBetween"
                      AlignItems="AlignItems.Center"
                      Class="rz-mb-3">
             <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H2">

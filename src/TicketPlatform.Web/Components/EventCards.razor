@@ -111,7 +111,7 @@ else
                             <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem" Style="border-top:1px solid var(--rz-border-disabled-color);">
                                 @if (ev.Status != EventStatus.Cancelled && !IsEnded(ev))
                                 {
-                                    <RadzenButton Text="Edit" Icon="edit" ButtonStyle="ButtonStyle.Light"
+                                    <RadzenButton Text="Edit" Icon="edit" ButtonStyle="ButtonStyle.Primary"
                                                   Size="ButtonSize.Small"
                                                   Style="flex:1;"
                                                   Click="@(() => NavigateToEdit(ev.Id))"/>
