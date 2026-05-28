@@ -58,5 +58,5 @@ builder.Services.AddScoped<IUsersClient, UsersClient>();
 builder.Services.AddScoped<IHostPaymentsClient, HostPaymentsClient>();
 
 builder.Services.AddScoped<IUserSettingsClient, UserSettingsClient>();
-
+builder.Services.AddScoped<IForgotPasswordClient, ForgotPasswordClient>();
 await builder.Build().RunAsync();

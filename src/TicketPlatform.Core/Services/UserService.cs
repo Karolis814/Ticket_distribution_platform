@@ -44,7 +44,12 @@ public class UserService(IRepository<User> repository, IPasswordService password
         }
         return user;
     }
-
+    public async Task<User> GetByEmailAsync(string email, CancellationToken ct = default)
+    {
+        return await repository.Query()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Email == email, ct) ?? throw new InvalidOperationException("User not found.");
+    }
     public Task<User?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return repository.Query()

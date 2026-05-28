@@ -66,7 +66,8 @@ public static class EmailTemplates
                 "We received a request to reset your password.\n\n" +
                 "You can reset it using the link below:\n\n" +
                 $"{resetUrl}\n\n" +
-                "If you did not request this, you can safely ignore this email.")
+                "If you did not request this, you can safely ignore this email.");
+    }
         
         public static EmailMessage ConfirmEmail(
             string toEmail,
@@ -84,8 +85,8 @@ public static class EmailTemplates
                 "If you did not create an account, you can ignore this email.");
             } 
         
-            
+
 
 
     }
-}
+

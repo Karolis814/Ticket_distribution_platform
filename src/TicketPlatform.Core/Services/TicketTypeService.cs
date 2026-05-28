@@ -12,6 +12,27 @@ public class TicketTypeService(IRepository<TicketType> repository) : ITicketType
             .Include(tt => tt.Tickets)
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 
+    public async Task<bool> TryReserveAsync(Guid id, int quantity, CancellationToken ct = default)
+    {
+        var affected = await repository.Query()
+            .Where(t =>
+                t.Id == id &&
+                t.Sold + quantity <= t.Quantity)
+            .ExecuteUpdateAsync(setters =>
+                setters.SetProperty(
+                    t => t.Sold,
+                    t => t.Sold + quantity),
+                ct);
+
+        return affected > 0;
+    }
+    public async Task<int> GetSoldTickets(Guid id, CancellationToken ct = default)
+    {
+        return await repository.Query()
+            .Where(x => x.Id == id)
+            .Select(x => x.Sold)
+            .FirstOrDefaultAsync(ct);
+    }
     public async Task<TicketType> CreateAsync(TicketType ticketType, CancellationToken ct = default)
     {
         await repository.AddAsync(ticketType, ct);

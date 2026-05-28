@@ -1,10 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TicketPlatform.Core.Common;
+using TicketPlatform.Core.Mail.Templates;
 using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Shared.Dtos;
@@ -17,7 +17,9 @@ namespace TicketPlatform.API.Controllers;
 public class AuthController(
     IUserService userService,
     IPasswordService passwordService,
+    IPasswordResetTokenService passwordResetTokenService,
     IJWTService jwtService,
+    IMailService mailService,
     IRepository<User> userRepository) : ControllerBase
 {
 
@@ -98,19 +100,60 @@ public class AuthController(
         });
     }
 
-    [HttpPost("reset-password")]
-    public IActionResult ResetPassword(
-        [FromBody] ResetPasswordRequest rpr,
-        CancellationToken ct
-    )
+    [HttpPost("request-password-reset")]
+    public async Task<IActionResult> RequestPasswordReset([FromBody] ResetPasswordRequest req , CancellationToken ct)
     {
         
-
-        
-        
-
+        var user = await userService.GetByEmailAsync(req.Email, ct);
+        var userId = user.Id;
+        var Token = PasswordResetTokenService.GenerateToken();
+        var token = await passwordResetTokenService.CreateAsync(new PasswordResetToken
+        {
+            UserId = userId,
+            TokenHash = PasswordResetTokenService.HashToken(Token),
+            ExpiresAt = DateTimeOffset.UtcNow.AddHours(1)
+        }, ct);
+      
+        string url = "";
+        if (user != null)
+        url = await passwordResetTokenService.CreatePasswordResetTokenAsync(user);
+        await mailService.SendAsync(EmailTemplates.PasswordResetEmail(req.Email, Token, url), ct);
         return Ok();
     }
+
+
+    [HttpPost("reset-password")]
+    public async Task<bool> ResetPasswordAsync(ResetPasswordRequest req)
+{
+    var user = await userService.GetByEmailAsync(req.Email);
+        
+
+    if (user is null)
+        return false;
+
+    var tokenHash = PasswordResetTokenService.HashToken(req.Token);
+
+    var resetToken = await passwordResetTokenService.GetByUserId(user.Id);
+       
+    if (resetToken is null)
+        return false;
+
+    if (resetToken.ExpiresAt < DateTimeOffset.UtcNow)
+        return false;
+
+    resetToken.UsedAt = DateTimeOffset.UtcNow;
+    var salt = passwordService.GenerateSalt();
+    
+    var hash = passwordService.HashPassword(req.NewPassword, salt );
+
+    user.PasswordHash = hash;
+    user.PasswordSalt = salt;
+
+    await passwordResetTokenService.UpdateAsync(resetToken);
+    await userService.UpdateAsync(user);
+
+    return true;
+}
 
     private AuthResponseDTO BuildAuthResponse(User user)
     {

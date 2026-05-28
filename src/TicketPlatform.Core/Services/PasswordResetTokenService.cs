@@ -55,4 +55,9 @@ public class PasswordResetTokenService(IRepository<PasswordResetToken> repositor
     return rawToken; 
     }
 
+    public async Task<PasswordResetToken?> GetByUserId(Guid userId, CancellationToken ct = default)
+    {
+        return repository.Query()
+            .FirstOrDefault(t => t.UserId == userId);
+    }
 }

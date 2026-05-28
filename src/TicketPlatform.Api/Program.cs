@@ -34,6 +34,9 @@ builder.Services.AddScoped<
     IUserSettingsService,
     UserSettingsService>();
 
+builder.Services.AddScoped<
+    IPasswordResetTokenService,
+    PasswordResetTokenService>();
 builder.Services.Configure<GooglePlacesOptions>(
     builder.Configuration.GetSection("GooglePlacesOptions"));
 
