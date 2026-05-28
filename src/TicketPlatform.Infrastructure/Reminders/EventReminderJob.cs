@@ -58,13 +58,13 @@ public class EventReminderJob(
             .Include(oi => oi.TicketType).ThenInclude(tt => tt.Event)
             .Include(oi => oi.Order).ThenInclude(o => o.Customer)
             .Where(oi => oi.ReminderStatus == ReminderStatus.Pending
-                      && oi.TicketType.AdmissionStartDate < cutoff)
+                      && oi.TicketType.OccurenceStartDate < cutoff)
             .ToListAsync(ct);
 
         if (due.Count == 0) return;
 
-        var stale = due.Where(oi => oi.TicketType.AdmissionStartDate < skipBefore).ToList();
-        var sendable = due.Where(oi => oi.TicketType.AdmissionStartDate >= skipBefore).ToList();
+        var stale = due.Where(oi => oi.TicketType.OccurenceStartDate < skipBefore).ToList();
+        var sendable = due.Where(oi => oi.TicketType.OccurenceStartDate >= skipBefore).ToList();
 
         if (stale.Count > 0)
         {
@@ -77,7 +77,7 @@ public class EventReminderJob(
         {
             oi.Order.CustomerId,
             EventId = oi.TicketType.EventId,
-            Admission = oi.TicketType.AdmissionStartDate
+            Start = oi.TicketType.OccurenceStartDate
         });
 
         foreach (var group in groups)
@@ -95,7 +95,7 @@ public class EventReminderJob(
                     customer.Email,
                     $"{customer.FirstName} {customer.LastName}",
                     ev.Title,
-                    sample.TicketType.AdmissionStartDate,
+                    sample.TicketType.OccurenceStartDate,
                     items);
 
                 await mail.SendAsync(message, ct);
@@ -104,8 +104,8 @@ public class EventReminderJob(
                 await db.SaveChangesAsync(ct);
 
                 logger.LogInformation(
-                    "Sent reminder to {Email} for event {EventId} admission {Admission:O}",
-                    customer.Email, group.Key.EventId, group.Key.Admission);
+                    "Sent reminder to {Email} for event {EventId} start {Start:O}",
+                    customer.Email, group.Key.EventId, group.Key.Start);
             }
             catch (Exception ex)
             {
