@@ -2,13 +2,14 @@
 
 @inherits EventsBase
 
-<PageTitle>Events</PageTitle>
+<PageTitle>Explore Events</PageTitle>
 
 <RadzenStack Gap="1rem">
 
     <PageHeader Title="Upcoming Events" Subtitle="Browse and grab your tickets below.">
         <Actions>
-            <RadzenButton Icon="tune" Text="Filters" ButtonStyle="@(HasActiveFilters ? ButtonStyle.Primary : ButtonStyle.Secondary)" Size="ButtonSize.Large" Click="@ToggleFilters" />
+            <RadzenButton Icon="tune" Text="Filters"
+                          ButtonStyle="@(HasActiveFilters ? ButtonStyle.Primary : ButtonStyle.Secondary)" Click="@ToggleFilters"/>
         </Actions>
     </PageHeader>
 
@@ -83,10 +84,12 @@
         </RadzenFormField>
 
         <RadzenStack Gap="0.5rem" Style="margin-top:auto;margin-bottom:3rem;">
-            <RadzenButton Text="Apply" Icon="filter_list" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large" Style="width:100%;" Click="@ApplyFilterAsync"/>
+            <RadzenButton Text="Apply" Icon="filter_list" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Large"
+                          Style="width:100%;" Click="@ApplyFilterAsync"/>
             @if (HasActiveFilters)
             {
-                <RadzenButton Text="Clear all" Icon="close" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Large" Style="width:100%;" Click="@ClearFilterAsync"/>
+                <RadzenButton Text="Clear all" Icon="close" ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Large"
+                              Style="width:100%;" Click="@ClearFilterAsync"/>
             }
         </RadzenStack>
 

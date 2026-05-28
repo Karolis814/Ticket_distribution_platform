@@ -1,6 +1,7 @@
 @if (Actions is not null)
 {
-    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                 JustifyContent="JustifyContent.SpaceBetween" Gap="1.5rem">
         <RadzenStack Gap="0.25rem">
             <RadzenText TextStyle="TextStyle.H4" TagName="TagName.H1" Style="margin:0">@Title</RadzenText>
             @if (!string.IsNullOrEmpty(Subtitle))
@@ -8,7 +9,9 @@
                 <RadzenText TextStyle="TextStyle.Body1" Style="margin:0">@Subtitle</RadzenText>
             }
         </RadzenStack>
-        <div>@Actions</div>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem" AlignItems="AlignItems.Center">
+            @Actions
+        </RadzenStack>
     </RadzenStack>
 }
 else

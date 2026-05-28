@@ -9,14 +9,11 @@
 
     <PageHeader Title="My Events" Subtitle="Manage and track your created events.">
         <Actions>
-            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-                <RadzenButton Text="Sales Overview" Icon="dashboard" Variant="Variant.Outlined" ButtonStyle="ButtonStyle.Light"
-                              Size="ButtonSize.Large"
-                              Click="@(() => Nav.NavigateTo("/host/sales-overview"))"/>
-                <RadzenButton Text="Create Event" Icon="calendar_add_on" ButtonStyle="ButtonStyle.Primary"
-                              Size="ButtonSize.Large"
-                              Click="@(() => Nav.NavigateTo("/host/create"))"/>
-            </RadzenStack>
+            <RadzenButton Text="Create Event" Icon="calendar_add_on" ButtonStyle="ButtonStyle.Primary"
+                          Click="@(() => Nav.NavigateTo("/host/create"))"/>
+            <RadzenButton Text="Sales Overview" Icon="analytics"
+                          ButtonStyle="ButtonStyle.Secondary"
+                          Click="@(() => Nav.NavigateTo("/host/sales-overview"))"/>
         </Actions>
     </PageHeader>
 

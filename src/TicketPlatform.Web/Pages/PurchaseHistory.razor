@@ -8,7 +8,14 @@
 
 <RadzenStack Gap="1.5rem">
 
-    <PageHeader Title="My Tickets" Subtitle="View and download your tickets and invoices."/>
+    <PageHeader Title="My Tickets" Subtitle="View and download your tickets and invoices.">
+        <Actions>
+            <RadzenButton Text="Buy Tickets"
+                          Icon="event"
+                          ButtonStyle="ButtonStyle.Secondary"
+                          Click="@(() => Nav.NavigateTo("/events"))"/>
+        </Actions>
+    </PageHeader>
 
     @if (IsLoading)
     {
