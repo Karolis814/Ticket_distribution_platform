@@ -14,16 +14,16 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
     protected PaymentSuccessDto? Payment { get; set; }
     protected bool Loading { get; set; } = true;
     protected string? Error { get; set; }
-    private string? SessionId;
-    protected bool IsFreeOrder => FreeOrderId.HasValue;
-    private Guid? FreeOrderId;
+    private string? _sessionId;
+    protected bool IsFreeOrder => _freeOrderId.HasValue;
+    private Guid? _freeOrderId;
     protected bool Polling;
     private CancellationTokenSource? _cts;
 
     protected async Task DownloadTicketsAsync()
     {
         var response = await Http.GetAsync(
-            $"api/payments/{Payment!.OrderId}/tickets?sessionId={Uri.EscapeDataString(SessionId ?? "")}");
+            $"api/payments/{Payment!.OrderId}/tickets?sessionId={Uri.EscapeDataString(_sessionId ?? "")}");
 
         if (!response.IsSuccessStatusCode)
             return;
@@ -37,16 +37,13 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
     {
         var uri = Nav.ToAbsoluteUri(Nav.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        SessionId = query.Get("session_id");
+        _sessionId = query.Get("session_id");
 
         var orderIdRaw = query.Get("order_id");
         if (Guid.TryParse(orderIdRaw, out var parsed))
-            FreeOrderId = parsed;
+            _freeOrderId = parsed;
 
         await LoadPayment();
-
-        if (Payment is not null && !Payment.InvoiceReady && !FreeOrderId.HasValue)
-            _ = PollInvoiceAsync();
     }
 
     protected async Task LoadPayment()
@@ -58,15 +55,15 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
         {
             HttpResponseMessage response;
 
-            if (FreeOrderId.HasValue)
+            if (_freeOrderId.HasValue)
             {
                 response = await Http.GetAsync(
-                    $"api/payments/free-success?orderId={FreeOrderId.Value}");
+                    $"api/payments/free-success?orderId={_freeOrderId.Value}");
             }
-            else if (!string.IsNullOrWhiteSpace(SessionId))
+            else if (!string.IsNullOrWhiteSpace(_sessionId))
             {
                 response = await Http.GetAsync(
-                    $"api/payments/success?sessionId={Uri.EscapeDataString(SessionId)}");
+                    $"api/payments/success?sessionId={Uri.EscapeDataString(_sessionId)}");
             }
             else
             {
@@ -81,6 +78,9 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
             }
 
             Payment = await response.Content.ReadFromJsonAsync<PaymentSuccessDto>();
+
+            if (Payment is not null && !Payment.InvoiceReady && !_freeOrderId.HasValue)
+                _ = PollInvoiceAsync();
         }
         catch (Exception ex)
         {
@@ -94,6 +94,8 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
 
     private async Task PollInvoiceAsync()
     {
+        _cts?.Cancel();
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
         Polling = true;
 
@@ -107,7 +109,7 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
                 attempts++;
 
                 var response = await Http.GetAsync(
-                    $"api/payments/success?sessionId={Uri.EscapeDataString(SessionId ?? "")}",
+                    $"api/payments/success?sessionId={Uri.EscapeDataString(_sessionId ?? "")}",
                     _cts.Token);
 
                 if (response.IsSuccessStatusCode)

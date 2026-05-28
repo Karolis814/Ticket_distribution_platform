@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Stripe.Checkout;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
 using TicketPlatform.Core.Services;
@@ -32,6 +33,34 @@ public class PaymentsController(
 
         if (payment is null)
             return NotFound("Payment was not found yet. Try again in a moment.");
+
+        if (payment.Order.Status != OrderStatus.Completed)
+            return NotFound("Order is still being processed. Please wait.");
+
+        if (string.IsNullOrWhiteSpace(payment.StripeInvoiceUrl))
+        {
+            try
+            {
+                var session = await new SessionService().GetAsync(
+                    sessionId,
+                    new SessionGetOptions { Expand = ["invoice"] },
+                    cancellationToken: ct);
+
+                var invoice = session.Invoice;
+                if (invoice is not null && !string.IsNullOrWhiteSpace(invoice.HostedInvoiceUrl))
+                {
+                    payment.StripeInvoiceUrl = invoice.HostedInvoiceUrl;
+                    payment.StripeInvoicePdfUrl = invoice.InvoicePdf;
+                    payment.UpdatedAt = DateTimeOffset.UtcNow;
+                    paymentRepository.Update(payment);
+                    await paymentRepository.SaveChangesAsync(ct);
+                }
+            }
+            catch
+            {
+                // Invoice may not exist yet; the frontend will keep polling
+            }
+        }
 
         return Ok(new PaymentSuccessDto(
             payment.OrderId,

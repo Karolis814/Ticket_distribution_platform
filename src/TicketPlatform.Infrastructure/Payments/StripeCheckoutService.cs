@@ -108,7 +108,7 @@ public class StripeCheckoutService(
 
             Metadata = metadata,
 
-            SuccessUrl = $"{configuration["ClientBaseUrl"]}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}",
+            SuccessUrl = $"{configuration["ClientBaseUrl"]}/checkout/processing?session_id={{CHECKOUT_SESSION_ID}}",
             CancelUrl = $"{configuration["ClientBaseUrl"]}/events?payment=cancelled"
         };
 
