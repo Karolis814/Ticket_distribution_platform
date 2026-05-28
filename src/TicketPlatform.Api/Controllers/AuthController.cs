@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TicketPlatform.Core.Common;
@@ -95,6 +96,20 @@ public class AuthController(
             Email       = email,
             Role        = role
         });
+    }
+
+    [HttpPost("reset-password")]
+    public IActionResult ResetPassword(
+        [FromBody] ResetPasswordRequest rpr,
+        CancellationToken ct
+    )
+    {
+        
+
+        
+        
+
+        return Ok();
     }
 
     private AuthResponseDTO BuildAuthResponse(User user)
