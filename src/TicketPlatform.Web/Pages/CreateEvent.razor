@@ -36,7 +36,7 @@
                               Text="@(IsEditMode ? "Save Changes" : "Publish")"
                               ButtonStyle="ButtonStyle.Success"
                               Icon="@(IsEditMode ? "save" : "rocket_launch")"
-                              Disabled="@(!IsFormValid || IsCancelled)"/>
+                              Disabled="@(IsCancelled)"/>
             </Actions>
         </PageHeader>
 
@@ -303,10 +303,24 @@
                                 </RadzenStack>
 
                                 <RadzenRow Gap="0.75rem">
+                                    <RadzenColumn Size="4">
+                                        <RadzenStack Gap="0.25rem">
+                                            <RadzenFormField Text="Quantity" Variant="Variant.Outlined"
+                                                             Style="width:100%">
+                                                <RadzenNumeric TValue="int?"
+                                                               Name="@($"Qty_{currentIndex}")"
+                                                               Placeholder="0"
+                                                               @bind-Value="Model.TicketReleases[currentIndex].Quantity"
+                                                               Style="display:block;width:100%;"/>
+                                            </RadzenFormField>
+                                            <ValidationMessage
+                                                For="@(() => Model.TicketReleases[currentIndex].Quantity)"/>
+                                        </RadzenStack>
+                                    </RadzenColumn>
                                     <RadzenColumn Size="5">
                                         <RadzenStack Gap="0.25rem">
                                             <RadzenFormField Text="Price" Variant="Variant.Outlined" Style="width:100%">
-                                                <RadzenNumeric TValue="decimal"
+                                                <RadzenNumeric TValue="decimal?"
                                                                Format="0.00" Min="0" Step="0.01" ShowUpDown="false"
                                                                Name="@($"Price_{currentIndex}")"
                                                                Placeholder="0.00"
@@ -314,6 +328,12 @@
                                                                Style="display:block;width:100%;"/>
                                             </RadzenFormField>
                                             <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].Price)"/>
+                                            @if (Model.TicketReleases[currentIndex].Price > 0)
+                                            {
+                                                <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color" Style="margin-top:2px;">
+                                                    @PlatformFeePercent% fee · you receive @NetAmount(currentIndex) @Model.TicketReleases[currentIndex].Currency
+                                                </RadzenText>
+                                            }
                                         </RadzenStack>
                                     </RadzenColumn>
                                     <RadzenColumn Size="3">
@@ -329,19 +349,6 @@
                                             </RadzenFormField>
                                             <ValidationMessage
                                                 For="@(() => Model.TicketReleases[currentIndex].Currency)"/>
-                                        </RadzenStack>
-                                    </RadzenColumn>
-                                    <RadzenColumn Size="4">
-                                        <RadzenStack Gap="0.25rem">
-                                            <RadzenFormField Text="Quantity" Variant="Variant.Outlined"
-                                                             Style="width:100%">
-                                                <RadzenNumeric TValue="int"
-                                                               Name="@($"Qty_{currentIndex}")"
-                                                               @bind-Value="Model.TicketReleases[currentIndex].Quantity"
-                                                               Style="display:block;width:100%;"/>
-                                            </RadzenFormField>
-                                            <ValidationMessage
-                                                For="@(() => Model.TicketReleases[currentIndex].Quantity)"/>
                                         </RadzenStack>
                                     </RadzenColumn>
                                 </RadzenRow>
@@ -362,11 +369,14 @@
                                                          Style="width:100%">
                                             <RadzenNumeric TValue="int"
                                                            Name="@($"MaxUses_{currentIndex}")"
-                                                           Min="2"
+                                                           Min="0"
                                                            @bind-Value="Model.TicketReleases[currentIndex].MaxUses"
                                                            Style="display:block;width:100%;"/>
                                         </RadzenFormField>
                                         <ValidationMessage For="@(() => Model.TicketReleases[currentIndex].MaxUses)"/>
+                                        <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color">
+                                            Set to 0 for unlimited uses
+                                        </RadzenText>
                                     </RadzenStack>
                                 }
 

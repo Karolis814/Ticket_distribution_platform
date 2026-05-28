@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
@@ -33,6 +34,7 @@ public partial class CreateEventBase : ComponentBase
         "GBP"
     ];
 
+    [Inject] protected HttpClient Http { get; set; } = null!;
     [Inject] protected IEventsClient EventsClient { get; set; } = null!;
     [Inject] protected IPlacesClient PlacesClient { get; set; } = null!;
     [Inject] protected IUsersClient UsersClient { get; set; } = null!;
@@ -44,6 +46,7 @@ public partial class CreateEventBase : ComponentBase
 
     private Guid CurrentUserId { get; set; } = Guid.Empty;
     protected bool IsInitialized { get; set; } = false;
+    protected decimal PlatformFeePercent { get; private set; } = 5m;
     protected bool IsUploadingImage { get; set; } = false;
     private bool _firstParametersSet = true;
 
@@ -91,6 +94,9 @@ public partial class CreateEventBase : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+        var feeResult = await Http.GetFromJsonAsync<FeeDto>("api/platform/fee");
+        PlatformFeePercent = feeResult?.FeePercent ?? 5m;
+
         var auth = await AuthState.GetAuthenticationStateAsync();
         if (!auth.User.IsInRole("Host"))
         {
@@ -163,7 +169,7 @@ public partial class CreateEventBase : ComponentBase
             UseCustomAdmissionTimes =
                 tt.AdmissionStartDate != tt.OccurenceStartDate ||
                 tt.AdmissionEndDate != tt.OccurenceEndDate,
-            Quantity = tt.Quantity
+            Quantity = (int?)tt.Quantity
         }).ToList();
 
         if (Model.TicketReleases.Count > 0)
@@ -273,7 +279,7 @@ public partial class CreateEventBase : ComponentBase
                     return;
                 }
 
-                if (release.Quantity < 1)
+                if ((release.Quantity ?? 0) < 1)
                 {
                     NotificationService.Notify(new NotificationMessage
                     {
@@ -285,7 +291,7 @@ public partial class CreateEventBase : ComponentBase
                     return;
                 }
 
-                if (release.Price < 0)
+                if ((release.Price ?? 0m) < 0)
                 {
                     NotificationService.Notify(new NotificationMessage
                     {
@@ -307,10 +313,10 @@ public partial class CreateEventBase : ComponentBase
                     OccurenceEndDate: tt.OccurenceEndDate,
                     AdmissionStartDate: tt.AdmissionStartDate,
                     AdmissionEndDate: tt.AdmissionEndDate,
-                    PriceCents: (int)Math.Round(tt.Price * 100m, MidpointRounding.AwayFromZero),
+                    PriceCents: (int)Math.Round((tt.Price ?? 0m) * 100m, MidpointRounding.AwayFromZero),
                     Currency: tt.Currency,
                     MaxUses: tt.MaxUses,
-                    Quantity: tt.Quantity
+                    Quantity: tt.Quantity ?? 1
                 )).ToList();
 
                 var updateRequest = new UpdateEventRequest(
@@ -344,10 +350,10 @@ public partial class CreateEventBase : ComponentBase
                     OccurenceEndDate: tt.OccurenceEndDate,
                     AdmissionStartDate: tt.AdmissionStartDate,
                     AdmissionEndDate: tt.AdmissionEndDate,
-                    PriceCents: (int)Math.Round(tt.Price * 100m, MidpointRounding.AwayFromZero),
+                    PriceCents: (int)Math.Round((tt.Price ?? 0m) * 100m, MidpointRounding.AwayFromZero),
                     Currency: tt.Currency,
                     MaxUses: tt.MaxUses,
-                    Quantity: tt.Quantity
+                    Quantity: tt.Quantity ?? 1
                 )).ToList();
 
                 var createRequest = new CreateEventRequest(
@@ -404,10 +410,10 @@ public partial class CreateEventBase : ComponentBase
                     OccurenceEndDate: tt.OccurenceEndDate,
                     AdmissionStartDate: tt.AdmissionStartDate,
                     AdmissionEndDate: tt.AdmissionEndDate,
-                    PriceCents: (int)Math.Round(tt.Price * 100m, MidpointRounding.AwayFromZero),
+                    PriceCents: (int)Math.Round((tt.Price ?? 0m) * 100m, MidpointRounding.AwayFromZero),
                     Currency: tt.Currency,
                     MaxUses: tt.MaxUses,
-                    Quantity: tt.Quantity
+                    Quantity: tt.Quantity ?? 1
                 )).ToList()
             );
 
@@ -653,6 +659,12 @@ public partial class CreateEventBase : ComponentBase
 
         return string.Join(", ", parts);
     }
+
+    protected string NetAmount(int index)
+    {
+        var price = Model.TicketReleases[index].Price ?? 0m;
+        return (price * (1 - PlatformFeePercent / 100m)).ToString("0.00");
+    }
 }
 
 public class CreateEventFormModel
@@ -718,17 +730,17 @@ public class TicketReleaseModel
 
     [Required]
     [Range(0, double.MaxValue, ErrorMessage = "Price cannot be negative.")]
-    public decimal Price { get; set; } = 0m;
+    public decimal? Price { get; set; } = null;
 
     [Required]
     [StringLength(3, ErrorMessage = "Currency must be 3 characters.")]
     public string Currency { get; set; } = "EUR";
 
     [Required]
-    [Range(1, int.MaxValue, ErrorMessage = "Max uses must be at least 1.")]
+    [Range(0, int.MaxValue, ErrorMessage = "Max uses cannot be negative.")]
     public int MaxUses { get; set; } = 1;
 
     [Required]
     [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
-    public int Quantity { get; set; } = 1;
+    public int? Quantity { get; set; } = null;
 }

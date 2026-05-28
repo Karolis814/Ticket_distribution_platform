@@ -34,6 +34,7 @@ public class SettingsBase : ComponentBase, IDisposable
 
     protected UserSettingsDto? UserSettings { get; set; }
     protected StripeConnectStatusDto? StripeStatus { get; set; }
+    protected decimal PlatformFeePercent { get; set; }
 
     protected ProfileFormModel ProfileModel { get; } = new();
     protected PasswordFormModel PasswordModel { get; } = new();
@@ -60,6 +61,10 @@ public class SettingsBase : ComponentBase, IDisposable
         }
 
         LoadedUserId = userId;
+
+        var feeResult = await Http.GetFromJsonAsync<FeeDto>("api/platform/fee");
+        PlatformFeePercent = feeResult?.FeePercent ?? 5m;
+
         await LoadSettingsAsync();
     }
 
@@ -346,3 +351,5 @@ public class SettingsBase : ComponentBase, IDisposable
         public string ConfirmPassword { get; set; } = "";
     }
 }
+
+internal record FeeDto([property: System.Text.Json.Serialization.JsonPropertyName("feePercent")] decimal FeePercent);
