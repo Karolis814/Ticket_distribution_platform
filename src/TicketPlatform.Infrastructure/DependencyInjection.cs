@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Services;
+using TicketPlatform.Infrastructure.Logging;
 using TicketPlatform.Infrastructure.Persistence;
 using TicketPlatform.Infrastructure.Services;
 using TicketPlatform.Infrastructure.Storage;
@@ -30,17 +31,19 @@ public static class DependencyInjection
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
-        services.AddScoped<ICustomerService, CustomerService>();
-        services.AddScoped<IEventService, EventService>();
-        services.AddScoped<IOrderItemService, OrderItemService>();
-        services.AddScoped<IOrderService, OrderService>();
-        services.AddScoped<ITicketService, TicketService>();
-        services.AddScoped<ITicketTypeService, TicketTypeService>();
-        services.AddScoped<ITicketPdfService, TicketPdfService>();
-        services.Configure<SmtpOptions>(configuration.GetSection("Smtp"));
-        services.AddScoped<IMailService, MailService>();
+        services.AddBusinessLogicInterception();
 
-        services.AddScoped<ITicketValidationService, TicketValidationService>();
+        services.AddInterceptedScoped<ICustomerService, CustomerService>(configuration);
+        services.AddInterceptedScoped<IEventService, EventService>(configuration);
+        services.AddInterceptedScoped<IOrderItemService, OrderItemService>(configuration);
+        services.AddInterceptedScoped<IOrderService, OrderService>(configuration);
+        services.AddInterceptedScoped<ITicketService, TicketService>(configuration);
+        services.AddInterceptedScoped<ITicketTypeService, TicketTypeService>(configuration);
+        services.AddInterceptedScoped<ITicketPdfService, TicketPdfService>(configuration);
+        services.Configure<SmtpOptions>(configuration.GetSection("Smtp"));
+        services.AddInterceptedScoped<IMailService, MailService>(configuration);
+
+        services.AddInterceptedScoped<ITicketValidationService, TicketValidationService>(configuration);
 
         // Add Google Places API service
         services.Configure<GooglePlacesOptions>(configuration.GetSection("GooglePlaces"));
@@ -57,11 +60,11 @@ public static class DependencyInjection
             var opts = sp.GetRequiredService<IOptions<BlobStorageOptions>>().Value;
             return new BlobServiceClient(opts.ConnectionString);
         });
-        services.AddScoped<IBlobStorageService, AzureBlobStorageService>();
-        services.AddScoped<IPasswordService, PasswordService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddInterceptedScoped<IBlobStorageService, AzureBlobStorageService>(configuration);
+        services.AddInterceptedScoped<IPasswordService, PasswordService>(configuration);
+        services.AddInterceptedScoped<IUserService, UserService>(configuration);
         services.Configure<JWTSettings>(configuration.GetSection("JwtSettings"));
-        services.AddScoped<IJWTService, JWTService>();
+        services.AddInterceptedScoped<IJWTService, JWTService>(configuration);
 
         
         var jwtSettings = configuration.GetSection("JwtSettings").Get<JWTSettings>()
