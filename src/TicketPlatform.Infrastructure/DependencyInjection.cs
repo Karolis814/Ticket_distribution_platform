@@ -45,7 +45,7 @@ public static class DependencyInjection
         services.Configure<SmtpOptions>(configuration.GetSection("Smtp"));
         services.AddInterceptedScoped<IMailService, MailService>(configuration);
 
-        services.AddInterceptedScoped<IOrderCompletionService, OrderCompletionService>();
+        services.AddInterceptedScoped<IOrderCompletionService, OrderCompletionService>(configuration);
         services.AddInterceptedScoped<ITicketValidationService, TicketValidationService>(configuration);
 
         // Strategy demo: pick the IPlacesService implementation via "Places:Provider" config.
