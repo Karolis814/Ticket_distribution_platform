@@ -53,6 +53,8 @@ dotnet user-secrets set "GooglePlaces:ApiKey" "AIza..."
 Get your Stripe test keys from the [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys).
 Get your Google Places API key from the [Google Cloud Console](https://console.cloud.google.com/) — enable the **Places API** on the key.
 
+**Platform fee** is configured in `appsettings.json` under `Stripe:PlatformFeePercent` (defaults to `5`). It is read at runtime by the checkout service and exposed via `GET /api/platform/fee` so the frontend can display it.
+
 The Stripe CLI container also needs the secret key. Create a `.env` file in the repo root (already in `.gitignore`):
 
 ```
