@@ -4,6 +4,7 @@ using Stripe;
 using TicketPlatform.Api.Middleware;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Infrastructure;
+using TicketPlatform.Infrastructure.Logging;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using TicketPlatform.Core.Settings;
@@ -26,20 +27,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 StripeConfiguration.ApiKey =
     builder.Configuration["Stripe:SecretKey"];
 
-builder.Services.AddScoped<
-    IStripeCheckoutService,
-    StripeCheckoutService>();
-
-builder.Services.AddScoped<
-    IUserSettingsService,
-    UserSettingsService>();
-
-builder.Services.Configure<GooglePlacesOptions>(
-    builder.Configuration.GetSection("GooglePlacesOptions"));
-
-builder.Services.AddHttpClient<
-    IPlacesService,
-    GooglePlacesService>();
+builder.Services.AddInterceptedScoped<IStripeCheckoutService, StripeCheckoutService>(builder.Configuration);
+builder.Services.AddInterceptedScoped<IUserSettingsService, UserSettingsService>(builder.Configuration);
 
 const string blazorCors = "BlazorClient";
 
