@@ -27,6 +27,12 @@ public static class OrderItemConfiguration
                 .IsRequired()
                 .HasMaxLength(3);
 
+            builder.Property(x => x.ReminderStatus)
+                .IsRequired()
+                .HasConversion<int>();
+
+            builder.HasIndex(x => x.ReminderStatus);
+
             builder.Property(x => x.CreatedAt)
                 .IsRequired();
 
