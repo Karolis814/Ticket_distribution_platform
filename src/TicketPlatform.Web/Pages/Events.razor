@@ -76,12 +76,15 @@
 
     <EventCards Events="Events" IsLoading="IsLoading"/>
 
-    @* @if (!IsLoading && (Result?.TotalCount ?? 0) > 0) *@
-    @* { *@
-        <RadzenPager Count="@(Result!.TotalCount)"
+    @if (!IsLoading && Result != null)
+    {
+        <RadzenPager Count="@Result.TotalCount"
                      PageSize="@PageSize"
                      PageNumbersCount="5"
+                     AlwaysVisible="true"
+                     HorizontalAlign="HorizontalAlign.Left"
+                     ShowPagingSummary="true"
                      PageChanged="@OnPageChange"/>
-    @* } *@
+    }
 
 </RadzenStack>
