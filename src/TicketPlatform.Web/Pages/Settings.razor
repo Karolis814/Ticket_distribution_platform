@@ -114,7 +114,8 @@
                                     <RadzenButton Text="Save profile"
                                                   Icon="save"
                                                   ButtonStyle="ButtonStyle.Primary"
-                                                  ButtonType="ButtonType.Submit"/>
+                                                  ButtonType="ButtonType.Submit"
+                                                  Size="ButtonSize.Large"/>
                                 </div>
 
                             </RadzenStack>
@@ -150,7 +151,9 @@
                                     <RadzenButton Text="Change password"
                                                   Icon="lock_reset"
                                                   ButtonStyle="ButtonStyle.Primary"
-                                                  ButtonType="ButtonType.Submit"/>
+                                                  ButtonType="ButtonType.Submit"
+                                                  Size="ButtonSize.Large"
+                                                  />
                                 </div>
                             </RadzenStack>
                         </EditForm>
@@ -188,6 +191,7 @@
                                     <RadzenButton Text="@(Connecting ? "Connecting…" : "Connect Stripe")"
                                                   Icon="account_balance"
                                                   ButtonStyle="ButtonStyle.Primary"
+                                                  Size="ButtonSize.Large"
                                                   Disabled="@Connecting"
                                                   Click="@ConnectStripeAsync"/>
                                 </div>
@@ -202,6 +206,7 @@
                                                   Icon="account_balance"
                                                   ButtonStyle="ButtonStyle.Warning"
                                                   Disabled="@Connecting"
+                                                  Size="ButtonSize.Large"
                                                   Click="@ConnectStripeAsync"/>
                                     @if (PollingStripe)
                                     {
@@ -240,6 +245,7 @@
                                                   Icon="delete_forever"
                                                   ButtonStyle="ButtonStyle.Danger"
                                                   Variant="Variant.Outlined"
+                                                  Size="ButtonSize.Small"
                                                   Click="@(() => ConfirmDelete = true)"/>
                                 </div>
                             }
@@ -252,9 +258,11 @@
                                     <RadzenButton Text="Yes, delete my account"
                                                   Icon="delete_forever"
                                                   ButtonStyle="ButtonStyle.Danger"
+                                                  Size="ButtonSize.Small"
                                                   Click="@DeleteAccountAsync"/>
                                     <RadzenButton Text="Cancel"
                                                   ButtonStyle="ButtonStyle.Light"
+                                                  Size="ButtonSize.Small"
                                                   Click="@(() => ConfirmDelete = false)"/>
                                 </RadzenStack>
                             }

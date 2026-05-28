@@ -4,43 +4,33 @@
 
 <PageTitle>Confirming payment…</PageTitle>
 
-<RadzenRow JustifyContent="JustifyContent.Center" Class="rz-mt-8">
-    <RadzenColumn Size="12" SizeMd="6" SizeLg="4">
-        <RadzenCard>
-            <RadzenStack Gap="1.5rem" AlignItems="AlignItems.Center">
+<div style="max-width:500px;margin:4rem auto 0;">
+    <RadzenCard>
+        <RadzenStack Gap="1.5rem" AlignItems="AlignItems.Center" Class="rz-p-2">
 
-                @if (!string.IsNullOrWhiteSpace(Error))
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" Style="width:100%">
-                        @Error
-                    </RadzenAlert>
+            @if (!string.IsNullOrWhiteSpace(Error))
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" AllowClose="false" Style="width:100%">
+                    @Error
+                </RadzenAlert>
+                <RadzenButton Text="Try again" Icon="refresh" ButtonStyle="ButtonStyle.Primary"
+                              Size="ButtonSize.Large" Click="StartPollingAsync" Style="width:100%"/>
+            }
+            else
+            {
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"
+                                           Size="ProgressBarCircularSize.Large"/>
+                <RadzenText TextStyle="TextStyle.H5" Style="font-weight:700;margin:0;text-align:center;">
+                    Confirming your payment…
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2" Style="text-align:center;margin:0;" Class="rz-text-secondary-color">
+                    Please wait while we confirm your payment and prepare your tickets.
+                </RadzenText>
+            }
 
-                    <RadzenButton Text="Try again"
-                                  Icon="refresh"
-                                  ButtonStyle="ButtonStyle.Primary"
-                                  Click="StartPollingAsync"
-                                  Style="width:100%" />
-                }
-                else
-                {
-                    <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+            <RadzenButton Text="Back to events" Icon="event" ButtonStyle="ButtonStyle.Light"
+                          Variant="Variant.Text" Click="@(() => Nav.NavigateTo("/events"))" Style="width:100%"/>
 
-                    <RadzenText TextStyle="TextStyle.H5" Style="font-weight:600">
-                        Confirming your payment…
-                    </RadzenText>
-
-                    <RadzenText TextStyle="TextStyle.Body2" Style="color:var(--rz-text-secondary-color); text-align:center">
-                        Please wait while we confirm your payment and generate your tickets.
-                    </RadzenText>
-                }
-
-                <RadzenButton Text="Back to events"
-                              Icon="event"
-                              ButtonStyle="ButtonStyle.Light"
-                              Click="@(() => Nav.NavigateTo("/events"))"
-                              Style="width:100%" />
-
-            </RadzenStack>
-        </RadzenCard>
-    </RadzenColumn>
-</RadzenRow>
+        </RadzenStack>
+    </RadzenCard>
+</div>

@@ -2,87 +2,83 @@
 
 @inherits PaymentSuccessBase
 
-<PageTitle>Payment successful</PageTitle>
+<PageTitle>@(IsFreeOrder ? "Registration successful" : "Payment successful")</PageTitle>
 
-<RadzenRow JustifyContent="JustifyContent.Center" Class="rz-mt-8">
-    <RadzenColumn Size="12" SizeMd="7" SizeLg="5">
-        <RadzenCard>
-            <RadzenStack Gap="1rem">
+<div style="max-width:560px;margin:4rem auto 0;">
+    <RadzenCard>
+        <RadzenStack Gap="1.25rem" Class="rz-p-2">
 
-                @if (Loading)
-                {
-                    <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Gap="1rem" Style="min-height:200px;">
-                        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
-                        <RadzenText TextStyle="TextStyle.Body2">
-                            Loading payment information...
-                        </RadzenText>
-                    </RadzenStack>
-                }
-                else if (!string.IsNullOrWhiteSpace(Error))
-                {
-
-                    <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true">
-                        @Error
-                    </RadzenAlert>
-
-                    <RadzenButton Text="Try again"
-                                  Icon="refresh"
-                                  ButtonStyle="ButtonStyle.Primary"
-                                  Click="LoadPayment"
-                                  Style="width:100%" />
-                }
-                else if (Payment is not null)
-                {
-                    <RadzenText TextStyle="TextStyle.H4" Style="font-weight:700">
+            @if (Loading)
+            {
+                <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center"
+                             Gap="1rem" Style="min-height:220px;">
+                    <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"
+                                               Size="ProgressBarCircularSize.Large"/>
+                    <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;" Class="rz-text-secondary-color">
+                        Loading your order…
+                    </RadzenText>
+                </RadzenStack>
+            }
+            else if (!string.IsNullOrWhiteSpace(Error))
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" AllowClose="false">@Error</RadzenAlert>
+                <RadzenButton Text="Try again" Icon="refresh" ButtonStyle="ButtonStyle.Primary"
+                              Size="ButtonSize.Large" Click="LoadPayment" Style="width:100%"/>
+                <RadzenButton Text="Back to events" Icon="event" ButtonStyle="ButtonStyle.Light"
+                              Variant="Variant.Text" Click="@(() => Nav.NavigateTo("/events"))" Style="width:100%"/>
+            }
+            else if (Payment is not null)
+            {
+                <RadzenStack AlignItems="AlignItems.Center" Gap="0.5rem" Class="rz-py-2">
+                    <RadzenIcon Icon="check_circle" Style="font-size:4rem;color:var(--rz-success);"/>
+                    <RadzenText TextStyle="TextStyle.H4" Style="font-weight:700;margin:0;text-align:center;">
                         @(IsFreeOrder ? "Registration successful" : "Payment successful")
                     </RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1" Style="margin:0;text-align:center;" Class="rz-text-secondary-color">
+                        A confirmation with your tickets has been sent to:
+                    </RadzenText>
+                    <RadzenText TextStyle="TextStyle.Subtitle1" Style="font-weight:700;margin:0;text-align:center;">
+                        @Payment.Email
+                    </RadzenText>
+                </RadzenStack>
 
-                    <RadzenAlert AlertStyle="AlertStyle.Success" ShowIcon="true">
-                        Your tickets were sent to: <strong>@Payment.Email</strong>
-                    </RadzenAlert>
+                <hr style="border:none;border-top:1px solid var(--rz-border-disabled-color);margin:0;"/>
 
-                    <RadzenButton Text="Download tickets"
-                                  Icon="download"
-                                  ButtonStyle="ButtonStyle.Success"
-                                  Click="DownloadTicketsAsync"
-                                  Style="width:100%" />
+                <RadzenButton Text="Download tickets" Icon="download" ButtonStyle="ButtonStyle.Success"
+                              Size="ButtonSize.Large" Click="DownloadTicketsAsync" Style="width:100%"/>
 
-                    @if (!IsFreeOrder)
+                @if (!IsFreeOrder)
+                {
+                    @if (Payment.InvoiceReady && !string.IsNullOrWhiteSpace(Payment.InvoiceUrl))
                     {
-                        @if (Payment.InvoiceReady && !string.IsNullOrWhiteSpace(Payment.InvoiceUrl))
-                        {
-                            <RadzenButton Text="View invoice"
-                                          Icon="receipt_long"
-                                          ButtonStyle="ButtonStyle.Light"
-                                          Click="@(() => Nav.NavigateTo(Payment.InvoiceUrl!, forceLoad: true))"
-                                          Style="width:100%" />
-                        }
+                        <RadzenButton Text="View invoice" Icon="receipt_long" ButtonStyle="ButtonStyle.Light"
+                                      Size="ButtonSize.Large"
+                                      Click="@(() => Nav.NavigateTo(Payment.InvoiceUrl!, forceLoad: true))"
+                                      Style="width:100%"/>
+                    }
 
-                        @if (!Payment.InvoiceReady && Polling)
-                        {
-                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
-                                         JustifyContent="JustifyContent.Center" Gap="0.75rem">
-                                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.Small" />
-                                <RadzenText TextStyle="TextStyle.Body2">Invoice is being generated…</RadzenText>
-                            </RadzenStack>
-                        }
+                    @if (!Payment.InvoiceReady && Polling)
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                                     JustifyContent="JustifyContent.Center" Gap="0.75rem">
+                            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"
+                                                       Size="ProgressBarCircularSize.Small"/>
+                            <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;">Invoice is being generated…</RadzenText>
+                        </RadzenStack>
+                    }
 
-                        @if (!Payment.InvoiceReady && !Polling)
-                        {
-                            <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true">
-                                Invoice is still being generated — check your email shortly.
-                            </RadzenAlert>
-                        }
+                    @if (!Payment.InvoiceReady && !Polling)
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" AllowClose="false">
+                            Invoice is still being generated — check your email shortly.
+                        </RadzenAlert>
                     }
                 }
 
-                <RadzenButton Text="Back to events"
-                              Icon="event"
-                              ButtonStyle="ButtonStyle.Light"
-                              Click="@(() => Nav.NavigateTo("/events"))"
-                              Style="width:100%" />
+                <RadzenButton Text="Back to events" Icon="event" ButtonStyle="ButtonStyle.Light"
+                              Variant="Variant.Text" Click="@(() => Nav.NavigateTo("/events"))" Style="width:100%"/>
+            }
 
-            </RadzenStack>
-        </RadzenCard>
-    </RadzenColumn>
-</RadzenRow>
+        </RadzenStack>
+    </RadzenCard>
+</div>
