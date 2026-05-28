@@ -11,108 +11,134 @@
 
         <RadzenStack Gap="1.5rem">
 
-            <PageHeader Title="Ticket Scanner" Subtitle="Scan QR codes to validate tickets at the door." />
+            <PageHeader Title="Ticket Scanner" Subtitle="Scan QR codes to validate tickets at the door."/>
 
-            <RadzenCard Style="padding:0;overflow:hidden;position:relative;">
+            <div style="border-radius:12px;overflow:hidden;background:var(--rz-base-800);box-shadow:0 4px 24px rgba(0,0,0,0.35);position:relative;">
                 <video id="qr-video"
                        style="width:100%;display:block;max-height:360px;object-fit:cover;"
                        autoplay
                        playsinline
                        muted/>
 
-                <div style="position:absolute;inset:0;display:flex;align-items:center;
-                            justify-content:center;pointer-events:none;">
-                    <div style="width:200px;height:200px;border:3px solid rgba(255,255,255,0.7);
-                                border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.35);"/>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                    <div style="width:200px;height:200px;border:3px solid rgba(255,255,255,0.7);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.35);"/>
                 </div>
-            </RadzenCard>
 
-            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
-                @if (!CameraActive)
+                @if (Scanning)
                 {
-                    <RadzenButton Text="Start Camera"
-                                  ButtonStyle="ButtonStyle.Primary"
-                                  Icon="videocam"
-                                  Click="StartCamera"
-                                  Style="flex:1"/>
+                    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);padding:0.6rem 1rem;display:flex;align-items:center;justify-content:center;gap:0.6rem;">
+                        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"
+                                                   Size="ProgressBarCircularSize.Small"
+                                                   Style="--rz-progressbar-circular-color:white;width:18px;height:18px;"/>
+                        <span style="color:white;font-size:0.875rem;letter-spacing:0.02em;">Scanning for QR code…</span>
+                    </div>
                 }
-                else
-                {
-                    <RadzenButton Text="Stop"
-                                  ButtonStyle="ButtonStyle.Light"
-                                  Icon="videocam_off"
-                                  Click="StopCamera"
-                                  Style="flex:1"/>
-                }
-            </RadzenStack>
+            </div>
 
-            @if (Scanning)
+            @if (!CameraActive)
             {
-                <RadzenAlert AlertStyle="AlertStyle.Info" ShowIcon="true" Variant="Variant.Filled">
-                    Scanning for QR code…
-                </RadzenAlert>
+                <RadzenButton Text="Start Camera"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Icon="videocam"
+                              Click="StartCamera"
+                              Size="ButtonSize.Large"
+                              Style="width:100%"/>
+            }
+            else
+            {
+                <RadzenButton Text="Stop Camera"
+                              ButtonStyle="ButtonStyle.Light"
+                              Icon="videocam_off"
+                              Click="StopCamera"
+                              Size="ButtonSize.Large"
+                              Style="width:100%"/>
             }
 
             @if (Result is not null)
             {
-                <RadzenCard>
-                    <RadzenStack Gap="0.75rem">
-                        <RadzenAlert AlertStyle="@ResultAlertStyle"
-                                     ShowIcon="true"
-                                     Variant="Variant.Filled">
+                <RadzenCard Class="rz-p-0 rz-overflow-hidden" Style="@("border-top:3px solid " + StatusBorderColor + ";")">
+                    <RadzenStack Gap="1.25rem" Class="rz-p-4">
+
+                        <RadzenAlert AlertStyle="@ResultAlertStyle" ShowIcon="true" Variant="Variant.Filled" AllowClose="false">
                             @Result.Message
                         </RadzenAlert>
 
                         @if (Result.EventName is not null)
                         {
-                            <RadzenStack Gap="0.25rem">
-                                <RadzenText TextStyle="TextStyle.Overline">Event</RadzenText>
-                                <RadzenText TextStyle="TextStyle.H6">@Result.EventName</RadzenText>
+                            <RadzenStack Gap="0.5rem">
+                                <RadzenText TextStyle="TextStyle.H6" Style="font-weight:700;margin:0;">@Result.EventName</RadzenText>
+
+                                <RadzenStack Gap="0.35rem">
+                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                        <RadzenIcon Icon="confirmation_number" Style="font-size:1rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                        <RadzenText Style="font-size:0.9rem;margin:0;">@Result.TicketTypeName</RadzenText>
+                                    </RadzenStack>
+                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                        <RadzenIcon Icon="qr_code_scanner" Style="font-size:1rem;color:var(--rz-text-secondary-color);flex-shrink:0;"/>
+                                        <RadzenText Style="font-size:0.9rem;margin:0;">Scanned @Result.TimesUsed of @Result.MaxUses times</RadzenText>
+                                    </RadzenStack>
+                                </RadzenStack>
                             </RadzenStack>
 
-                            <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem">
-                                <RadzenStack Gap="0.25rem">
-                                    <RadzenText TextStyle="TextStyle.Overline">Ticket Type</RadzenText>
-                                    <RadzenText>@Result.TicketTypeName</RadzenText>
-                                </RadzenStack>
-                                <RadzenStack Gap="0.25rem">
-                                    <RadzenText TextStyle="TextStyle.Overline">Times Scanned</RadzenText>
-                                    <RadzenText>@Result.TimesUsed/@Result.MaxUses</RadzenText>
-                                </RadzenStack>
+                            <hr style="border:none;border-top:1px solid var(--rz-border-disabled-color);margin:0;"/>
+
+                            <RadzenStack Gap="0.35rem">
+                                <RadzenText TextStyle="TextStyle.Overline" Class="rz-text-secondary-color" Style="margin:0;">Admission Window</RadzenText>
+                                <RadzenRow Gap="0.75rem">
+                                    <RadzenColumn Size="6">
+                                        <RadzenStack Gap="0.1rem">
+                                            <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color">Doors open</RadzenText>
+                                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
+                                                <RadzenIcon Icon="login" Style="font-size:0.9rem;"/>
+                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.AdmissionStartDate?.ToLocalTime().ToString("dd MMM, HH:mm")</RadzenText>
+                                            </RadzenStack>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="6">
+                                        <RadzenStack Gap="0.1rem">
+                                            <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color">Last entry</RadzenText>
+                                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
+                                                <RadzenIcon Icon="logout" Style="font-size:0.9rem;"/>
+                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.AdmissionEndDate?.ToLocalTime().ToString("dd MMM, HH:mm")</RadzenText>
+                                            </RadzenStack>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                </RadzenRow>
                             </RadzenStack>
 
+                            <RadzenStack Gap="0.35rem">
+                                <RadzenText TextStyle="TextStyle.Overline" Class="rz-text-secondary-color" Style="margin:0;">Event Window</RadzenText>
+                                <RadzenRow Gap="0.75rem">
+                                    <RadzenColumn Size="6">
+                                        <RadzenStack Gap="0.1rem">
+                                            <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color">Starts</RadzenText>
+                                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
+                                                <RadzenIcon Icon="event" Style="font-size:0.9rem;"/>
+                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.OccurenceStartDate?.ToLocalTime().ToString("dd MMM, HH:mm")</RadzenText>
+                                            </RadzenStack>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="6">
+                                        <RadzenStack Gap="0.1rem">
+                                            <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color">Ends</RadzenText>
+                                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
+                                                <RadzenIcon Icon="event_busy" Style="font-size:0.9rem;"/>
+                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.OccurenceEndDate?.ToLocalTime().ToString("dd MMM, HH:mm")</RadzenText>
+                                            </RadzenStack>
+                                        </RadzenStack>
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
 
-                            <RadzenFieldset Text="Admission Window">
-                                <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem">
-                                    <RadzenStack Gap="0.25rem">
-                                        <RadzenText TextStyle="TextStyle.Overline">Doors Open</RadzenText>
-                                        <RadzenText>@Result.AdmissionStartDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
-                                    </RadzenStack>
-                                    <RadzenStack Gap="0.25rem">
-                                        <RadzenText TextStyle="TextStyle.Overline">Last Entry</RadzenText>
-                                        <RadzenText>@Result.AdmissionEndDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
-                                    </RadzenStack>
-                                </RadzenStack>
-                            </RadzenFieldset>
-
-                            <RadzenFieldset Text="Event Window">
-                                <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem">
-                                    <RadzenStack Gap="0.25rem">
-                                        <RadzenText TextStyle="TextStyle.Overline">Starts</RadzenText>
-                                        <RadzenText>@Result.OccurenceStartDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
-                                    </RadzenStack>
-                                    <RadzenStack Gap="0.25rem">
-                                        <RadzenText TextStyle="TextStyle.Overline">Ends</RadzenText>
-                                        <RadzenText>@Result.OccurenceEndDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
-                                    </RadzenStack>
-                                </RadzenStack>
-                            </RadzenFieldset>
+                            <hr style="border:none;border-top:1px solid var(--rz-border-disabled-color);margin:0;"/>
                         }
 
                         <RadzenButton Text="Scan Next Ticket"
-                                      ButtonStyle="ButtonStyle.Light"
+                                      ButtonStyle="ButtonStyle.Primary"
                                       Icon="qr_code_scanner"
-                                      Click="ResetScan"/>
+                                      Click="ResetScan"
+                                      Size="ButtonSize.Large"
+                                      Style="width:100%"/>
 
                     </RadzenStack>
                 </RadzenCard>

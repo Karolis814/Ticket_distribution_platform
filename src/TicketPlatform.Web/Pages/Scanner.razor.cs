@@ -16,6 +16,7 @@ public class ScannerBase : ComponentBase, IAsyncDisposable
     protected bool CameraActive;
     protected bool Scanning;
     protected TicketValidationResultDto? Result;
+    private bool _processing;
 
     private IJSObjectReference? _scanModule;
     private DotNetObjectReference<ScannerBase>? _selfRef;
@@ -26,6 +27,14 @@ public class ScannerBase : ComponentBase, IAsyncDisposable
         ValidationStatus.AdmissionNotStarted or
             ValidationStatus.AdmissionEnded => AlertStyle.Warning,
         _ => AlertStyle.Danger
+    };
+
+    protected string StatusBorderColor => Result?.Status switch
+    {
+        ValidationStatus.Ok => "var(--rz-success)",
+        ValidationStatus.AdmissionNotStarted or
+            ValidationStatus.AdmissionEnded => "var(--rz-warning)",
+        _ => "var(--rz-danger)"
     };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -72,8 +81,11 @@ public class ScannerBase : ComponentBase, IAsyncDisposable
     [JSInvokable]
     public async Task OnQrDecoded(string payload)
     {
-        await _scanModule!.InvokeVoidAsync("pauseScanner");
+        if (_processing) return;
+        _processing = true;
+
         Scanning = false;
+        await InvokeAsync(StateHasChanged);
 
         if (!Guid.TryParse(payload, out var ticketId))
         {
@@ -84,16 +96,16 @@ public class ScannerBase : ComponentBase, IAsyncDisposable
                 Detail = "This QR code does not contain a valid ticket key.",
                 Duration = 4000
             });
-            await _scanModule!.InvokeVoidAsync("resumeScanner");
             Scanning = true;
-            StateHasChanged();
-            return; 
+            _processing = false;
+            await _scanModule!.InvokeVoidAsync("resumeScanner");
+            await InvokeAsync(StateHasChanged);
+            return;
         }
 
         try
         {
-            Result = await Http.GetFromJsonAsync<TicketValidationResultDto>(
-                $"api/scan/{ticketId}");
+            Result = await Http.GetFromJsonAsync<TicketValidationResultDto>($"api/scan/{ticketId}");
         }
         catch (Exception ex)
         {
@@ -104,11 +116,12 @@ public class ScannerBase : ComponentBase, IAsyncDisposable
                 Detail = ex.Message,
                 Duration = 5000
             });
-            await _scanModule!.InvokeVoidAsync("resumeScanner");
             Scanning = true;
+            await _scanModule!.InvokeVoidAsync("resumeScanner");
         }
 
-        StateHasChanged();
+        _processing = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     public async ValueTask DisposeAsync()

@@ -6,74 +6,82 @@
 
 <RadzenStack Gap="1rem">
 
-    <PageHeader Title="Upcoming Events" Subtitle="Browse and grab your tickets below." />
+    <PageHeader Title="Upcoming Events" Subtitle="Browse and grab your tickets below."/>
 
     <RadzenCard Class="rz-p-4">
-        <RadzenStack Gap="1rem">
+        <RadzenStack Gap="1rem" JustifyContent="JustifyContent.Center">
 
-            <RadzenStack Orientation="Orientation.Horizontal"
-                         AlignItems="AlignItems.Center"
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
                          JustifyContent="JustifyContent.SpaceBetween">
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
                     <RadzenIcon Icon="tune" Style="font-size:1rem;opacity:0.55;"/>
                     <RadzenText TextStyle="TextStyle.Overline" Style="margin:0;opacity:0.55;">Filters</RadzenText>
                 </RadzenStack>
-                @if (!string.IsNullOrWhiteSpace(SearchText) || FromDate.HasValue || !string.IsNullOrWhiteSpace(SelectedCategory) || !string.IsNullOrWhiteSpace(LocationText))
+                @if (!string.IsNullOrWhiteSpace(SearchText) || FromDate.HasValue ||
+                     !string.IsNullOrWhiteSpace(SelectedCategory) || !string.IsNullOrWhiteSpace(LocationText))
                 {
                     <RadzenButton Text="Clear all" Icon="close" ButtonStyle="ButtonStyle.Light"
                                   Size="ButtonSize.ExtraSmall" Variant="Variant.Text"
-                                  Click="@ClearFilterAsync" />
+                                  Click="@ClearFilterAsync"/>
                 }
             </RadzenStack>
 
-            <RadzenStack Orientation="Orientation.Horizontal" Gap="0.75rem"
-                         AlignItems="AlignItems.Center" Style="flex-wrap:wrap;">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.End"
+                         Gap="0.75rem" Style="flex-wrap:wrap;">
 
-                <RadzenAutoComplete TValue="string"
-                                    Data="@TitleSuggestions"
-                                    @bind-Value="SearchText"
-                                    Placeholder="Search title"
-                                    Style="flex:1;min-width:150px;"
-                                    MinLength="2"
-                                    LoadData="@LoadTitleSuggestions" />
+                <RadzenFormField Text="Filter by Title" Variant="Variant.Outlined" Style="flex:1;min-width:150px;">
+                    <RadzenAutoComplete Name="EventTitle" TValue="string"
+                                        Data="@TitleSuggestions"
+                                        @bind-Value="SearchText"
+                                        Placeholder="Search by title…"
+                                        MinLength="2"
+                                        LoadData="@LoadTitleSuggestions"
+                                        Style="width:100%;"/>
+                </RadzenFormField>
 
-                <RadzenDatePicker @bind-Value="FromDate"
-                                  Placeholder="From date"
-                                  DateFormat="yyyy-MM-dd"
-                                  Style="flex:1;min-width:150px;" />
+                <RadzenFormField Text="Filter by Date" Variant="Variant.Outlined" Style="flex:1;min-width:150px;">
+                    <RadzenDatePicker Name="FromDate" @bind-Value="FromDate"
+                                      Placeholder="Any date"
+                                      DateFormat="yyyy-MM-dd"
+                                      Style="width:100%;"/>
+                </RadzenFormField>
 
-                <RadzenDropDown TValue="string"
-                                Data="@Categories"
-                                @bind-Value="SelectedCategory"
-                                Placeholder="Category"
-                                Style="flex:1;min-width:130px;"
-                                AllowClear="true" />
+                <RadzenFormField Text="Filter by Category" Variant="Variant.Outlined" Style="flex:1;min-width:140px;">
+                    <RadzenDropDown Name="Category" TValue="string"
+                                    Data="@Categories"
+                                    @bind-Value="SelectedCategory"
+                                    Placeholder="All categories"
+                                    AllowClear="true"
+                                    Style="display:block;width:100%;"/>
+                </RadzenFormField>
 
-                <RadzenAutoComplete TValue="string"
-                                    Data="@LocationSuggestions"
-                                    @bind-Value="LocationText"
-                                    Placeholder="Location"
-                                    Style="flex:1;min-width:150px;"
-                                    MinLength="2"
-                                    LoadData="@LoadLocationSuggestions" />
+                <RadzenFormField Text="Filter by Location" Variant="Variant.Outlined" Style="flex:1;min-width:150px;">
+                    <RadzenAutoComplete Name="Location" TValue="string"
+                                        Data="@LocationSuggestions"
+                                        @bind-Value="LocationText"
+                                        Placeholder="Search by location…"
+                                        MinLength="2"
+                                        LoadData="@LoadLocationSuggestions"
+                                        Style="width:100%;"/>
+                </RadzenFormField>
 
-                <RadzenButton Text="Search" Icon="search"
+                <RadzenButton Text="Apply Filters" Icon="filter_list"
                               ButtonStyle="ButtonStyle.Primary"
-                              Click="@ApplyFilterAsync" />
+                              Click="@ApplyFilterAsync"/>
 
             </RadzenStack>
 
         </RadzenStack>
     </RadzenCard>
 
-    <EventCards Events="Events" IsLoading="IsLoading" />
+    <EventCards Events="Events" IsLoading="IsLoading"/>
 
-    @if (!IsLoading && (Result?.TotalCount ?? 0) > 0)
-    {
+    @* @if (!IsLoading && (Result?.TotalCount ?? 0) > 0) *@
+    @* { *@
         <RadzenPager Count="@(Result!.TotalCount)"
                      PageSize="@PageSize"
                      PageNumbersCount="5"
-                     PageChanged="@OnPageChange" />
-    }
+                     PageChanged="@OnPageChange"/>
+    @* } *@
 
 </RadzenStack>
