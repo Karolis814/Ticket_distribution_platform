@@ -10,6 +10,7 @@ using TicketPlatform.Core.Services;
 using TicketPlatform.Infrastructure.Caching;
 using TicketPlatform.Infrastructure.Logging;
 using TicketPlatform.Infrastructure.Persistence;
+using TicketPlatform.Infrastructure.Reminders;
 using TicketPlatform.Infrastructure.Services;
 using TicketPlatform.Infrastructure.Storage;
 using TicketPlatform.Core.Settings;
@@ -89,6 +90,9 @@ public static class DependencyInjection
             ClockSkew                = TimeSpan.Zero
         };
     });
+
+        services.AddHostedService<EventReminderJob>();
+
         return services;
     }
 
