@@ -71,7 +71,6 @@ public static class DependencyInjection
         services.Configure<JWTSettings>(configuration.GetSection("JwtSettings"));
         services.AddInterceptedScoped<IJWTService, JWTService>(configuration);
 
-
         var jwtSettings = configuration.GetSection("JwtSettings").Get<JWTSettings>()
             ?? throw new InvalidOperationException("JwtSettings section is missing from configuration.");
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
