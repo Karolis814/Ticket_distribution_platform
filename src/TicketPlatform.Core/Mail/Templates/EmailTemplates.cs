@@ -29,6 +29,7 @@ public static class EmailTemplates
         IReadOnlyList<(string Title, int Quantity)> items)
     {
         var lines = string.Join("\n", items.Select(i => $" - {i.Title} x{i.Quantity}"));
+
         return new EmailMessage(
             To: toEmail,
             ToName: toName,
