@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.JSInterop;
 using Radzen;
 using TicketPlatform.Shared.Dtos;
 using TicketPlatform.Shared.Enums;

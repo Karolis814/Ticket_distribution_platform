@@ -43,6 +43,30 @@ public class EventsController(IEventService eventService) : ControllerBase
             total));
     }
 
+    [HttpGet("popular")]
+    public async Task<ActionResult<IReadOnlyList<EventDto>>> GetPopular(
+        [FromQuery] int count = 5,
+        CancellationToken ct = default)
+    {
+        if (count is < 1 or > 20)
+            return BadRequest("count must be between 1 and 20.");
+
+        var events = await eventService.GetPopularAsync(count, ct);
+        return Ok(events.Select(MapToEventDto).ToList());
+    }
+
+    [HttpGet("latest")]
+    public async Task<ActionResult<IReadOnlyList<EventDto>>> GetLatest(
+        [FromQuery] int count = 8,
+        CancellationToken ct = default)
+    {
+        if (count is < 1 or > 20)
+            return BadRequest("count must be between 1 and 20.");
+
+        var events = await eventService.GetLatestAsync(count, ct);
+        return Ok(events.Select(MapToEventDto).ToList());
+    }
+
     [HttpGet("locations")]
     public async Task<ActionResult<PagedResult<string>>> GetLocationSuggestions(
         [FromQuery] string input,

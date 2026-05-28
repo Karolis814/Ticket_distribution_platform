@@ -32,22 +32,6 @@
 
                 <RadzenStack Gap="0.5rem">
 
-                    @if (!string.IsNullOrWhiteSpace(EventDetails.Location))
-                    {
-                        <RadzenStack Orientation="Orientation.Horizontal"
-                                     AlignItems="AlignItems.Center"
-                                     Gap="0.5rem">
-
-                            <RadzenIcon Icon="location_on"
-                                        Style="font-size:1.1rem" />
-
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                @EventDetails.Location
-                            </RadzenText>
-
-                        </RadzenStack>
-                    }
-
                     <RadzenStack Orientation="Orientation.Horizontal"
                                  AlignItems="AlignItems.Center"
                                  Gap="0.5rem">
@@ -65,12 +49,28 @@
                             }
                             else
                             {
-                                <span>&nbsp–&nbsp;@EndDate(EventDetails).ToString("yyyy-MM-dd")</span>
+                                <span>&nbsp;–&nbsp;@EndDate(EventDetails).ToString("yyyy-MM-dd")</span>
                             }
 
                         </RadzenText>
 
                     </RadzenStack>
+
+                    @if (!string.IsNullOrWhiteSpace(EventDetails.Location))
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal"
+                                     AlignItems="AlignItems.Center"
+                                     Gap="0.5rem">
+
+                            <RadzenIcon Icon="location_on"
+                                        Style="font-size:1.1rem" />
+
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                @EventDetails.Location
+                            </RadzenText>
+
+                        </RadzenStack>
+                    }
 
                 </RadzenStack>
 

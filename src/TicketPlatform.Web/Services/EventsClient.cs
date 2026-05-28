@@ -47,6 +47,34 @@ public class EventsClient(HttpClient http, NotificationService notify) : IEvents
         }
     }
 
+    public async Task<IReadOnlyList<EventDto>> GetPopularAsync(int count = 5, CancellationToken ct = default)
+    {
+        try
+        {
+            return await http.GetFromJsonAsync<IReadOnlyList<EventDto>>(
+                $"api/events/popular?count={count}", ct) ?? [];
+        }
+        catch (Exception ex)
+        {
+            Notify(ex, "Failed to load popular events");
+            return [];
+        }
+    }
+
+    public async Task<IReadOnlyList<EventDto>> GetLatestAsync(int count = 8, CancellationToken ct = default)
+    {
+        try
+        {
+            return await http.GetFromJsonAsync<IReadOnlyList<EventDto>>(
+                $"api/events/latest?count={count}", ct) ?? [];
+        }
+        catch (Exception ex)
+        {
+            Notify(ex, "Failed to load latest events");
+            return [];
+        }
+    }
+
     public async Task<IReadOnlyList<EventDto>> GetAllAsync(
         CancellationToken ct = default)
     {

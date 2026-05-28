@@ -49,18 +49,6 @@ public partial class EventCardsBase : ComponentBase
     protected static DateTimeOffset EndDate(EventDto e) =>
         e.TicketTypes.Max(tt => tt.OccurenceEndDate).ToLocalTime();
 
-    protected static string GetStartingPriceText(EventDto ev)
-    {
-        if (ev.TicketTypes.Count == 0)
-            return "Get Tickets";
-
-        var minPriceTicket =
-            ev.TicketTypes.OrderBy(t => t.PriceCents).First();
-
-        return
-            $"Starting from {FormatPrice(minPriceTicket.PriceCents, minPriceTicket.Currency)}";
-    }
-
     protected static string? GetMinPriceText(EventDto ev)
     {
         if (!ev.TicketTypes.Any()) return null;

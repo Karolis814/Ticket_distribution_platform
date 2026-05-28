@@ -15,6 +15,9 @@ public interface IEventsClient
         string? category = null,
         CancellationToken ct = default);
 
+    Task<IReadOnlyList<EventDto>> GetPopularAsync(int count = 5, CancellationToken ct = default);
+    Task<IReadOnlyList<EventDto>> GetLatestAsync(int count = 8, CancellationToken ct = default);
+
     Task<IReadOnlyList<EventDto>> GetAllAsync(
         CancellationToken ct = default);
 

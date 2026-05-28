@@ -104,6 +104,35 @@ public class EventService(IRepository<Event> repository) : IEventService
         return Task.FromResult(categories);
     }
 
+    public async Task<IReadOnlyList<Event>> GetPopularAsync(int count, CancellationToken ct = default)
+        => await repository.Query()
+            .Where(e => e.Status == EventStatus.Published &&
+                        e.TicketTypes.Max(tt => tt.OccurenceEndDate) >= DateTimeOffset.UtcNow)
+            .OrderByDescending(e =>
+                e.TicketTypes
+                    .SelectMany(tt => tt.Tickets)
+                    .Select(t => t.OrderItem.OrderId)
+                    .Distinct()
+                    .Count())
+            .Take(count)
+            .Include(e => e.Host)
+            .Include(e => e.TicketTypes)
+                .ThenInclude(tt => tt.Tickets)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<Event>> GetLatestAsync(int count, CancellationToken ct = default)
+        => await repository.Query()
+            .Where(e => e.Status == EventStatus.Published &&
+                        e.TicketTypes.Max(tt => tt.OccurenceEndDate) >= DateTimeOffset.UtcNow)
+            .OrderByDescending(e => e.CreatedAt)
+            .Take(count)
+            .Include(e => e.Host)
+            .Include(e => e.TicketTypes)
+                .ThenInclude(tt => tt.Tickets)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
     public async Task<IReadOnlyList<Event>> GetByHostAsync(Guid hostId, CancellationToken ct = default)
         => await repository.Query()
             .Where(e => e.HostId == hostId)

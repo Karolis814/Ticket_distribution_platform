@@ -6,18 +6,25 @@
     <RadzenHeader>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
                      JustifyContent="JustifyContent.SpaceBetween" Gap="0"
-                     class="rz-h-100 rz-px-4">
+                     class="rz-h-100 rz-pr-4">
 
-            <RadzenLink Path="/" style="font-weight:600;font-size:1.05rem;white-space:nowrap;text-decoration:none;color:inherit;margin-right:1.5rem;">
-                Ticket Platform
-            </RadzenLink>
-
-            <NavMenu/>
-
-            <ProfileMenu/>
-
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+                <RadzenSidebarToggle Click="@(() => _sidebarExpanded = !_sidebarExpanded)"/>
+                <RadzenLink Path="/" style="font-weight:600;font-size:1.05rem;white-space:nowrap;text-decoration:none;color:inherit;margin-left:0.75rem;">
+                    Ticket Platform
+                </RadzenLink>
+            </RadzenStack>
         </RadzenStack>
     </RadzenHeader>
+
+    <RadzenSidebar @bind-Expanded="@_sidebarExpanded">
+        <div style="display:flex;flex-direction:column;height:100%;">
+            <div style="flex:1;overflow-y:auto;">
+                <NavMenu/>
+            </div>
+            <ProfileMenu/>
+        </div>
+    </RadzenSidebar>
 
     <RadzenBody>
         <RadzenStack class="rz-p-4">
@@ -25,3 +32,7 @@
         </RadzenStack>
     </RadzenBody>
 </RadzenLayout>
+
+@code {
+    private bool _sidebarExpanded = true;
+}

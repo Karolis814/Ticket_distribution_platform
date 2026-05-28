@@ -46,18 +46,6 @@ else
                         </RadzenText>
 
                         <RadzenStack Gap="0.5rem">
-                            @if (!string.IsNullOrWhiteSpace(ev.Location))
-                            {
-                                <RadzenStack Orientation="Orientation.Horizontal"
-                                             AlignItems="AlignItems.Center"
-                                             Gap="0.5rem">
-                                    <RadzenIcon Icon="location_on"/>
-                                    <RadzenText TextStyle="TextStyle.Body2">
-                                        @ev.Location
-                                    </RadzenText>
-                                </RadzenStack>
-                            }
-
                             <RadzenStack Orientation="Orientation.Horizontal"
                                          AlignItems="AlignItems.Center"
                                          Gap="0.5rem">
@@ -70,10 +58,22 @@ else
                                     }
                                     else
                                     {
-                                        <span>&nbsp–&nbsp;@EndDate(ev).ToString("yyyy-MM-dd")</span>
+                                        <span>&nbsp;–&nbsp;@EndDate(ev).ToString("yyyy-MM-dd")</span>
                                     }
                                 </RadzenText>
                             </RadzenStack>
+
+                            @if (!string.IsNullOrWhiteSpace(ev.Location))
+                            {
+                                <RadzenStack Orientation="Orientation.Horizontal"
+                                             AlignItems="AlignItems.Center"
+                                             Gap="0.5rem">
+                                    <RadzenIcon Icon="location_on"/>
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        @ev.Location
+                                    </RadzenText>
+                                </RadzenStack>
+                            }
                         </RadzenStack>
                     </RadzenStack>
 

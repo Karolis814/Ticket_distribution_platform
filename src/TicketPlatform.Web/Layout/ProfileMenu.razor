@@ -1,25 +1,26 @@
 @inherits ProfileMenuBase
 
+<hr style="margin:0;border:none;border-top:1px solid var(--rz-sidebar-border-color, var(--rz-base-600));"/>
+
 @if (IsAuthenticated)
 {
-    <RadzenProfileMenu style="margin-left:1rem;">
-        <Template>
-            <RadzenText class="rz-m-0" style="white-space:nowrap;">@Email</RadzenText>
-        </Template>
-        <ChildContent>
-            @if (IsHost)
-            {
-                <RadzenMenuItem Text="Purchase History" Path="/user/purchases" Icon="receipt_long"/>
-            }
-            <RadzenMenuItem Text="Settings" Path="/user/settings" Icon="settings"/>
-            <RadzenMenuItem Text="Logout" Icon="logout" Path="/auth/logout"/>
-        </ChildContent>
-    </RadzenProfileMenu>
+    <div style="padding:0.75rem 1rem 0.5rem;">
+        <RadzenText TextStyle="TextStyle.Overline" style="opacity:0.6;display:block;">Signed in as</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body2" style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@Email</RadzenText>
+    </div>
+    <RadzenPanelMenu>
+        @if (IsHost)
+        {
+            <RadzenPanelMenuItem Text="Purchase History" Icon="receipt_long" Path="/user/purchases"/>
+        }
+        <RadzenPanelMenuItem Text="Settings" Icon="settings" Path="/user/settings"/>
+        <RadzenPanelMenuItem Text="Log Out" Icon="logout" Path="/auth/logout"/>
+    </RadzenPanelMenu>
 }
 else
 {
-    <RadzenMenu style="margin-left:1rem;">
-        <RadzenMenuItem Text="Log In" Icon="login" Path="/auth/login"/>
-        <RadzenMenuItem Text="Sign Up" Icon="person_add" Path="/auth/register"/>
-    </RadzenMenu>
+    <RadzenPanelMenu>
+        <RadzenPanelMenuItem Text="Log In" Icon="login" Path="/auth/login"/>
+        <RadzenPanelMenuItem Text="Sign Up" Icon="person_add" Path="/auth/register"/>
+    </RadzenPanelMenu>
 }

@@ -1,12 +1,12 @@
 @inherits NavMenuBase
 
-<RadzenMenu>
-    <RadzenMenuItem Text="Explore Events" Icon="event" Path="/events"/>
-    <RadzenMenuItem Text="My Tickets" Icon="receipt_long" Path="/user/purchases" Visible="@(!IsHost)"/>
-    <RadzenMenuItem Text="Create Event" Icon="calendar_add_on" Path="/host/create"/>
+<RadzenPanelMenu>
+    <RadzenPanelMenuItem Text="Home" Icon="home" Path="/"/>
+    <RadzenPanelMenuItem Text="Explore Events" Icon="event" Path="/events"/>
+    <RadzenPanelMenuItem Text="My Tickets" Icon="receipt_long" Path="/user/purchases" Visible="@(!IsHost)"/>
+    <RadzenPanelMenuItem Text="Create Event" Icon="calendar_add_on" Path="/host/create"/>
 
-    <RadzenMenuItem Text="My Events" Icon="event_list" Path="/host/events" Visible="@IsHost"/>
-    <RadzenMenuItem Text="Sales Overview" Icon="dashboard" Path="/host/sales-overview" Visible="@IsHost"/>
-    <RadzenMenuItem Text="Scanner" Icon="qr_code_scanner" Path="/host/scanner" Visible="@IsHost"/>
-
-</RadzenMenu>
+    <RadzenPanelMenuItem Text="My Events" Icon="event_list" Path="/host/events" Visible="@IsHost"/>
+    <RadzenPanelMenuItem Text="Sales Overview" Icon="dashboard" Path="/host/sales-overview" Visible="@IsHost"/>
+    <RadzenPanelMenuItem Text="Scanner" Icon="qr_code_scanner" Path="/host/scanner" Visible="@IsHost"/>
+</RadzenPanelMenu>
