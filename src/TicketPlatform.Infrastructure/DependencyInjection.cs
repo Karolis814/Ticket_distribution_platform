@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Services;
+using TicketPlatform.Infrastructure.Caching;
 using TicketPlatform.Infrastructure.Logging;
 using TicketPlatform.Infrastructure.Persistence;
 using TicketPlatform.Infrastructure.Services;
@@ -49,6 +50,13 @@ public static class DependencyInjection
         // Strategy demo: pick the IPlacesService implementation via "Places:Provider" config.
         services.Configure<GooglePlacesOptions>(configuration.GetSection("GooglePlaces"));
         RegisterPlacesService(services, configuration);
+
+        // Decorator demo: wrap IEventService with caching when "Caching:EventsCache:Enabled" is true.
+        if (configuration.GetValue<bool>("Caching:EventsCache:Enabled"))
+        {
+            services.AddMemoryCache();
+            services.Decorate<IEventService, CachingEventServiceDecorator>();
+        }
         services.Configure<BlobStorageOptions>(configuration.GetSection("BlobStorage"));
         services.AddSingleton(sp =>
         {
