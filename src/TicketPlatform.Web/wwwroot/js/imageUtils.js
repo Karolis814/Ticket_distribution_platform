@@ -29,7 +29,7 @@ window.cropImageTo = (imageBytes, contentType, targetWidth, targetHeight) => {
             ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
             canvas.toBlob((croppedBlob) => {
                 croppedBlob.arrayBuffer().then(buf => {
-                    resolve(Array.from(new Uint8Array(buf)));
+                    resolve(new Uint8Array(buf));
                 });
             }, 'image/jpeg', 0.92);
         };
