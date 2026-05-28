@@ -71,11 +71,15 @@ public class TicketPdfService(IOrderService orderService) : ITicketPdfService
                             }
                         });
 
-                        col.Item().PaddingTop(3).Text(
-                                isMultiDay
-                                    ? $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} on {ticket.TicketType.AdmissionStartDate:yyyy-MM-dd}"
-                                    : $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm}")
-                            .FontSize(9).FontColor(Colors.Grey.Medium).AlignCenter();
+                        var admissionMatchesOccurence =
+                            ticket.TicketType.AdmissionStartDate == ticket.TicketType.OccurenceStartDate;
+
+                        if (!admissionMatchesOccurence)
+                            col.Item().PaddingTop(3).Text(
+                                    isMultiDay
+                                        ? $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} on {ticket.TicketType.AdmissionStartDate:yyyy-MM-dd}"
+                                        : $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm}")
+                                .FontSize(9).FontColor(Colors.Grey.Medium).AlignCenter();
 
                         if (!string.IsNullOrEmpty(@event.Location))
                             col.Item().PaddingTop(4).Text(@event.Location)
