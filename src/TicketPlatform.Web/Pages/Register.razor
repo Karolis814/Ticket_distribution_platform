@@ -115,7 +115,7 @@
                                 <RadzenText TextStyle="TextStyle.Body2">@(prediction?.MainText ?? "")</RadzenText>
                                 @if (!string.IsNullOrEmpty(prediction?.SecondaryText))
                                 {
-                                    <RadzenText TextStyle="TextStyle.Caption">@prediction.SecondaryText</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Caption">@prediction?.SecondaryText</RadzenText>
                                 }
                             </RadzenStack>
                         </Template>
