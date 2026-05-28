@@ -7,6 +7,16 @@
 
 <PageTitle>Create Event</PageTitle>
 
+@if (!IsInitialized)
+{
+    <div style="display:flex;justify-content:center;align-items:center;min-height:50vh;">
+        <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"
+                                   Size="ProgressBarCircularSize.Large"/>
+    </div>
+}
+else
+{
+
 <EditForm Model="@Model" OnValidSubmit="@OnValidSubmit" OnInvalidSubmit="@OnInvalidSubmit">
 
     <DataAnnotationsValidator/>
@@ -477,3 +487,5 @@
     </RadzenStack>
 
 </EditForm>
+
+}
