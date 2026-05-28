@@ -32,6 +32,8 @@ public static class TicketTypeConfiguration
             builder.Property(x => x.AdmissionStartDate)
                 .IsRequired();
 
+            builder.Property(x => x.Sold)
+                .IsRequired();
             builder.Property(x => x.AdmissionEndDate)
                 .IsRequired();
 

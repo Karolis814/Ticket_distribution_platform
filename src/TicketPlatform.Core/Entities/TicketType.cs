@@ -14,6 +14,7 @@ public class TicketType : BaseEntity
     public required string Currency { get; set; }
     public int MaxUses { get; set; } = 1;
     public int Quantity { get; set; }
+    public int Sold {get; set; }// for concurrency handling
 
     public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

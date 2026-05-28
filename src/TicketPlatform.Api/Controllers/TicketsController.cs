@@ -50,11 +50,16 @@ public class TicketsController(
             if (ticketType.Event.Status == EventStatus.Cancelled)
                 return Conflict($"Event '{ticketType.Event.Title}' has been cancelled.");
 
-            var remaining = ticketType.Quantity - ticketType.Tickets.Count;
+            //resolves concurency issue for 2 users buying the same ticket
+            var remaining = await ticketTypeService.TryReserveAsync(
+                item.TicketTypeId,
+                item.Quantity,
+                ct);
 
-            if (remaining < item.Quantity)
-                return Conflict($"Only {remaining} ticket(s) remaining for '{ticketType.Title}'.");
+            if (!remaining)
+                return Conflict($"Not enough tickets for {ticketType.Title}");
 
+            
             if (ticketType.OccurenceEndDate < DateTimeOffset.UtcNow)
                 return Conflict($"Event '{ticketType.Event.Title}' has ended.");
 

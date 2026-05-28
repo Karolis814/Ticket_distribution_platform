@@ -10,5 +10,6 @@ public interface IUserService
     Task<User?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<User> CreateAsync(UserSignUpDTO entity, CancellationToken ct = default);
     Task<User> UpdateAsync(User entity, CancellationToken ct = default);
+    Task<User> GetByEmailAsync(string email, CancellationToken ct = default);
 
 }
