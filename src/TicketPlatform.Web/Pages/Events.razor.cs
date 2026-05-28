@@ -18,6 +18,15 @@ public class EventsBase : ComponentBase
     protected IReadOnlyList<string> LocationSuggestions { get; private set; } = [];
     protected IReadOnlyList<string> TitleSuggestions { get; private set; } = [];
     protected bool IsLoading { get; private set; } = true;
+    protected bool FiltersOpen { get; private set; }
+
+    protected bool HasActiveFilters =>
+        !string.IsNullOrWhiteSpace(SearchText) ||
+        FromDate.HasValue ||
+        !string.IsNullOrWhiteSpace(SelectedCategory) ||
+        !string.IsNullOrWhiteSpace(LocationText);
+
+    protected void ToggleFilters() => FiltersOpen = !FiltersOpen;
 
     protected string SearchText { get; set; } = string.Empty;
     protected string LocationText { get; set; } = string.Empty;
@@ -49,12 +58,14 @@ public class EventsBase : ComponentBase
 
     protected async Task ApplyFilterAsync()
     {
+        FiltersOpen = false;
         Page = 1;
         await LoadEventsAsync();
     }
 
     protected async Task ClearFilterAsync()
     {
+        FiltersOpen = false;
         SearchText = string.Empty;
         LocationText = string.Empty;
         FromDate = null;
