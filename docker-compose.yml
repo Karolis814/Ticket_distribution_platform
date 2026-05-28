@@ -55,7 +55,7 @@ services:
     image: stripe/stripe-cli:latest
     container_name: ticket_platform_stripe
     restart: unless-stopped
-    command: "listen --forward-to http://host.docker.internal:5001/api/stripe-webhook"
+    command: "listen --forward-to https://host.docker.internal:7001/api/stripe-webhook --skip-verify"
     environment:
       STRIPE_API_KEY: ${STRIPE_API_KEY}
       STRIPE_DEVICE_NAME: ticket_platform_dev
