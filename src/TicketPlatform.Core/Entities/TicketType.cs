@@ -15,5 +15,7 @@ public class TicketType : BaseEntity
     public int MaxUses { get; set; } = 1;
     public int Quantity { get; set; }
 
+    public byte[] RowVersion { get; set; } = [];
+
     public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }
