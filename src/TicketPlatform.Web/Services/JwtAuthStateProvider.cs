@@ -72,8 +72,8 @@ public class JwtAuthStateProvider(
         CancelRefresh();
 
         var delay = validTo - DateTime.UtcNow - TimeSpan.FromMinutes(RefreshThresholdMinutes);
-        if (delay <= TimeSpan.Zero)
-            return;
+        if (delay < TimeSpan.Zero)
+            delay = TimeSpan.Zero;
 
         var cts = new CancellationTokenSource();
         _refreshCts = cts;

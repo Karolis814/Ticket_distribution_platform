@@ -82,19 +82,19 @@ public class AuthController(
 
     [HttpPost("refresh")]
     [Authorize]
-    public IActionResult Refresh()
+    public async Task<IActionResult> Refresh(CancellationToken ct)
     {
-        var newToken = jwtService.RefreshAccessToken(User);
-        var email    = User.FindFirstValue(JwtRegisteredClaimNames.Email) ?? "";
-        Enum.TryParse<UserRole>(User.FindFirstValue("role"), out var role);
+        var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                     ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        return Ok(new AuthResponseDTO
-        {
-            AccessToken = newToken,
-            ExpiresAt   = DateTime.UtcNow.AddMinutes(jwtService.AccessTokenExpiryMinutes),
-            Email       = email,
-            Role        = role
-        });
+        if (userId is null || !Guid.TryParse(userId, out var id))
+            return Unauthorized();
+
+        var user = await userService.GetByIdAsync(id, ct);
+        if (user is null)
+            return Unauthorized();
+
+        return Ok(BuildAuthResponse(user));
     }
 
     private AuthResponseDTO BuildAuthResponse(User user)
