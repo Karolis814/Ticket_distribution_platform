@@ -20,6 +20,7 @@ public class CheckoutBase : ComponentBase
     protected string FirstName { get; set; } = string.Empty;
     protected string LastName { get; set; } = string.Empty;
     protected string Email { get; set; } = string.Empty;
+    protected bool RemindersEnabled { get; set; } = true;
     protected bool IsAuthenticated { get; private set; }
 
     private Dictionary<Guid, int> Cart { get; } = new();
@@ -162,7 +163,8 @@ public class CheckoutBase : ComponentBase
                 Items: items,
                 Email: Email.Trim(),
                 FirstName: FirstName.Trim(),
-                LastName: LastName.Trim()
+                LastName: LastName.Trim(),
+                RemindersEnabled: RemindersEnabled
             );
 
             var response = await Http.PostAsJsonAsync("api/tickets/checkout", request);

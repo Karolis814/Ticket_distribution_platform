@@ -286,6 +286,11 @@
                                                        Disabled="@IsAuthenticated" Style="width:100%"/>
                                     </RadzenFormField>
 
+                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                        <RadzenCheckBox @bind-Value="RemindersEnabled" Name="RemindersEnabled" TValue="bool"/>
+                                        <RadzenLabel Component="RemindersEnabled" Text="Email me a day before the event" Style="cursor:pointer;"/>
+                                    </RadzenStack>
+
                                     <RadzenButton Text="@(Busy ? "Redirecting to payment…" : "Proceed to Payment")"
                                                   ButtonStyle="ButtonStyle.Primary"
                                                   Size="ButtonSize.Large"

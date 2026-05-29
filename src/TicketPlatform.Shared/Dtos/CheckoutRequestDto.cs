@@ -6,5 +6,6 @@ public record CheckoutRequestDto(
     IReadOnlyList<TicketTypeQuantityDto> Items,
     string Email,
     string FirstName,
-    string LastName
+    string LastName,
+    bool RemindersEnabled = true
 );
