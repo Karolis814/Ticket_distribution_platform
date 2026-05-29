@@ -4,310 +4,348 @@
 
 <PageTitle>Buy Tickets – @(EventTitle ?? "Checkout")</PageTitle>
 
-<div style="max-width:1100px;margin:0 auto;">
+<RadzenRow JustifyContent="JustifyContent.Center">
+    <RadzenColumn Style="max-width: 1100px;">
 
-    <div class="rz-mb-4">
-        <RadzenButton Icon="arrow_back" Text="Back to Events" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light"
-                      Click="@(() => Nav.NavigateTo("/events"))"/>
-    </div>
+        <div class="rz-mb-4">
+            <RadzenButton Icon="arrow_back" Text="Back to Event" Variant="Variant.Text" ButtonStyle="ButtonStyle.Light"
+                          Click="@(() => Nav.NavigateTo($"/events/{EventId}"))"/>
+        </div>
 
-    @if (EventDetails is null && !EventLoadFailed)
-    {
-        <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Style="min-height:300px;">
-            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"
-                                       Size="ProgressBarCircularSize.Large"/>
-        </RadzenStack>
-    }
-    else if (EventLoadFailed)
-    {
-        <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" AllowClose="false">
-            Could not load event. Please go back and try again.
-        </RadzenAlert>
-    }
-    else if (EventDetails is not null)
-    {
-        <RadzenRow Gap="1.5rem">
+        @if (EventDetails is null && !EventLoadFailed)
+        {
+            <RadzenStack AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center"
+                         Style="min-height:300px;">
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate"
+                                           Size="ProgressBarCircularSize.Large"/>
+            </RadzenStack>
+        }
+        else if (EventLoadFailed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" AllowClose="false">
+                Could not load event. Please go back and try again.
+            </RadzenAlert>
+        }
+        else if (EventDetails is not null)
+        {
+            <RadzenRow Gap="1.5rem" Style="width:100%;">
 
-            <RadzenColumn Size="12" SizeLg="7">
-                <div style="border-radius:12px;overflow:hidden;background:var(--rz-base-800);box-shadow:0 4px 24px rgba(0,0,0,0.35);">
-                    <EventPoster Url="@EventDetails.ThumbnailUrl" Alt="@EventDetails.Title"/>
+                <RadzenColumn Size="12" SizeLg="7">
+                    <div
+                        style="border-radius:12px;overflow:hidden;background:var(--rz-base-800);box-shadow:0 4px 24px rgba(0,0,0,0.35);">
+                        <EventPoster Url="@EventDetails.ThumbnailUrl" Alt="@EventDetails.Title"/>
 
-                    <div style="padding:1.5rem 2rem 2rem;">
-                        <div class="rz-mb-3">
-                            <RadzenBadge BadgeStyle="BadgeStyle.Info" IsPill="true" Text="@EventDetails.Category.ToString()"/>
-                        </div>
+                        <div style="padding:1.5rem 2rem 2rem;">
+                            <div class="rz-mb-3">
+                                <RadzenBadge BadgeStyle="BadgeStyle.Info" IsPill="true"
+                                             Text="@EventDetails.Category.ToString()"/>
+                            </div>
 
-                        <h1 style="font-size:clamp(1.4rem,3vw,2rem);font-weight:800;margin:0 0 1rem;line-height:1.2;">
-                            @EventDetails.Title
-                        </h1>
+                            <h1 style="font-size:clamp(1.4rem,3vw,2rem);font-weight:800;margin:0 0 1rem;line-height:1.2;">
+                                @EventDetails.Title
+                            </h1>
 
-                        <RadzenStack Gap="0.5rem">
-                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem"
-                                         Style="color:var(--rz-text-secondary-color);">
-                                <RadzenIcon Icon="calendar_month" Style="font-size:1.1rem;flex-shrink:0;"/>
-                                <span style="font-size:0.95rem;">
-                                    @StartDate(EventDetails).ToString("yyyy-MM-dd")
-                                    @if (StartDate(EventDetails).Date == EndDate(EventDetails).Date)
-                                    {
-                                        <span>&nbsp;@StartDate(EventDetails).ToString("HH:mm")&nbsp;–&nbsp;@EndDate(EventDetails).ToString("HH:mm")</span>
-                                    }
-                                    else
-                                    {
-                                        <span>&nbsp;–&nbsp;@EndDate(EventDetails).ToString("yyyy-MM-dd")</span>
-                                    }
-                                </span>
-                            </RadzenStack>
-
-                            @if (!string.IsNullOrWhiteSpace(EventDetails.Location))
-                            {
-                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem"
+                            <RadzenStack Gap="0.5rem">
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                                             Gap="0.5rem"
                                              Style="color:var(--rz-text-secondary-color);">
-                                    <RadzenIcon Icon="location_on" Style="font-size:1.1rem;flex-shrink:0;"/>
-                                    <span style="font-size:0.95rem;">@EventDetails.Location</span>
-                                </RadzenStack>
-                            }
-                        </RadzenStack>
-                    </div>
-                </div>
-            </RadzenColumn>
-
-            <RadzenColumn Size="12" SizeLg="5">
-                <div style="position:sticky;top:1rem;">
-
-                    @if (!ShowDetails)
-                    {
-                        <RadzenCard Class="rz-p-0 rz-overflow-hidden">
-                            <RadzenStack Gap="0">
-
-                                <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--rz-border-disabled-color);">
-                                    <RadzenText TextStyle="TextStyle.H6" Style="margin:0;font-weight:700;">Select Tickets</RadzenText>
-                                </div>
-
-                                <RadzenStack Gap="0.75rem" Class="rz-p-4">
-
-                                    @if (EventDetails.TicketTypes.Count == 0)
-                                    {
-                                        <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true" AllowClose="false">
-                                            No ticket types are available for this event.
-                                        </RadzenAlert>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var tt in EventDetails.TicketTypes)
+                                    <RadzenIcon Icon="calendar_month" Style="font-size:1.1rem;flex-shrink:0;"/>
+                                    <span style="font-size:0.95rem;">
+                                    @StartDate(EventDetails).ToString("yyyy-MM-dd")
+                                        @if (StartDate(EventDetails).Date == EndDate(EventDetails).Date)
                                         {
-                                            var remaining = Remaining(tt);
-                                            var soldOut = remaining <= 0;
-                                            var qty = GetQuantity(tt.Id);
-                                            var ended = tt.OccurenceEndDate < DateTimeOffset.UtcNow;
-                                            var availabilityStyle = soldOut || ended ? "margin:0;color:var(--rz-danger);" : "margin:0;";
+                                            <span>&nbsp;@StartDate(EventDetails).ToString("HH:mm")&nbsp;–&nbsp;@EndDate(EventDetails).ToString("HH:mm")</span>
+                                        }
+                                        else
+                                        {
+                                            <span>&nbsp;–&nbsp;@EndDate(EventDetails).ToString("yyyy-MM-dd")</span>
+                                        }
+                                </span>
+                                </RadzenStack>
 
-                                            <div style="background:var(--rz-base-800);border-radius:8px;padding:1rem;">
-                                                <RadzenStack Gap="0.5rem">
+                                @if (!string.IsNullOrWhiteSpace(EventDetails.Location))
+                                {
+                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                                                 Gap="0.5rem"
+                                                 Style="color:var(--rz-text-secondary-color);">
+                                        <RadzenIcon Icon="location_on" Style="font-size:1.1rem;flex-shrink:0;"/>
+                                        <span style="font-size:0.95rem;">@EventDetails.Location</span>
+                                    </RadzenStack>
+                                }
+                            </RadzenStack>
+                        </div>
+                    </div>
+                </RadzenColumn>
 
-                                                    <RadzenStack Orientation="Orientation.Horizontal"
-                                                                 AlignItems="AlignItems.Start"
-                                                                 JustifyContent="JustifyContent.SpaceBetween"
-                                                                 Gap="0.5rem">
-                                                        <RadzenText TextStyle="TextStyle.Subtitle1"
-                                                                    Style="margin:0;font-weight:600;flex:1;min-width:0;">
-                                                            @tt.Title
-                                                        </RadzenText>
-                                                        <RadzenText TextStyle="TextStyle.Subtitle1"
-                                                                    Style="margin:0;font-weight:700;white-space:nowrap;">
-                                                            @FormatPrice(tt.PriceCents, tt.Currency)
-                                                        </RadzenText>
-                                                    </RadzenStack>
+                <RadzenColumn Size="12" SizeLg="5">
+                    <div style="position:sticky;top:1rem;">
 
-                                                    <RadzenStack Orientation="Orientation.Horizontal"
-                                                                 AlignItems="AlignItems.Center" Gap="0.3rem">
-                                                        <RadzenIcon Icon="event"
-                                                                    Style="font-size:0.9rem;flex-shrink:0;" Class="rz-text-secondary-color"/>
-                                                        <RadzenText TextStyle="TextStyle.Caption"
-                                                                    Style="margin:0;" Class="rz-text-secondary-color">
-                                                            @tt.OccurenceStartDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
-                                                            –
-                                                            @(tt.OccurenceStartDate.ToLocalTime().Date == tt.OccurenceEndDate.ToLocalTime().Date
-                                                                ? tt.OccurenceEndDate.ToLocalTime().ToString("HH:mm")
-                                                                : tt.OccurenceEndDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))
-                                                        </RadzenText>
-                                                    </RadzenStack>
+                        @if (!ShowDetails)
+                        {
+                            <RadzenCard Class="rz-p-0 rz-overflow-hidden">
+                                <RadzenStack Gap="0">
 
-                                                    <RadzenStack Orientation="Orientation.Horizontal"
-                                                                 AlignItems="AlignItems.Center"
-                                                                 JustifyContent="JustifyContent.SpaceBetween"
-                                                                 Gap="0.5rem">
-                                                        <RadzenText TextStyle="TextStyle.Caption"
-                                                                    Style="@availabilityStyle">
-                                                            @(soldOut ? "Sold out" : ended ? "Ended" : $"{remaining} left")
-                                                        </RadzenText>
+                                    <div
+                                        style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--rz-border-disabled-color);">
+                                        <RadzenText TextStyle="TextStyle.H6" Style="margin:0;font-weight:700;">Select
+                                            Tickets
+                                        </RadzenText>
+                                    </div>
+
+                                    <RadzenStack Gap="0.75rem" Class="rz-p-4">
+
+                                        @if (EventDetails.TicketTypes.Count == 0)
+                                        {
+                                            <RadzenAlert AlertStyle="AlertStyle.Warning" ShowIcon="true"
+                                                         AllowClose="false">
+                                                No ticket types are available for this event.
+                                            </RadzenAlert>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var tt in EventDetails.TicketTypes)
+                                            {
+                                                var remaining = Remaining(tt);
+                                                var soldOut = remaining <= 0;
+                                                var qty = GetQuantity(tt.Id);
+                                                var ended = tt.OccurenceEndDate < DateTimeOffset.UtcNow;
+                                                var availabilityStyle = soldOut || ended ? "margin:0;color:var(--rz-danger);" : "margin:0;";
+
+                                                <div
+                                                    style="background:var(--rz-base-800);border-radius:8px;padding:1rem;">
+                                                    <RadzenStack Gap="0.5rem">
 
                                                         <RadzenStack Orientation="Orientation.Horizontal"
-                                                                     AlignItems="AlignItems.Center" Gap="0.25rem">
-                                                            <RadzenButton Icon="remove" ButtonStyle="ButtonStyle.Light"
-                                                                          Size="ButtonSize.Small"
-                                                                          Disabled="@(qty == 0 || soldOut || ended)"
-                                                                          Click="@(() => SetQuantity(tt.Id, qty - 1))"/>
-                                                            <RadzenText Style="min-width:1.75rem;text-align:center;font-weight:700;margin:0;">
-                                                                @qty
+                                                                     AlignItems="AlignItems.Start"
+                                                                     JustifyContent="JustifyContent.SpaceBetween"
+                                                                     Gap="0.5rem"
+                                                                     Style="width:100%;">
+                                                            <RadzenText TextStyle="TextStyle.Subtitle1"
+                                                                        Style="margin:0;font-weight:600;flex:1;min-width:0;">
+                                                                @tt.Title
                                                             </RadzenText>
-                                                            <RadzenButton Icon="add" ButtonStyle="ButtonStyle.Primary"
-                                                                          Size="ButtonSize.Small"
-                                                                          Disabled="@(qty >= remaining || soldOut || ended)"
-                                                                          Click="@(() => SetQuantity(tt.Id, qty + 1))"/>
+                                                            <RadzenText TextStyle="TextStyle.Subtitle1"
+                                                                        Style="margin:0;font-weight:700;white-space:nowrap;">
+                                                                @FormatPrice(tt.PriceCents, tt.Currency)
+                                                            </RadzenText>
                                                         </RadzenStack>
-                                                    </RadzenStack>
 
-                                                    @if (qty > 0)
+                                                        <RadzenStack Orientation="Orientation.Horizontal"
+                                                                     AlignItems="AlignItems.Center" Gap="0.3rem">
+                                                            <RadzenIcon Icon="event"
+                                                                        Style="font-size:0.9rem;flex-shrink:0;"
+                                                                        Class="rz-text-secondary-color"/>
+                                                            <RadzenText TextStyle="TextStyle.Caption"
+                                                                        Style="margin:0;"
+                                                                        Class="rz-text-secondary-color">
+                                                                @tt.OccurenceStartDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                                                                –
+                                                                @(tt.OccurenceStartDate.ToLocalTime().Date == tt.OccurenceEndDate.ToLocalTime().Date
+                                                                    ? tt.OccurenceEndDate.ToLocalTime().ToString("HH:mm")
+                                                                    : tt.OccurenceEndDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))
+                                                            </RadzenText>
+                                                        </RadzenStack>
+
+                                                        <RadzenStack Orientation="Orientation.Horizontal"
+                                                                     AlignItems="AlignItems.Center"
+                                                                     JustifyContent="JustifyContent.SpaceBetween"
+                                                                     Gap="0.5rem"
+                                                                     Style="width:100%;">
+                                                            <RadzenText TextStyle="TextStyle.Caption"
+                                                                        Style="@availabilityStyle">
+                                                                @(soldOut ? "Sold out" : ended ? "Ended" : $"{remaining} left")
+                                                            </RadzenText>
+
+                                                            <RadzenStack Orientation="Orientation.Horizontal"
+                                                                         AlignItems="AlignItems.Center" Gap="0.25rem">
+                                                                <RadzenButton Icon="remove"
+                                                                              ButtonStyle="ButtonStyle.Light"
+                                                                              Size="ButtonSize.Small"
+                                                                              Disabled="@(qty == 0 || soldOut || ended)"
+                                                                              Click="@(() => SetQuantity(tt.Id, qty - 1))"/>
+                                                                <RadzenText
+                                                                    Style="min-width:1.75rem;text-align:center;font-weight:700;margin:0;">
+                                                                    @qty
+                                                                </RadzenText>
+                                                                <RadzenButton Icon="add"
+                                                                              ButtonStyle="ButtonStyle.Primary"
+                                                                              Size="ButtonSize.Small"
+                                                                              Disabled="@(qty >= remaining || soldOut || ended)"
+                                                                              Click="@(() => SetQuantity(tt.Id, qty + 1))"/>
+                                                            </RadzenStack>
+                                                        </RadzenStack>
+
+                                                        @if (qty > 0)
+                                                        {
+                                                            <RadzenStack Orientation="Orientation.Horizontal"
+                                                                         JustifyContent="JustifyContent.SpaceBetween"
+                                                                         Style="border-top:1px solid var(--rz-border-disabled-color);padding-top:0.4rem;margin-top:0.1rem;">
+                                                                <RadzenText TextStyle="TextStyle.Caption"
+                                                                            Style="margin:0;"
+                                                                            Class="rz-text-secondary-color">
+                                                                    Subtotal
+                                                                </RadzenText>
+                                                                <RadzenText TextStyle="TextStyle.Caption"
+                                                                            Style="margin:0;font-weight:700;">
+                                                                    @FormatPrice(tt.PriceCents * qty, tt.Currency)
+                                                                </RadzenText>
+                                                            </RadzenStack>
+                                                        }
+
+                                                    </RadzenStack>
+                                                </div>
+                                            }
+
+                                            @if (CartHasItems)
+                                            {
+                                                <div
+                                                    style="border-top:1px solid var(--rz-border-disabled-color);padding-top:0.75rem;">
+                                                    <RadzenText TextStyle="TextStyle.Overline"
+                                                                Style="font-weight:700;letter-spacing:0.06em;display:block;margin-bottom:0.5rem;"
+                                                                Class="rz-text-secondary-color">
+                                                        Order Summary
+                                                    </RadzenText>
+                                                    @foreach (var tt in EventDetails.TicketTypes.Where(t => GetQuantity(t.Id) > 0))
                                                     {
+                                                        var q = GetQuantity(tt.Id);
                                                         <RadzenStack Orientation="Orientation.Horizontal"
                                                                      JustifyContent="JustifyContent.SpaceBetween"
-                                                                     Style="border-top:1px solid var(--rz-border-disabled-color);padding-top:0.4rem;margin-top:0.1rem;">
-                                                            <RadzenText TextStyle="TextStyle.Caption"
-                                                                        Style="margin:0;" Class="rz-text-secondary-color">
-                                                                Subtotal
-                                                            </RadzenText>
-                                                            <RadzenText TextStyle="TextStyle.Caption"
-                                                                        Style="margin:0;font-weight:700;">
-                                                                @FormatPrice(tt.PriceCents * qty, tt.Currency)
+                                                                     Class="rz-mb-1">
+                                                            <RadzenText TextStyle="TextStyle.Body2"
+                                                                        Style="margin:0;">@q × @tt.Title</RadzenText>
+                                                            <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;">
+                                                                @FormatPrice(tt.PriceCents * q, tt.Currency)
                                                             </RadzenText>
                                                         </RadzenStack>
                                                     }
-
-                                                </RadzenStack>
-                                            </div>
+                                                    <RadzenStack Orientation="Orientation.Horizontal"
+                                                                 JustifyContent="JustifyContent.SpaceBetween"
+                                                                 Style="border-top:1px solid var(--rz-border-disabled-color);padding-top:0.4rem;margin-top:0.25rem;">
+                                                        <RadzenText TextStyle="TextStyle.Subtitle2" Style="margin:0;">
+                                                            Total
+                                                        </RadzenText>
+                                                        <RadzenText TextStyle="TextStyle.Subtitle2" Style="margin:0;">
+                                                            @FormatPrice(TotalCents, EventDetails.TicketTypes.FirstOrDefault()?.Currency ?? "USD")
+                                                        </RadzenText>
+                                                    </RadzenStack>
+                                                </div>
+                                            }
                                         }
 
-                                        @if (CartHasItems)
-                                        {
-                                            <div style="border-top:1px solid var(--rz-border-disabled-color);padding-top:0.75rem;">
+                                        <RadzenButton Text="Continue to Details"
+                                                      ButtonStyle="ButtonStyle.Primary"
+                                                      Size="ButtonSize.Large"
+                                                      Icon="arrow_forward"
+                                                      Disabled="@(!CartHasItems || EventLoadFailed)"
+                                                      Click="ProceedToDetails"
+                                                      Style="width:100%"/>
+
+                                    </RadzenStack>
+                                </RadzenStack>
+                            </RadzenCard>
+                        }
+                        else
+                        {
+                            <RadzenCard Class="rz-p-0 rz-overflow-hidden">
+                                <RadzenStack Gap="0">
+
+                                    <div
+                                        style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--rz-border-disabled-color);">
+                                        <RadzenText TextStyle="TextStyle.H6" Style="margin:0;font-weight:700;">Your
+                                            Details
+                                        </RadzenText>
+                                    </div>
+
+                                    <RadzenStack Gap="1rem" Class="rz-p-4">
+
+                                        <div style="background:var(--rz-base-800);border-radius:8px;padding:1rem;">
+                                            <RadzenStack Orientation="Orientation.Horizontal"
+                                                         JustifyContent="JustifyContent.SpaceBetween"
+                                                         AlignItems="AlignItems.Center" Class="rz-mb-2">
                                                 <RadzenText TextStyle="TextStyle.Overline"
-                                                            Style="font-weight:700;letter-spacing:0.06em;display:block;margin-bottom:0.5rem;"
+                                                            Style="font-weight:700;letter-spacing:0.06em;margin:0;"
                                                             Class="rz-text-secondary-color">
                                                     Order Summary
                                                 </RadzenText>
-                                                @foreach (var tt in EventDetails.TicketTypes.Where(t => GetQuantity(t.Id) > 0))
-                                                {
-                                                    var q = GetQuantity(tt.Id);
-                                                    <RadzenStack Orientation="Orientation.Horizontal"
-                                                                 JustifyContent="JustifyContent.SpaceBetween" Class="rz-mb-1">
-                                                        <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;">@q × @tt.Title</RadzenText>
-                                                        <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;">
-                                                            @FormatPrice(tt.PriceCents * q, tt.Currency)
-                                                        </RadzenText>
-                                                    </RadzenStack>
-                                                }
+                                                <RadzenButton Text="Edit" Icon="edit" ButtonStyle="ButtonStyle.Light"
+                                                              Size="ButtonSize.ExtraSmall" Click="GoBackToSelection"/>
+                                            </RadzenStack>
+
+                                            @foreach (var tt in EventDetails!.TicketTypes.Where(t => GetQuantity(t.Id) > 0))
+                                            {
+                                                var q = GetQuantity(tt.Id);
                                                 <RadzenStack Orientation="Orientation.Horizontal"
                                                              JustifyContent="JustifyContent.SpaceBetween"
-                                                             Style="border-top:1px solid var(--rz-border-disabled-color);padding-top:0.4rem;margin-top:0.25rem;">
-                                                    <RadzenText TextStyle="TextStyle.Subtitle2" Style="margin:0;">Total</RadzenText>
-                                                    <RadzenText TextStyle="TextStyle.Subtitle2" Style="margin:0;">
-                                                        @FormatPrice(TotalCents, EventDetails.TicketTypes.FirstOrDefault()?.Currency ?? "USD")
+                                                             Class="rz-mb-1">
+                                                    <RadzenText TextStyle="TextStyle.Body2"
+                                                                Style="margin:0;">@q × @tt.Title</RadzenText>
+                                                    <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;">
+                                                        @FormatPrice(tt.PriceCents * q, tt.Currency)
                                                     </RadzenText>
                                                 </RadzenStack>
-                                            </div>
-                                        }
-                                    }
+                                            }
 
-                                    <RadzenButton Text="Continue to Details"
-                                                  ButtonStyle="ButtonStyle.Primary"
-                                                  Size="ButtonSize.Large"
-                                                  Icon="arrow_forward"
-                                                  Disabled="@(!CartHasItems || EventLoadFailed)"
-                                                  Click="ProceedToDetails"
-                                                  Style="width:100%"/>
-
-                                </RadzenStack>
-                            </RadzenStack>
-                        </RadzenCard>
-                    }
-                    else
-                    {
-                        <RadzenCard Class="rz-p-0 rz-overflow-hidden">
-                            <RadzenStack Gap="0">
-
-                                <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--rz-border-disabled-color);">
-                                    <RadzenText TextStyle="TextStyle.H6" Style="margin:0;font-weight:700;">Your Details</RadzenText>
-                                </div>
-
-                                <RadzenStack Gap="1rem" Class="rz-p-4">
-
-                                    <div style="background:var(--rz-base-800);border-radius:8px;padding:1rem;">
-                                        <RadzenStack Orientation="Orientation.Horizontal"
-                                                     JustifyContent="JustifyContent.SpaceBetween"
-                                                     AlignItems="AlignItems.Center" Class="rz-mb-2">
-                                            <RadzenText TextStyle="TextStyle.Overline"
-                                                        Style="font-weight:700;letter-spacing:0.06em;margin:0;"
-                                                        Class="rz-text-secondary-color">
-                                                Order Summary
-                                            </RadzenText>
-                                            <RadzenButton Text="Edit" Icon="edit" ButtonStyle="ButtonStyle.Light"
-                                                          Size="ButtonSize.ExtraSmall" Click="GoBackToSelection"/>
-                                        </RadzenStack>
-
-                                        @foreach (var tt in EventDetails!.TicketTypes.Where(t => GetQuantity(t.Id) > 0))
-                                        {
-                                            var q = GetQuantity(tt.Id);
                                             <RadzenStack Orientation="Orientation.Horizontal"
-                                                         JustifyContent="JustifyContent.SpaceBetween" Class="rz-mb-1">
-                                                <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;">@q × @tt.Title</RadzenText>
-                                                <RadzenText TextStyle="TextStyle.Body2" Style="margin:0;">
-                                                    @FormatPrice(tt.PriceCents * q, tt.Currency)
+                                                         JustifyContent="JustifyContent.SpaceBetween"
+                                                         Style="border-top:1px solid var(--rz-border-disabled-color);padding-top:0.4rem;margin-top:0.25rem;">
+                                                <RadzenText TextStyle="TextStyle.Subtitle2" Style="margin:0;">Total
+                                                </RadzenText>
+                                                <RadzenText TextStyle="TextStyle.Subtitle2" Style="margin:0;">
+                                                    @FormatPrice(TotalCents, EventDetails!.TicketTypes.FirstOrDefault()?.Currency ?? "USD")
                                                 </RadzenText>
                                             </RadzenStack>
-                                        }
+                                        </div>
 
-                                        <RadzenStack Orientation="Orientation.Horizontal"
-                                                     JustifyContent="JustifyContent.SpaceBetween"
-                                                     Style="border-top:1px solid var(--rz-border-disabled-color);padding-top:0.4rem;margin-top:0.25rem;">
-                                            <RadzenText TextStyle="TextStyle.Subtitle2" Style="margin:0;">Total</RadzenText>
-                                            <RadzenText TextStyle="TextStyle.Subtitle2" Style="margin:0;">
-                                                @FormatPrice(TotalCents, EventDetails!.TicketTypes.FirstOrDefault()?.Currency ?? "USD")
-                                            </RadzenText>
+                                        <RadzenRow Gap="0.75rem">
+                                            <RadzenColumn Size="12" SizeSm="6">
+                                                <RadzenFormField Text="First Name" Variant="Variant.Outlined"
+                                                                 Style="width:100%">
+                                                    <RadzenTextBox @bind-Value="FirstName" Placeholder="Jane"
+                                                                   Disabled="@IsAuthenticated" Style="width:100%"/>
+                                                </RadzenFormField>
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeSm="6">
+                                                <RadzenFormField Text="Last Name" Variant="Variant.Outlined"
+                                                                 Style="width:100%">
+                                                    <RadzenTextBox @bind-Value="LastName" Placeholder="Smith"
+                                                                   Disabled="@IsAuthenticated" Style="width:100%"/>
+                                                </RadzenFormField>
+                                            </RadzenColumn>
+                                        </RadzenRow>
+
+                                        <RadzenFormField Text="Email Address" Variant="Variant.Outlined"
+                                                         Style="width:100%">
+                                            <RadzenTextBox @bind-Value="Email" Placeholder="you@example.com"
+                                                           Disabled="@IsAuthenticated" Style="width:100%"/>
+                                        </RadzenFormField>
+
+                                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center"
+                                                     Gap="0.5rem">
+                                            <RadzenCheckBox @bind-Value="RemindersEnabled" Name="RemindersEnabled"
+                                                            TValue="bool"/>
+                                            <RadzenLabel Component="RemindersEnabled"
+                                                         Text="Email me a day before the event"
+                                                         Style="cursor:pointer;"/>
                                         </RadzenStack>
-                                    </div>
 
-                                    <RadzenRow Gap="0.75rem">
-                                        <RadzenColumn Size="12" SizeSm="6">
-                                            <RadzenFormField Text="First Name" Variant="Variant.Outlined" Style="width:100%">
-                                                <RadzenTextBox @bind-Value="FirstName" Placeholder="Jane"
-                                                               Disabled="@IsAuthenticated" Style="width:100%"/>
-                                            </RadzenFormField>
-                                        </RadzenColumn>
-                                        <RadzenColumn Size="12" SizeSm="6">
-                                            <RadzenFormField Text="Last Name" Variant="Variant.Outlined" Style="width:100%">
-                                                <RadzenTextBox @bind-Value="LastName" Placeholder="Smith"
-                                                               Disabled="@IsAuthenticated" Style="width:100%"/>
-                                            </RadzenFormField>
-                                        </RadzenColumn>
-                                    </RadzenRow>
+                                        <RadzenButton Text="@(Busy ? "Redirecting to payment…" : "Proceed to Payment")"
+                                                      ButtonStyle="ButtonStyle.Primary"
+                                                      Size="ButtonSize.Large"
+                                                      Icon="@(Busy ? "" : "confirmation_number")"
+                                                      Disabled="@(Busy || EventLoadFailed)"
+                                                      Click="HandleCheckout"
+                                                      Style="width:100%"/>
 
-                                    <RadzenFormField Text="Email Address" Variant="Variant.Outlined" Style="width:100%">
-                                        <RadzenTextBox @bind-Value="Email" Placeholder="you@example.com"
-                                                       Disabled="@IsAuthenticated" Style="width:100%"/>
-                                    </RadzenFormField>
-
-                                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                                        <RadzenCheckBox @bind-Value="RemindersEnabled" Name="RemindersEnabled" TValue="bool"/>
-                                        <RadzenLabel Component="RemindersEnabled" Text="Email me a day before the event" Style="cursor:pointer;"/>
                                     </RadzenStack>
-
-                                    <RadzenButton Text="@(Busy ? "Redirecting to payment…" : "Proceed to Payment")"
-                                                  ButtonStyle="ButtonStyle.Primary"
-                                                  Size="ButtonSize.Large"
-                                                  Icon="@(Busy ? "" : "confirmation_number")"
-                                                  Disabled="@(Busy || EventLoadFailed)"
-                                                  Click="HandleCheckout"
-                                                  Style="width:100%"/>
-
                                 </RadzenStack>
-                            </RadzenStack>
-                        </RadzenCard>
-                    }
+                            </RadzenCard>
+                        }
 
-                </div>
-            </RadzenColumn>
+                    </div>
+                </RadzenColumn>
 
-        </RadzenRow>
-    }
+            </RadzenRow>
+        }
 
-</div>
+    </RadzenColumn>
+</RadzenRow>
