@@ -15,7 +15,8 @@ public class StripeWebhookController(
     IConfiguration configuration,
     IOrderService orderService,
     IOrderCompletionService orderCompletionService,
-    IRepository<Payment> paymentRepository)
+    IRepository<Payment> paymentRepository,
+    IRepository<User> userRepository)
     : ControllerBase
 {
     [HttpPost]
@@ -125,6 +126,27 @@ public class StripeWebhookController(
                 }
 
                 Console.WriteLine($"Invoice payment failed: {invoice?.Id}");
+            }
+
+            if (stripeEvent.Type == "account.updated")
+            {
+                var account = stripeEvent.Data.Object as Account;
+
+                if (account is not null && account.ChargesEnabled && account.PayoutsEnabled)
+                {
+                    var host = await userRepository.Query()
+                        .FirstOrDefaultAsync(u => u.StripeAccountId == account.Id, ct);
+
+                    if (host is not null && host.StripeOnboardedAt is null)
+                    {
+                        host.Role = UserRole.Host;
+                        host.StripeOnboardedAt = DateTimeOffset.UtcNow;
+                        host.UpdatedAt = DateTimeOffset.UtcNow;
+                        userRepository.Update(host);
+                        await userRepository.SaveChangesAsync(ct);
+                        Console.WriteLine($"Host {host.Id} onboarding completed via webhook.");
+                    }
+                }
             }
 
             if (stripeEvent.Type == "charge.refunded")
