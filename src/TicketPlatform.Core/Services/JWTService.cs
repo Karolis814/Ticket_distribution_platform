@@ -5,7 +5,6 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TicketPlatform.Core.Entities;
-using TicketPlatform.Core.Services;
 using TicketPlatform.Core.Settings;
 
 namespace TicketPlatform.Core.Services;
@@ -35,28 +34,6 @@ public class JWTService(IOptions<JWTSettings> options) : IJWTService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public string RefreshAccessToken(ClaimsPrincipal principal)
-    {
-        var claims = principal.Claims
-            .Where(c => c.Type != JwtRegisteredClaimNames.Jti)
-            .Append(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()))
-            .ToList();
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer:             _settings.Issuer,
-            audience:           _settings.Audience,
-            claims:             claims,
-            notBefore:          DateTime.UtcNow,
-            expires:            DateTime.UtcNow.AddMinutes(_settings.AccessTokenExpiryMinutes),
-            signingCredentials: credentials
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
     public RefreshToken GenerateRefreshToken(Guid userId)
     {
         return new RefreshToken
@@ -67,18 +44,6 @@ public class JWTService(IOptions<JWTSettings> options) : IJWTService
             IsRevoked = false
         };
     }
-
-    // refresh token WIP
-    public Guid? ValidateRefreshToken(string token)
-    {
-        
-        if (string.IsNullOrWhiteSpace(token))
-            return null;
-
-        return Guid.Empty; 
-    }
-
-   
 
     private static List<Claim> BuildClaims(User user)
     {
