@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -34,18 +33,7 @@ public class JWTService(IOptions<JWTSettings> options) : IJWTService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public RefreshToken GenerateRefreshToken(Guid userId)
-    {
-        return new RefreshToken
-        {
-            UserId    = userId,
-            Token     = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
-            ExpiresAt = DateTime.UtcNow.AddDays(_settings.RefreshTokenExpiryDays),
-            IsRevoked = false
-        };
-    }
-
-    private static List<Claim> BuildClaims(User user)
+private static List<Claim> BuildClaims(User user)
     {
         var claims = new List<Claim>
         {
