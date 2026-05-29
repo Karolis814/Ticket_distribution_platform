@@ -120,7 +120,10 @@ public class TicketsController(
                 TicketTypeId = ticketType.Id,
                 Quantity = quantity,
                 UnitPriceCents = ticketType.PriceCents,
-                Currency = ticketType.Currency
+                Currency = ticketType.Currency,
+                ReminderStatus = request.RemindersEnabled
+                    ? ReminderStatus.Pending
+                    : ReminderStatus.Refused
             };
 
             await orderItemService.CreateAsync(orderItem, ct);

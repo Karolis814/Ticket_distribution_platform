@@ -102,11 +102,14 @@ public partial class SingleEventBase : ComponentBase
     protected static bool IsSoldOut(EventDto evt) =>
         evt.TicketTypes.Count > 0 && evt.TicketTypes.All(t => t.Sold >= t.Quantity);
 
+    protected static bool IsEnded(EventDto evt) =>
+        evt.TicketTypes.Count > 0 && evt.TicketTypes.Max(t => t.OccurenceEndDate) < DateTimeOffset.UtcNow;
+
     protected bool IsOwner(EventDto evt) =>
         CurrentUserId != Guid.Empty && CurrentUserId == evt.HostId;
 
     protected bool ShouldShowCheckout(EventDto evt) =>
-        !IsOwner(evt) && evt.Status != EventStatus.Cancelled && !IsSoldOut(evt);
+        !IsOwner(evt) && evt.Status != EventStatus.Cancelled && !IsSoldOut(evt) && !IsEnded(evt);
 
     protected static string GetHostDisplayName(HostDto host)
     {
