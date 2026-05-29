@@ -3,7 +3,7 @@
 @attribute [AllowAnonymous]
 @inherits LoginBase
 
-<PageTitle>Sign in</PageTitle>
+<PageTitle>Sign In</PageTitle>
 
 <RadzenCard Style="width:100%;max-width:420px;margin:2rem auto;">
 
@@ -12,7 +12,7 @@
 
         <RadzenStack Gap="1.5rem">
 
-            <PageHeader Title="Sign In" Subtitle="Welcome back." />
+            <PageHeader Title="Sign In" Subtitle="Welcome back."/>
 
             @if (ErrorMessage is not null)
             {
@@ -44,22 +44,25 @@
 
             </RadzenStack>
 
-            <RadzenButton Text="@(IsLoading ? "Signing in…" : "Sign in")"
-                          ButtonType="ButtonType.Submit"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Size="ButtonSize.Large"
-                          Icon="@(IsLoading ? "" : "login")"
-                          Disabled="@IsLoading"
-                          Style="width:100%"/>
+            <RadzenStack Gap="0.75rem">
+                <RadzenButton Text="@(IsLoading ? "Signing In…" : "Sign In")"
+                              ButtonType="ButtonType.Submit"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Size="ButtonSize.Large"
+                              Icon="@(IsLoading ? "" : "login")"
+                              Disabled="@IsLoading"
+                              Style="width:100%"/>
+
+                <RadzenButton Text="Create Account"
+                              ButtonStyle="ButtonStyle.Secondary"
+                              Size="ButtonSize.Large"
+                              Icon="@("person_add")"
+                              Style="width:100%"
+                              Click="@(() => Nav.NavigateTo("/auth/register"))"/>
+            </RadzenStack>
 
             <RadzenText TextStyle="TextStyle.Body2" Style="text-align:center;margin:0">
-                Forgot your password?
-                <RadzenLink Path="/forgot-password" Text="Reset password"/>
-            </RadzenText>
-
-            <RadzenText TextStyle="TextStyle.Body2" Style="text-align:center;margin:0">
-                Not a member?
-                <RadzenLink Path="/auth/register" Text="Create an account"/>
+                <RadzenLink Path="/auth/forgot-password" Text="Forgot Password?"/>
             </RadzenText>
 
         </RadzenStack>

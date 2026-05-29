@@ -8,7 +8,7 @@ namespace TicketPlatform.Web.Pages;
 public partial class LoginBase : ComponentBase
 {
     [Inject] private IAuthClient AuthClient { get; set; } = null!;
-    [Inject] private NavigationManager Nav { get; set; } = null!;
+    [Inject] protected NavigationManager Nav { get; set; } = null!;
     [Inject] private AuthenticationStateProvider AuthState { get; set; } = null!;
 
     [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }

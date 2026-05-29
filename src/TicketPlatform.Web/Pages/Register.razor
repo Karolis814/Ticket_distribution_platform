@@ -3,7 +3,7 @@
 @attribute [AllowAnonymous]
 @inherits RegisterBase
 
-<PageTitle>Create account</PageTitle>
+<PageTitle>Create Account</PageTitle>
 
 <RadzenCard Style="width:100%;max-width:560px;margin:2rem auto;">
 
@@ -12,7 +12,7 @@
 
         <RadzenStack Gap="1.5rem">
 
-            <PageHeader Title="Create account" Subtitle="Manage all your tickets in one place and publish your own events. Fill in the form below to get started."/>
+            <PageHeader Title="Create Account" Subtitle="Manage all your tickets in one place and publish your own events. Fill in the form below to get started."/>
 
             @if (ErrorMessage is not null)
             {
@@ -132,7 +132,7 @@
 
             </RadzenStack>
 
-            <RadzenButton Text="@(IsLoading ? "Creating account…" : "Create account")"
+            <RadzenButton Text="@(IsLoading ? "Creating Account…" : "Create Account")"
                           ButtonStyle="ButtonStyle.Primary"
                           Size="ButtonSize.Large"
                           Icon="@(IsLoading ? "" : "person_add")"
@@ -146,7 +146,7 @@
 
     <RadzenText TextStyle="TextStyle.Body2" Style="text-align:center;margin:1.5rem 0 0">
         Already have an account?
-        <RadzenLink Path="/auth/login" Text="Sign in"/>
+        <RadzenLink Path="/auth/login" Text="Sign In"/>
     </RadzenText>
 
 </RadzenCard>
