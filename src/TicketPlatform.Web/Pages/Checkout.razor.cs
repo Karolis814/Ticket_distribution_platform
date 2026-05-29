@@ -170,11 +170,30 @@ public class CheckoutBase : ComponentBase
             if (!response.IsSuccessStatusCode)
             {
                 var detail = await response.Content.ReadAsStringAsync();
+
+                if ((int)response.StatusCode == 409)
+                {
+                    Notify.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Warning,
+                        Summary  = "Tickets no longer available",
+                        Detail   = string.IsNullOrWhiteSpace(detail)
+                            ? "Someone else just bought the last ticket(s). Please update your selection."
+                            : detail,
+                        Duration = 8000
+                    });
+
+                    // Reload so Remaining() shows current stock, send back to ticket selection
+                    await LoadEventAsync();
+                    ShowDetails = false;
+                    return;
+                }
+
                 Notify.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Error,
-                    Summary = "Checkout failed",
-                    Detail = string.IsNullOrWhiteSpace(detail)
+                    Summary  = "Checkout failed",
+                    Detail   = string.IsNullOrWhiteSpace(detail)
                         ? $"Server returned {(int)response.StatusCode}."
                         : detail,
                     Duration = 6000

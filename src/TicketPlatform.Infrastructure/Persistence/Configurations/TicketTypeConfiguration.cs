@@ -38,6 +38,9 @@ public static class TicketTypeConfiguration
             builder.Property(x => x.PriceCents)
                 .IsRequired();
 
+            builder.Property(x => x.RowVersion)  // optimistic locking
+                .IsRowVersion();
+
             builder.Property(x => x.Currency)
                 .IsRequired()
                 .HasMaxLength(3);

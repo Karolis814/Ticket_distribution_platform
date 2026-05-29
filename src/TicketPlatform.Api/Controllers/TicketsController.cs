@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using TicketPlatform.Core.Common;
 using TicketPlatform.Core.Entities;
+using TicketPlatform.Core.Exceptions;
 using TicketPlatform.Core.Services;
 using TicketPlatform.Shared.Dtos;
 using TicketPlatform.Shared.Enums;
@@ -31,7 +32,7 @@ public class TicketsController(
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
                      ?? User.FindFirstValue("sub");
         Guid? userId = Guid.TryParse(userIdStr, out var parsed) ? parsed : null;
-        
+
         if (request.Items is not { Count: > 0 })
             return BadRequest("At least one item is required.");
 
@@ -70,6 +71,16 @@ public class TicketsController(
             return BadRequest($"All items must share the same currency. Found: {string.Join(", ", currencies)}.");
 
         var currency = currencies[0];
+
+        try
+        {
+            foreach (var (ticketType, quantity) in ticketTypes)
+                await ticketTypeService.ReserveAsync(ticketType.Id, quantity, ct);
+        }
+        catch (SoldOutException ex)
+        {
+            return Conflict(ex.Message);
+        }
 
         string firstName, lastName, email;
 
