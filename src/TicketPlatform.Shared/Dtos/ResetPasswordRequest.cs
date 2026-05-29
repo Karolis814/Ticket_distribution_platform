@@ -3,6 +3,6 @@ namespace TicketPlatform.Shared.Dtos;
 public record ResetPasswordRequest
 {
     public required string Email { get; init; }
-    public  string Token { get; init; }
-    public string NewPassword { get; init; }
+    public required string Token { get; init; }
+    public required string NewPassword { get; init; }
 }
