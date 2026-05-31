@@ -323,7 +323,6 @@ public class SettingsBase : ComponentBase, IDisposable
         [MaxLength(100)]
         public string LastName { get; set; } = "";
 
-        [Phone(ErrorMessage = "Enter a valid phone number.")]
         [MaxLength(30)]
         public string PhoneNumber { get; set; } = "";
 
