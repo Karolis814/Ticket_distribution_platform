@@ -1,0 +1,45 @@
+name: Deploy Api to Azure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/TicketPlatform.Api/**'
+      - 'src/TicketPlatform.Core/**'
+      - 'src/TicketPlatform.Infrastructure/**'
+      - 'src/TicketPlatform.Shared/**'
+      - '.github/workflows/deploy-api.yml'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  AZURE_WEBAPP_NAME: app-ticketplatform-api-markk
+  PROJECT_PATH: src/TicketPlatform.Api/TicketPlatform.Api.csproj
+  PUBLISH_DIR: ${{ github.workspace }}/publish
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Publish
+        run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --no-restore --output ${{ env.PUBLISH_DIR }}
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
+          package: ${{ env.PUBLISH_DIR }}
