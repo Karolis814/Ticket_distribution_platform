@@ -10,9 +10,7 @@ namespace TicketPlatform.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Sold",
-                table: "TicketTypes");
+            migrationBuilder.Sql(@"ALTER TABLE ""TicketTypes"" DROP COLUMN IF EXISTS ""Sold"";");
 
             migrationBuilder.AddColumn<byte[]>(
                 name: "RowVersion",
