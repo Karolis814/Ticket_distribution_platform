@@ -1,0 +1,25 @@
+server {
+    listen 8080;
+    listen [::]:8080;
+
+    root /home/site/wwwroot;
+    index index.html;
+
+    server_tokens off;
+
+    location / {
+        try_files $uri $uri/ /index.html =404;
+    }
+
+    location ~* \.(?:wasm|dll|pdb|dat|blat)$ {
+        types {
+            application/wasm wasm;
+            application/octet-stream dll pdb dat blat;
+        }
+        try_files $uri =404;
+    }
+
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json application/wasm application/octet-stream;
+    gzip_min_length 1000;
+}
