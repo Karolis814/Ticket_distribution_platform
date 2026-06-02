@@ -90,7 +90,7 @@
                                             <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color">Doors open</RadzenText>
                                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
                                                 <RadzenIcon Icon="login" Style="font-size:0.9rem;"/>
-                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.AdmissionStartDate?.ToLocalTime().ToString("dd MMM, HH:mm")</RadzenText>
+                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.AdmissionStartDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
                                             </RadzenStack>
                                         </RadzenStack>
                                     </RadzenColumn>
@@ -99,7 +99,7 @@
                                             <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color">Last entry</RadzenText>
                                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
                                                 <RadzenIcon Icon="logout" Style="font-size:0.9rem;"/>
-                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.AdmissionEndDate?.ToLocalTime().ToString("dd MMM, HH:mm")</RadzenText>
+                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.AdmissionEndDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
                                             </RadzenStack>
                                         </RadzenStack>
                                     </RadzenColumn>
@@ -114,7 +114,7 @@
                                             <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color">Starts</RadzenText>
                                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
                                                 <RadzenIcon Icon="event" Style="font-size:0.9rem;"/>
-                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.OccurenceStartDate?.ToLocalTime().ToString("dd MMM, HH:mm")</RadzenText>
+                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.OccurenceStartDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
                                             </RadzenStack>
                                         </RadzenStack>
                                     </RadzenColumn>
@@ -123,7 +123,7 @@
                                             <RadzenText TextStyle="TextStyle.Caption" Class="rz-text-secondary-color">Ends</RadzenText>
                                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.4rem">
                                                 <RadzenIcon Icon="event_busy" Style="font-size:0.9rem;"/>
-                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.OccurenceEndDate?.ToLocalTime().ToString("dd MMM, HH:mm")</RadzenText>
+                                                <RadzenText Style="font-size:0.875rem;font-weight:600;margin:0;">@Result.OccurenceEndDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</RadzenText>
                                             </RadzenStack>
                                         </RadzenStack>
                                     </RadzenColumn>
