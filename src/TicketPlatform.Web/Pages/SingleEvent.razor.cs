@@ -87,9 +87,9 @@ public partial class SingleEventBase : ComponentBase
         var end = evt.TicketTypes.Max(tt => tt.OccurenceEndDate).ToLocalTime();
 
         if (start.Date == end.Date)
-            return $"{start:dddd, d MMMM yyyy} · {start:HH:mm} – {end:HH:mm}";
+            return $"{start:yyyy-MM-dd} · {start:HH:mm} – {end:HH:mm}";
 
-        return $"{start:d MMM yyyy} – {end:d MMM yyyy}";
+        return $"{start:yyyy-MM-dd} – {end:yyyy-MM-dd}";
     }
 
     protected static int GetRemainingTickets(EventDto evt)
