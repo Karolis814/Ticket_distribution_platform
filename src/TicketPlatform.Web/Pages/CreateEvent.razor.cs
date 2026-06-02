@@ -291,13 +291,14 @@ public partial class CreateEventBase : ComponentBase
                     return;
                 }
 
-                if ((release.Price ?? 0m) < 0)
+                var price = release.Price ?? 0m;
+                if (price < 0 || (price > 0 && price < 0.5m))
                 {
                     NotificationService.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Warning,
                         Summary = "Validation Failed",
-                        Detail = $"Release '{release.Title}': Price cannot be negative.",
+                        Detail = $"Release '{release.Title}': Price must be 0 or at least 0.50.",
                         Duration = 5000
                     });
                     return;
