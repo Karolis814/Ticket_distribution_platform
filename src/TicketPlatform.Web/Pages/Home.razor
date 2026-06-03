@@ -182,26 +182,31 @@
             Browse hundreds of events — concerts, sports, theatre, and more.
             Secure your tickets in seconds, no account required.
         </RadzenText>
-        <RadzenStack Orientation="Orientation.Horizontal"
-                     Gap="1rem"
-                     Style="flex-wrap:wrap;"
-                     JustifyContent="JustifyContent.Center">
-            <RadzenButton Text="View All Events"
-                          Icon="event"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Size="ButtonSize.Large"
-                          Click="@(() => Nav.NavigateTo("/events"))"/>
-            <RadzenButton Text="Search Events"
-                          Icon="search"
-                          ButtonStyle="ButtonStyle.Secondary"
-                          Size="ButtonSize.Large"
-                          Click="@(() => Nav.NavigateTo("/events"))"/>
-            <RadzenButton Text="My Tickets"
-                          Icon="confirmation_number"
-                          ButtonStyle="ButtonStyle.Info"
-                          Size="ButtonSize.Large"
-                          Click="@(() => Nav.NavigateTo("/user/purchases"))"/>
-        </RadzenStack>
+        <RadzenRow Gap="1rem"
+                   Style="text-align:center;"
+                   JustifyContent="JustifyContent.Center">
+            <RadzenColumn>
+                <RadzenButton Text="View All Events"
+                              Icon="event"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Size="ButtonSize.Large"
+                              Click="@(() => Nav.NavigateTo("/events"))"/>
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenButton Text="Search Events"
+                              Icon="search"
+                              ButtonStyle="ButtonStyle.Secondary"
+                              Size="ButtonSize.Large"
+                              Click="@(() => Nav.NavigateTo("/events"))"/>
+            </RadzenColumn>
+            <RadzenColumn>
+                <RadzenButton Text="My Tickets"
+                              Icon="confirmation_number"
+                              ButtonStyle="ButtonStyle.Info"
+                              Size="ButtonSize.Large"
+                              Click="@(() => Nav.NavigateTo("/user/purchases"))"/>
+            </RadzenColumn>
+        </RadzenRow>
     </RadzenStack>
 </RadzenCard>
 
