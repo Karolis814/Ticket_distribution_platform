@@ -48,7 +48,7 @@ public class OrderCompletionService(
             await paymentRepository.SaveChangesAsync(ct);
         }
 
-        var pdf = await pdfService.GeneratePdfAsync(order.Id, ct);
+        var pdf = await pdfService.GeneratePdfAsync(order.Id, ct: ct);
 
         var eventName = order.OrderItems.First().TicketType.Event.Title;
 

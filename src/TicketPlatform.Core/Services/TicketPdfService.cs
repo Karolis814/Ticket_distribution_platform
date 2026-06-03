@@ -8,17 +8,28 @@ namespace TicketPlatform.Core.Services;
 
 public class TicketPdfService(IOrderService orderService) : ITicketPdfService
 {
-    public async Task<byte[]> GeneratePdfAsync(Guid orderId, CancellationToken ct = default)
+    public async Task<byte[]> GeneratePdfAsync(Guid orderId, TimeZoneInfo? timeZone = null, CancellationToken ct = default)
     {
         var order = await orderService.GetByIdAsync(orderId, ct);
 
         if (order is null)
             throw new InvalidOperationException($"Order with ID {orderId} not found.");
 
-        return GeneratePdf(order);
+        return GeneratePdf(order, timeZone);
     }
 
-    private static byte[] GeneratePdf(Order order)
+    private static DateTimeOffset Local(DateTimeOffset utc, TimeZoneInfo? tz) =>
+        tz is null ? utc : TimeZoneInfo.ConvertTime(utc, tz);
+
+    private static string TzSuffix(DateTimeOffset local)
+    {
+        if (local.Offset == TimeSpan.Zero) return "UTC";
+        var h = local.Offset.Hours;
+        var m = Math.Abs(local.Offset.Minutes);
+        return m == 0 ? $"UTC{h:+0;-0}" : $"UTC{h:+0;-0}:{m:D2}";
+    }
+
+    private static byte[] GeneratePdf(Order order, TimeZoneInfo? tz)
     {
         QuestPDF.Settings.License = LicenseType.Community;
 
@@ -43,7 +54,10 @@ public class TicketPdfService(IOrderService orderService) : ITicketPdfService
                     {
                         var @event = ticket.TicketType.Event;
                         var host = @event.Host;
-                        var isMultiDay = ticket.TicketType.OccurenceEndDate.Date > ticket.TicketType.OccurenceStartDate.Date;
+                        var startLocal    = Local(ticket.TicketType.OccurenceStartDate, tz);
+                        var endLocal      = Local(ticket.TicketType.OccurenceEndDate, tz);
+                        var admStartLocal = Local(ticket.TicketType.AdmissionStartDate, tz);
+                        var isMultiDay    = endLocal.Date > startLocal.Date;
 
                         col.Item().Text(@event.Title)
                             .FontSize(22).Bold().AlignCenter();
@@ -60,14 +74,14 @@ public class TicketPdfService(IOrderService orderService) : ITicketPdfService
 
                             if (isMultiDay)
                             {
-                                txt.Line($"Starts: {ticket.TicketType.OccurenceStartDate:yyyy-MM-dd HH:mm} UTC");
-                                txt.Line($"Ends:   {ticket.TicketType.OccurenceEndDate:yyyy-MM-dd HH:mm} UTC");
+                                txt.Line($"Starts: {startLocal:yyyy-MM-dd HH:mm} {TzSuffix(startLocal)}");
+                                txt.Line($"Ends:   {endLocal:yyyy-MM-dd HH:mm} {TzSuffix(endLocal)}");
                             }
                             else
                             {
-                                txt.Span($"{ticket.TicketType.OccurenceStartDate:yyyy-MM-dd}");
+                                txt.Span($"{startLocal:yyyy-MM-dd}");
                                 txt.Span("  ·  ");
-                                txt.Span($"{ticket.TicketType.OccurenceStartDate:HH:mm} – {ticket.TicketType.OccurenceEndDate:HH:mm} UTC");
+                                txt.Span($"{startLocal:HH:mm} – {endLocal:HH:mm} {TzSuffix(startLocal)}");
                             }
                         });
 
@@ -77,8 +91,8 @@ public class TicketPdfService(IOrderService orderService) : ITicketPdfService
                         if (!admissionMatchesOccurence)
                             col.Item().PaddingTop(3).Text(
                                     isMultiDay
-                                        ? $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} on {ticket.TicketType.AdmissionStartDate:yyyy-MM-dd} UTC"
-                                        : $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} UTC")
+                                        ? $"Doors open at {admStartLocal:HH:mm} on {admStartLocal:yyyy-MM-dd} {TzSuffix(admStartLocal)}"
+                                        : $"Doors open at {admStartLocal:HH:mm} {TzSuffix(admStartLocal)}")
                                 .FontSize(9).FontColor(Colors.Grey.Medium).AlignCenter();
 
                         if (!string.IsNullOrEmpty(@event.Location))
