@@ -60,14 +60,14 @@ public class TicketPdfService(IOrderService orderService) : ITicketPdfService
 
                             if (isMultiDay)
                             {
-                                txt.Line($"Starts: {ticket.TicketType.OccurenceStartDate:yyyy-MM-dd HH:mm}");
-                                txt.Line($"Ends:   {ticket.TicketType.OccurenceEndDate:yyyy-MM-dd HH:mm}");
+                                txt.Line($"Starts: {ticket.TicketType.OccurenceStartDate:yyyy-MM-dd HH:mm} UTC");
+                                txt.Line($"Ends:   {ticket.TicketType.OccurenceEndDate:yyyy-MM-dd HH:mm} UTC");
                             }
                             else
                             {
                                 txt.Span($"{ticket.TicketType.OccurenceStartDate:yyyy-MM-dd}");
                                 txt.Span("  ·  ");
-                                txt.Span($"{ticket.TicketType.OccurenceStartDate:HH:mm} – {ticket.TicketType.OccurenceEndDate:HH:mm}");
+                                txt.Span($"{ticket.TicketType.OccurenceStartDate:HH:mm} – {ticket.TicketType.OccurenceEndDate:HH:mm} UTC");
                             }
                         });
 
@@ -77,8 +77,8 @@ public class TicketPdfService(IOrderService orderService) : ITicketPdfService
                         if (!admissionMatchesOccurence)
                             col.Item().PaddingTop(3).Text(
                                     isMultiDay
-                                        ? $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} on {ticket.TicketType.AdmissionStartDate:yyyy-MM-dd}"
-                                        : $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm}")
+                                        ? $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} on {ticket.TicketType.AdmissionStartDate:yyyy-MM-dd} UTC"
+                                        : $"Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} UTC")
                                 .FontSize(9).FontColor(Colors.Grey.Medium).AlignCenter();
 
                         if (!string.IsNullOrEmpty(@event.Location))

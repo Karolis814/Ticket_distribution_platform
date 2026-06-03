@@ -23,7 +23,7 @@ public class TicketValidationService(ITicketService ticketService) : ITicketVali
                 ValidationStatus.NotFound,
                 null, null, null, null, null, null, null, null,
                 "Only host can validate tickets.");
-            
+
         }
 
         var result = Evaluate(ticket);
@@ -46,7 +46,7 @@ public class TicketValidationService(ITicketService ticketService) : ITicketVali
                 ticket.TicketType.Title,
                 ticket.TimesUsed,
                 ticket.TicketType.MaxUses,
-                $"Admission hasn't started yet. Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} on {ticket.TicketType.AdmissionStartDate:dd MMM}.");
+                $"Admission hasn't started yet. Doors open at {ticket.TicketType.AdmissionStartDate:HH:mm} on {ticket.TicketType.AdmissionStartDate:dd MMM} UTC.");
 
         if (now > ticket.TicketType.AdmissionEndDate)
             return new TicketValidationResult(
@@ -59,7 +59,7 @@ public class TicketValidationService(ITicketService ticketService) : ITicketVali
                 ticket.TicketType.Title,
                 ticket.TimesUsed,
                 ticket.TicketType.MaxUses,
-                $"Admission ended at {ticket.TicketType.AdmissionEndDate:HH:mm} on {ticket.TicketType.AdmissionEndDate:dd MMM}!");
+                $"Admission ended at {ticket.TicketType.AdmissionEndDate:HH:mm} on {ticket.TicketType.AdmissionEndDate:dd MMM} UTC.");
 
         if (ticket.TicketType.MaxUses > 0 && ticket.TimesUsed >= ticket.TicketType.MaxUses)
             return new TicketValidationResult(
