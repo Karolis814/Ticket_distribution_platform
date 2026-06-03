@@ -1,3 +1,7 @@
+export function getTimezone() {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
 let stream = null;
 let animId = null;
 let paused = false;

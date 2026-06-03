@@ -27,7 +27,15 @@ public class ScanController(ITicketValidationService validationService) : Contro
           Guid userId = Guid.Parse(user);
 
 
-        var result = await validationService.ValidateAsync(ticketId, userId, ct);
+        TimeZoneInfo? userTz = null;
+        var tzHeader = Request.Headers["X-Timezone"].FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(tzHeader))
+        {
+            try { userTz = TimeZoneInfo.FindSystemTimeZoneById(tzHeader); }
+            catch { /* unknown timezone — fall back to UTC */ }
+        }
+
+        var result = await validationService.ValidateAsync(ticketId, userId, userTz, ct);
         return Ok(MapToDto(result));
     }
 
