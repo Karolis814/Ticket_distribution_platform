@@ -20,6 +20,7 @@ public class ScannerBase : ComponentBase, IAsyncDisposable
 
     private IJSObjectReference? _scanModule;
     private DotNetObjectReference<ScannerBase>? _selfRef;
+    private string? _timezone;
 
     protected AlertStyle ResultAlertStyle => Result?.Status switch
     {
@@ -44,6 +45,7 @@ public class ScannerBase : ComponentBase, IAsyncDisposable
         _selfRef = DotNetObjectReference.Create(this);
         _scanModule = await Js.InvokeAsync<IJSObjectReference>(
             "import", "./js/scanner.js");
+        _timezone = await _scanModule.InvokeAsync<string>("getTimezone");
     }
 
     protected async Task StartCamera()
@@ -105,7 +107,11 @@ public class ScannerBase : ComponentBase, IAsyncDisposable
 
         try
         {
-            Result = await Http.GetFromJsonAsync<TicketValidationResultDto>($"api/scan/{ticketId}");
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"api/scan/{ticketId}");
+            if (_timezone is not null)
+                request.Headers.TryAddWithoutValidation("X-Timezone", _timezone);
+            var response = await Http.SendAsync(request);
+            Result = await response.Content.ReadFromJsonAsync<TicketValidationResultDto>();
         }
         catch (Exception ex)
         {

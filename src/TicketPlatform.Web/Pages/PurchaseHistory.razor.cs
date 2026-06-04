@@ -26,11 +26,15 @@ public class PurchaseHistoryBase : ComponentBase, IAsyncDisposable
 
     protected async Task DownloadTicketsAsync(Guid orderId)
     {
-        var response = await Http.GetAsync($"api/payments/{orderId}/tickets");
+        _jsModule ??= await Js.InvokeAsync<IJSObjectReference>("import", "./js/downloads.js");
+        var tz = await _jsModule.InvokeAsync<string>("getTimezone");
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"api/payments/{orderId}/tickets");
+        request.Headers.TryAddWithoutValidation("X-Timezone", tz);
+        var response = await Http.SendAsync(request);
         if (!response.IsSuccessStatusCode) return;
 
         var bytes = await response.Content.ReadAsByteArrayAsync();
-        _jsModule ??= await Js.InvokeAsync<IJSObjectReference>("import", "./js/downloads.js");
         await _jsModule.InvokeVoidAsync("triggerDownload", "tickets.pdf", "application/pdf", bytes);
     }
 

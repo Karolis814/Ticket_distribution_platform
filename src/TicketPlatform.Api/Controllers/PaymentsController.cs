@@ -132,7 +132,15 @@ public class PaymentsController(
         if (payment.Order.Status != OrderStatus.Completed)
             return BadRequest("Order is not completed.");
 
-        var pdf = await ticketPdfService.GeneratePdfAsync(orderId, ct);
+        TimeZoneInfo? userTz = null;
+        var tzHeader = Request.Headers["X-Timezone"].FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(tzHeader))
+        {
+            try { userTz = TimeZoneInfo.FindSystemTimeZoneById(tzHeader); }
+            catch { /* unknown timezone — fall back to UTC */ }
+        }
+
+        var pdf = await ticketPdfService.GeneratePdfAsync(orderId, userTz, ct);
 
         return File(pdf, "application/pdf", "tickets.pdf");
     }
