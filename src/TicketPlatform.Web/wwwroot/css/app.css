@@ -92,6 +92,17 @@
     100% {background-position:0   0,0 0,0 100%}
 }
 
+.rz-layout .rz-sidebar {
+    position: fixed;
+    top: 50px;
+    height: calc(100dvh - 50px);
+    z-index: 200;
+}
+
+.rz-button.rz-button-lg {
+    white-space: nowrap;
+}
+
 .event-card {
     transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
