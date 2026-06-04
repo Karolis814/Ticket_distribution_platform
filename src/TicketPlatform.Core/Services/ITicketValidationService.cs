@@ -4,5 +4,5 @@ namespace TicketPlatform.Core.Services;
 
 public interface ITicketValidationService
 {
-    Task<TicketValidationResult> ValidateAsync(Guid ticketId, Guid userId, CancellationToken ct = default);
+    Task<TicketValidationResult> ValidateAsync(Guid ticketId, Guid userId, TimeZoneInfo? timeZone = null, CancellationToken ct = default);
 }

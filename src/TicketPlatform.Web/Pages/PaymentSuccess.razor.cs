@@ -22,14 +22,18 @@ public class PaymentSuccessBase : ComponentBase, IDisposable
 
     protected async Task DownloadTicketsAsync()
     {
-        var response = await Http.GetAsync(
-            $"api/payments/{Payment!.OrderId}/tickets?sessionId={Uri.EscapeDataString(_sessionId ?? "")}");
+        await using var module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/downloads.js");
+        var tz = await module.InvokeAsync<string>("getTimezone");
+
+        var url = $"api/payments/{Payment!.OrderId}/tickets?sessionId={Uri.EscapeDataString(_sessionId ?? "")}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.TryAddWithoutValidation("X-Timezone", tz);
+        var response = await Http.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
             return;
 
         var bytes = await response.Content.ReadAsByteArrayAsync();
-        await using var module = await Js.InvokeAsync<IJSObjectReference>("import", "./js/downloads.js");
         await module.InvokeVoidAsync("triggerDownload", "tickets.pdf", "application/pdf", bytes);
     }
 

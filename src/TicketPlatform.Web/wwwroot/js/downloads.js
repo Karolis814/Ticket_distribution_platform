@@ -1,3 +1,7 @@
+export function getTimezone() {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
 export function triggerDownload(filename, contentType, bytes) {
     const blob = new Blob([bytes], { type: contentType });
     const url = URL.createObjectURL(blob);
